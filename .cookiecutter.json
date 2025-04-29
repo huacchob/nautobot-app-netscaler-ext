@@ -1,0 +1,29 @@
+{
+    "cookiecutter": {
+        "codeowner_github_usernames": "huacchob",
+        "full_name": "Network to Code, LLC",
+        "email": "info@networktocode.com",
+        "github_org": "nautobot",
+        "app_name": "netscaler_ext",
+        "verbose_name": "Netscaler Ext",
+        "app_slug": "netscaler-ext",
+        "project_slug": "nautobot-app-netscaler-ext",
+        "repo_url": "https://github.com/nautobot/nautobot-app-netscaler-ext",
+        "base_url": "netscaler-ext",
+        "min_nautobot_version": "2.4.7",
+        "max_nautobot_version": "2.9999",
+        "camel_name": "NetscalerExt",
+        "project_short_description": "Netscaler Ext",
+        "model_class_name": "NetscalerExtExampleModel",
+        "open_source_license": "Apache-2.0",
+        "docs_base_url": "https://docs.nautobot.com",
+        "docs_app_url": "https://docs.nautobot.com/projects/netscaler-ext/en/latest",
+        "_extensions": [
+            "local_extensions.camel_case_to_kebab",
+            "local_extensions.camel_case_to_words"
+        ],
+        "_template": "git@github.com:nautobot/cookiecutter-nautobot-app.git",
+        "_output_dir": "/Users/carloshuaccho/ipa/netscaler_ext",
+        "_repo_dir": "/Users/carloshuaccho/.cookiecutters/cookiecutter-nautobot-app/nautobot-app"
+    }
+}
