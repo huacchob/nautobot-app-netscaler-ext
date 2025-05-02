@@ -1,17 +1,13 @@
 """default network_importer API-based driver for Citrix Netscaler."""
 
-from typing import TYPE_CHECKING
+from logging import Logger
 
+from nautobot.dcim.models import Device
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import MultiResult, Result, Task
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
-
-if TYPE_CHECKING:
-    from logging import Logger
-
-    from nautobot.dcim.models import Device
 
 NETMIKO_DEVICE_TYPE = "netscaler"
 
@@ -31,15 +27,18 @@ class NetScalerDriver(NetmikoDefault):
         backup_file: str,
         remove_lines: list[str],
         substitute_lines: list[str],
-    ) -> Result | None:
+    ) -> None | Result:
         """
-        Retrieve and process the configuration from a network device via CLI and API.
+        Retrieve and process the configuration from a network device via CLI.
 
         This method performs the following:
           - Sets up the task's device platform for CLI backup.
-          - Executes a CLI command using Netmiko (with timing enabled) to obtain the device's running configuration.
-          - Processes the CLI backup by removing and substituting specified lines and saves the result to a backup file.
-          - Validates and utilizes the RouterOS API to retrieve configuration data if the dependency is available.
+          - Executes a CLI command using Netmiko (with timing enabled) to
+            obtain the device's running configuration.
+          - Processes the CLI backup by removing and substituting specified
+            lines and saves the result to a backup file.
+          - Validates and utilizes the RouterOS API to retrieve configuration
+            data if the dependency is available.
           - Processes the API configuration similarly to the CLI configuration.
           - Returns a Result object containing the processed API configuration.
 
@@ -55,26 +54,34 @@ class NetScalerDriver(NetmikoDefault):
           backup_file (str):
               The file path where the backup configuration will be stored.
           remove_lines (list[str]):
-              A list of string patterns or specific lines to remove from the configuration output.
+              A list of string patterns or specific lines to remove from the
+                configuration output.
           substitute_lines (list[str]):
-              A list of string patterns or mappings to substitute within the configuration output.
+              A list of string patterns or mappings to substitute within the
+                configuration output.
 
         Returns:
           Result:
-              A result object containing the processed API configuration. The object includes the host details
-              and a dictionary with the key "config" mapping to the processed configuration string.
+              A result object containing the processed API configuration. The
+                object includes the host details
+              and a dictionary with the key "config" mapping to the processed
+                configuration string.
 
         Raises:
           NornirNautobotException:
-              If the CLI command execution fails, if the RouterOS API dependency is unavailable,
-              or if any error occurs during API configuration retrieval or processing.
+              If the CLI command execution fails, if the RouterOS API
+                dependency is unavailable,
+              or if any error occurs during API configuration retrieval or
+                processing.
 
         Notes:
           - The function assumes that `cls.config_command` is defined.
-          - The CLI configuration is handled with a delay factor to ensure complete retrieval.
-          - The SSL context is created and configured to support plaintext login using specific cipher settings.
-          - The method processes the configuration data by invoking `cls._process_config`, applying removals
-            and substitutions as specified.
+          - The CLI configuration is handled with a delay factor to ensure
+            complete retrieval.
+          - The SSL context is created and configured to support plaintext
+            login using specific cipher settings.
+          - The method processes the configuration data by invoking
+          `cls._process_config`, applying removals and subs as specified.
         """
         task.host.platform = NETMIKO_DEVICE_TYPE
 
@@ -93,7 +100,7 @@ class NetScalerDriver(NetmikoDefault):
             raise NornirNautobotException(error_msg)
 
         if result[0].failed:
-            return result
+            return result[0]
 
         _running_config: str = result[0].result
         processed_config: str = cls._process_config(
@@ -163,10 +170,7 @@ class NetScalerDriver(NetmikoDefault):
             )
             raise NornirNautobotException()
 
-        failed: bool = any(
-            any(msg in result.result.lower() for msg in NETMIKO_FAIL_MSG)
-            for result in push_results
-        )
+        failed: bool = any(any(msg in result.result.lower() for msg in NETMIKO_FAIL_MSG) for result in push_results)
         if failed:
             logger.warning(
                 msg="Config merged with errors, please check full info log below.",
