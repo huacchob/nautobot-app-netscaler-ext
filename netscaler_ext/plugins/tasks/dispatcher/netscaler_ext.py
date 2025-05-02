@@ -7,7 +7,7 @@ from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import MultiResult, Result, Task
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
+from nornir_netmiko.tasks import netmiko_send_command
 
 NETMIKO_DEVICE_TYPE = "netscaler"
 
@@ -16,7 +16,7 @@ class NetScalerDriver(NetmikoDefault):
     """Simply override the config_command class attribute in the subclass."""
 
     config_command: str = "show runningConfig"
-    tcp_port: int = 8091
+    tcp_port: int = 22
 
     @classmethod
     def get_config(  # pylint: disable=R0913,R0914
@@ -88,6 +88,26 @@ class NetScalerDriver(NetmikoDefault):
         command: str = cls.config_command
 
         try:
+            task.run(task=netmiko_send_command, command_string="nscli", expect_string=r">")
+            task.run(
+                task=netmiko_send_command,
+                command_string="login",
+                expect_string=r"Enter userName:",
+            )
+            task.run(
+                task=netmiko_send_command,
+                command_string=task.host.username,
+                expect_string=r"Enter password",
+            )
+            task.run(
+                task=netmiko_send_command,
+                command_string=task.host.password,
+                expect_string=r">",  # or whatever prompt appears after successful login
+            )
+        except Exception:
+            print("Falied")
+
+        try:
             result: MultiResult = task.run(
                 task=netmiko_send_command,
                 use_timing=True,
@@ -112,95 +132,95 @@ class NetScalerDriver(NetmikoDefault):
         )
         return Result(host=task.host, result={"config": processed_config})
 
-    @staticmethod
-    def merge_config(
-        task: Task,
-        logger: Logger,
-        obj: Device,
-        config: str,
-    ) -> Result:
-        """Send configuration to merge on the device.
+    # @staticmethod
+    # def merge_config(
+    #     task: Task,
+    #     logger: Logger,
+    #     obj: Device,
+    #     config: str,
+    # ) -> Result:
+    #     """Send configuration to merge on the device.
 
-        Args:
-            task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
-            obj (Device): A Nautobot Device Django ORM object instance.
-            config (str): The config set.
+    #     Args:
+    #         task (Task): Nornir Task.
+    #         logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+    #         obj (Device): A Nautobot Device Django ORM object instance.
+    #         config (str): The config set.
 
-        Raises:
-            NornirNautobotException: Authentication error.
-            NornirNautobotException: Timeout error.
-            NornirNautobotException: Other exception.
+    #     Raises:
+    #         NornirNautobotException: Authentication error.
+    #         NornirNautobotException: Timeout error.
+    #         NornirNautobotException: Other exception.
 
-        Returns:
-            Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
-        """
-        # Adjust platform type to switch to CLI config push
-        NETMIKO_FAIL_MSG: list[str] = ["bad", "failed", "failure"]  # pylint: disable=C0103
-        task.host.platform = NETMIKO_DEVICE_TYPE
-        logger.info(msg="Config merge starting", extra={"object": obj})
+    #     Returns:
+    #         Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
+    #     """
+    #     # Adjust platform type to switch to CLI config push
+    #     NETMIKO_FAIL_MSG: list[str] = ["bad", "failed", "failure"]  # pylint: disable=C0103
+    #     task.host.platform = NETMIKO_DEVICE_TYPE
+    #     logger.info(msg="Config merge starting", extra={"object": obj})
 
-        try:
-            # Push API configuration
-            config_list: list[str] = config.splitlines()
-            push_result_api: MultiResult = task.run(
-                task=netmiko_send_config,
-                config_commands=config_list,
-            )
+    #     try:
+    #         # Push API configuration
+    #         config_list: list[str] = config.splitlines()
+    #         push_result_api: MultiResult = task.run(
+    #             task=netmiko_send_config,
+    #             config_commands=config_list,
+    #         )
 
-            # Check if there's any CLI configuration to push
-            cli_configuration: str = obj.cf.get("cli_configuration", "")
-            if cli_configuration:
-                cli_config_list: list[str] = cli_configuration.splitlines()
+    #         # Check if there's any CLI configuration to push
+    #         cli_configuration: str = obj.cf.get("cli_configuration", "")
+    #         if cli_configuration:
+    #             cli_config_list: list[str] = cli_configuration.splitlines()
 
-                # Send command
-                push_result_cli: MultiResult = task.run(
-                    task=netmiko_send_config,
-                    config_commands=cli_config_list,
-                )
-                push_results: list[Result] = [push_result_api[0], push_result_cli[0]]
-            else:
-                push_results: list[Result] = [push_result_api[0]]
+    #             # Send command
+    #             push_result_cli: MultiResult = task.run(
+    #                 task=netmiko_send_config,
+    #                 config_commands=cli_config_list,
+    #             )
+    #             push_results: list[Result] = [push_result_api[0], push_result_cli[0]]
+    #         else:
+    #             push_results: list[Result] = [push_result_api[0]]
 
-        except NornirSubTaskError as exc:
-            exc_result: Result = exc.result
-            logger.error(
-                msg=f"Failed with error: `{exc_result.exception}`",
-                extra={"object": obj},
-            )
-            raise NornirNautobotException()
+    #     except NornirSubTaskError as exc:
+    #         exc_result: Result = exc.result
+    #         logger.error(
+    #             msg=f"Failed with error: `{exc_result.exception}`",
+    #             extra={"object": obj},
+    #         )
+    #         raise NornirNautobotException()
 
-        failed: bool = any(any(msg in result.result.lower() for msg in NETMIKO_FAIL_MSG) for result in push_results)
-        if failed:
-            logger.warning(
-                msg="Config merged with errors, please check full info log below.",
-                extra={"object": obj},
-            )
-            for result in push_results:
-                logger.error(
-                    msg=f"result: {result.result}",
-                    extra={"object": obj},
-                )
-                result.failed = True
-        else:
-            logger.info(
-                msg="Config merged successfully.",
-                extra={"object": obj},
-            )
-            for result in push_results:
-                logger.info(
-                    msg=f"result: {result.result}",
-                    extra={"object": obj},
-                )
-                result.failed = False
+    #     failed: bool = any(any(msg in result.result.lower() for msg in NETMIKO_FAIL_MSG) for result in push_results)
+    #     if failed:
+    #         logger.warning(
+    #             msg="Config merged with errors, please check full info log below.",
+    #             extra={"object": obj},
+    #         )
+    #         for result in push_results:
+    #             logger.error(
+    #                 msg=f"result: {result.result}",
+    #                 extra={"object": obj},
+    #             )
+    #             result.failed = True
+    #     else:
+    #         logger.info(
+    #             msg="Config merged successfully.",
+    #             extra={"object": obj},
+    #         )
+    #         for result in push_results:
+    #             logger.info(
+    #                 msg=f"result: {result.result}",
+    #                 extra={"object": obj},
+    #             )
+    #             result.failed = False
 
-        changed: bool = any(result.changed for result in push_results)
+    #     changed: bool = any(result.changed for result in push_results)
 
-        return Result(
-            host=task.host,
-            result={
-                "changed": changed,
-                "result": "\n".join(result.result for result in push_results),
-                "failed": failed,
-            },
-        )
+    #     return Result(
+    #         host=task.host,
+    #         result={
+    #             "changed": changed,
+    #             "result": "\n".join(result.result for result in push_results),
+    #             "failed": failed,
+    #         },
+    #     )

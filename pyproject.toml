@@ -31,6 +31,7 @@ include = [
 python = ">=3.9.2,<3.13"
 # Used for local development
 nautobot = "^2.4.7"
+nornir = "^3.5.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"

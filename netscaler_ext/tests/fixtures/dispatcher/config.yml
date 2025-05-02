@@ -1,0 +1,6 @@
+inventory:
+  plugin: SimpleInventory
+  options:
+    host_file: "netscaler_ext/tests/fixtures/dispatcher/hosts.yml"
+    group_file: "netscaler_ext/tests/fixtures/dispatcher/groups.yml"
+    defaults_file: "netscaler_ext/tests/fixtures/dispatcher/defaults.yml"

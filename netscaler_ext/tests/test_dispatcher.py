@@ -1,0 +1,75 @@
+import os
+import unittest
+from logging import Formatter, Logger, StreamHandler, getLogger
+from typing import Any
+
+import django
+from nornir import InitNornir
+from nornir.core.task import MultiResult, Result, Task
+
+# Set up Django settings
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "development.nautobot_config")
+django.setup()
+
+# Import the driver
+from netscaler_ext.plugins.tasks.dispatcher.netscaler_ext import NetScalerDriver
+
+
+class MockDevice:
+    """Stubbed Nautobot Device object."""
+
+    name: str = "netscaler1"
+    cf = {}
+
+
+def setup_logger() -> Logger:
+    logger: Logger = getLogger(name="netscaler_test")
+    if not logger.handlers:
+        handler = StreamHandler()
+        formatter = Formatter(fmt="%(asctime)s - %(levelname)s - %(message)s")
+        handler.setFormatter(fmt=formatter)
+        logger.addHandler(hdlr=handler)
+    logger.setLevel(level="DEBUG")
+    return logger
+
+
+def build_nornir() -> Any:
+    return InitNornir(config_file="netscaler_ext/tests/fixtures/dispatcher/config.yml")
+
+
+class TestNetScalerDriver(unittest.TestCase):
+    """Test case for NetScalerDispatcher methods."""
+
+    def setUp(self) -> None:
+        self.logger: Logger = setup_logger()
+        self.device = MockDevice()
+        self.nornir: Any = build_nornir()
+
+    def test_get_config_runs_successfully(self) -> None:
+        """Ensure NetScalerDriver.get_config() runs and returns expected structure."""
+
+        def runner(task: Task) -> Result:
+            return NetScalerDriver.get_config(
+                task=task,
+                logger=self.logger,
+                obj=self.device,
+                backup_file="netscaler_ext/tests/fixtures/backup_files/netscaler.cfg",
+                remove_lines=[],
+                substitute_lines=[],
+            )
+
+        result: Any = self.nornir.run(task=runner)
+
+        # Validate the structure
+        self.assertIn(member="netscaler1", container=result)
+        host_result: Any = result["netscaler1"]
+        self.assertIsInstance(obj=host_result, cls=MultiResult)
+        self.assertIn(member="config", container=host_result.result)
+        self.assertIsInstance(obj=host_result.result["config"], cls=str)
+
+        # Optionally print for debug
+        print(host_result.result["config"])
+
+
+if __name__ == "__main__":
+    unittest.main()
