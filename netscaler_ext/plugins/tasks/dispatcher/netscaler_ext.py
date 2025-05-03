@@ -7,6 +7,7 @@ from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import MultiResult, Result, Task
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from nornir_netmiko.connections import CONNECTION_NAME
 from nornir_netmiko.tasks import netmiko_send_command
 
 NETMIKO_DEVICE_TYPE = "netscaler"
@@ -84,6 +85,11 @@ class NetScalerDriver(NetmikoDefault):
           `cls._process_config`, applying removals and subs as specified.
         """
         task.host.platform = NETMIKO_DEVICE_TYPE
+        task.host.open_connection(
+            connection=CONNECTION_NAME,
+            configuration=task.nornir.config,
+            extras={"banner_timeout": 30},
+        )
 
         command: str = cls.config_command
 
