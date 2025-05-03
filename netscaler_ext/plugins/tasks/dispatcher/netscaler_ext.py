@@ -84,7 +84,7 @@ class NetScalerDriver(NetmikoDefault):
           - The method processes the configuration data by invoking
           `cls._process_config`, applying removals and subs as specified.
         """
-        task.host = obj
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         task.host.platform = NETMIKO_DEVICE_TYPE
         task.host.open_connection(
             connection=CONNECTION_NAME,
