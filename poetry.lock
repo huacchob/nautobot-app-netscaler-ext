@@ -33,7 +33,7 @@ version = "4.9.0"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "anyio-4.9.0-py3-none-any.whl", hash = "sha256:9f76d541cad6e36af7beb62e978876f3b41e3e04f2c1fbf0884604c0a9c4d93c"},
     {file = "anyio-4.9.0.tar.gz", hash = "sha256:673c0c244e15788651a4ff38710fea9675823028a6f08a5eda409e0c9840a028"},
@@ -204,7 +204,7 @@ version = "4.3.0"
 description = "Modern password hashing for your software and your servers"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "bcrypt-4.3.0-cp313-cp313t-macosx_10_12_universal2.whl", hash = "sha256:f01e060f14b6b57bbb72fc5b4a83ac21c443c9a2ee708e04a10e9192f90a6281"},
     {file = "bcrypt-4.3.0-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c5eeac541cefd0bb887a371ef73c62c3cd78535e4887b310626036a7c0a817bb"},
@@ -431,7 +431,6 @@ files = [
     {file = "cffi-1.17.1-cp39-cp39-win_amd64.whl", hash = "sha256:d016c76bdd850f3c626af19b0542c9677ba156e4ee4fccfdd7848803533ef662"},
     {file = "cffi-1.17.1.tar.gz", hash = "sha256:1c39c6016c32bc48dd54561950ebd6836e1670f2ae46128f67cf49e789c52824"},
 ]
-markers = {main = "platform_python_implementation != \"PyPy\""}
 
 [package.dependencies]
 pycparser = "*"
@@ -616,7 +615,6 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {main = "platform_system == \"Windows\""}
 
 [[package]]
 name = "columnar"
@@ -1285,7 +1283,7 @@ version = "1.2.2"
 description = "Backport of PEP 654 (exception groups)"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "python_version < \"3.11\""
 files = [
     {file = "exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b"},
@@ -1316,7 +1314,7 @@ version = "1.0.0"
 description = "Clean single-source support for Python 3 and 2"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "future-1.0.0-py3-none-any.whl", hash = "sha256:929292d34f5872e70396626ef385ec22355a1fae8ad29e1a734c3e43f9fbc216"},
     {file = "future-1.0.0.tar.gz", hash = "sha256:bd2968309307861edae1458a4f8a4f3598c03be43b97521076aebf5d94c07b05"},
@@ -1531,7 +1529,7 @@ version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"},
     {file = "h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1"},
@@ -1543,7 +1541,7 @@ version = "1.0.9"
 description = "A minimal low-level HTTP client."
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "httpcore-1.0.9-py3-none-any.whl", hash = "sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"},
     {file = "httpcore-1.0.9.tar.gz", hash = "sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8"},
@@ -1565,7 +1563,7 @@ version = "0.27.0"
 description = "The next generation HTTP client."
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "httpx-0.27.0-py3-none-any.whl", hash = "sha256:71d5465162c13681bff01ad59b2cc68dd838ea1f10e51574bac27103f00c91a5"},
     {file = "httpx-0.27.0.tar.gz", hash = "sha256:a0cb88a46f32dc874e04ee956e4c2764aba2aa228f650b06788ba6bda2962ab5"},
@@ -1870,7 +1868,7 @@ version = "2.7.3"
 description = "Junos 'EZ' automation for non-programmers"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "junos-eznc-2.7.3.tar.gz", hash = "sha256:15a9aff9da4bf25dc3c7e54fdf98f3eff5dc4fe8edb79075f54039bcf7a71bd1"},
     {file = "junos_eznc-2.7.3-py2.py3-none-any.whl", hash = "sha256:d3316bfa197900113b4faedd581999f4c8c596ed59277f7956ed2c0bf1d2cbe4"},
@@ -1983,7 +1981,7 @@ version = "5.4.0"
 description = "Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API."
 optional = false
 python-versions = ">=3.6"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "lxml-5.4.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:e7bc6df34d42322c5289e37e9971d6ed114e3776b45fa879f734bded9d1fea9c"},
     {file = "lxml-5.4.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:6854f8bd8a1536f8a1d9a3655e6354faa6406621cf857dc27b681b69860645c7"},
@@ -2148,7 +2146,7 @@ version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "markdown-it-py-3.0.0.tar.gz", hash = "sha256:e3f60a94fa066dc52ec76661e37c851cb232d92f9886b15cb560aaada2df8feb"},
     {file = "markdown_it_py-3.0.0-py3-none-any.whl", hash = "sha256:355216845c60bd96232cd8d8c40e8f9765cc86f46880e43a8fd22dc1a1a8cab1"},
@@ -2286,7 +2284,7 @@ version = "0.1.2"
 description = "Markdown URL utilities"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
@@ -2464,7 +2462,7 @@ version = "5.0.0"
 description = "Network Automation and Programmability Abstraction Layer with Multivendor support"
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "napalm-5.0.0-py2.py3-none-any.whl", hash = "sha256:458837932e527ca06a4bab7e600b0ca6e6bc3bb4b33fad9c9ef2befc7df6d2f5"},
     {file = "napalm-5.0.0.tar.gz", hash = "sha256:350ac3d74f2f10030dbae44d3395551d7e03ee25c65fa5eb8263a4e6f51f2c94"},
@@ -2558,12 +2556,29 @@ remote-storage = ["django-storages (==1.14.3)"]
 sso = ["social-auth-core[saml] (>=4.5.6,<4.6.0)"]
 
 [[package]]
+name = "nautobot-plugin-nornir"
+version = "2.2.1"
+description = "Nautobot App that provides a shim layer to simplify using Nornir within other Nautobot Apps and Nautobot Jobs"
+optional = false
+python-versions = "<3.13,>=3.9"
+groups = ["main"]
+files = [
+    {file = "nautobot_plugin_nornir-2.2.1-py3-none-any.whl", hash = "sha256:9122bbcc42604a76216f3e169e8f3723478ad5e4c5c2f78bf8645e6d16dc03d6"},
+    {file = "nautobot_plugin_nornir-2.2.1.tar.gz", hash = "sha256:0aeb80797b397bdd7d9ebe30f2779b33ea21c83152a5876df6b6436957e561b0"},
+]
+
+[package.dependencies]
+nautobot = ">=2.2.0,<3.0.0"
+netutils = ">=1.6.0"
+nornir-nautobot = ">=3.3.0,<4.0.0"
+
+[[package]]
 name = "ncclient"
 version = "0.6.15"
 description = "Python library for NETCONF clients"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "ncclient-0.6.15.tar.gz", hash = "sha256:6757cb41bc9160dfe47f22f5de8cf2f1adf22f27463fb50453cc415ab96773d8"},
 ]
@@ -2595,7 +2610,7 @@ version = "4.5.0"
 description = "Multi-vendor library to simplify legacy CLI connections to network devices"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "netmiko-4.5.0-py3-none-any.whl", hash = "sha256:42d81fb906339af1fb5c6899f181f5cb5c9b03311262ba56c696b113e1f2f61a"},
     {file = "netmiko-4.5.0.tar.gz", hash = "sha256:dbdfc20b6caaf8e5d7a570bb1b42a26b9a6f8d8234e91f5c65f4dbfe0c0e4f50"},
@@ -2683,7 +2698,7 @@ version = "0.2.0"
 description = "Jinja2 plugins for nornir"
 optional = false
 python-versions = ">=3.6,<4.0"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "nornir_jinja2-0.2.0-py3-none-any.whl", hash = "sha256:0c446bec7a8492923d4eb9ca00fb327603b41bc35d5f0112843c048737b506b1"},
     {file = "nornir_jinja2-0.2.0.tar.gz", hash = "sha256:9ee5e725fe5543dcba4ec8b976804e9e88ecd356ea3b62bad97578cea0de1f75"},
@@ -2699,7 +2714,7 @@ version = "0.5.0"
 description = "NAPALM's plugins for nornir"
 optional = false
 python-versions = "<4.0,>=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "nornir_napalm-0.5.0-py3-none-any.whl", hash = "sha256:1a418bf0f5e38ac65894d474f81b50787dafe0aa1965c4fbd1b86d34d4374418"},
     {file = "nornir_napalm-0.5.0.tar.gz", hash = "sha256:4c95979eebe2475e7b8516411ad8e3205d2ff30e410d1dbdce785a55033d1130"},
@@ -2715,7 +2730,7 @@ version = "3.3.1"
 description = "Nornir Nautobot"
 optional = false
 python-versions = "<3.13,>=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "nornir_nautobot-3.3.1-py3-none-any.whl", hash = "sha256:4eaf84adc6143637a93d114952bc1636e7705fb244a6012c042e2cb185ff3e47"},
     {file = "nornir_nautobot-3.3.1.tar.gz", hash = "sha256:aedd282b59f1faab2b732b08290e1bff317c5453e9b81afb622819d67b55b613"},
@@ -2742,7 +2757,7 @@ version = "1.0.1"
 description = "Netmiko's plugins for Nornir"
 optional = false
 python-versions = ">=3.8,<4.0"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "nornir_netmiko-1.0.1-py3-none-any.whl", hash = "sha256:eaee2944ad386b40c0719e8ac393ac63d531f44fb9a07d660bae7de430f12834"},
     {file = "nornir_netmiko-1.0.1.tar.gz", hash = "sha256:498546df001e0e499f10c5646d1356e361ccbb165b1335b89cfe8f19765e24d7"},
@@ -2757,7 +2772,7 @@ version = "2025.1.30"
 description = "Scrapli's plugin for Nornir"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "nornir_scrapli-2025.1.30-py3-none-any.whl", hash = "sha256:be178b13257ece024a01c97c798973622138bc780fa607fe8bed70d0dbf2914a"},
     {file = "nornir_scrapli-2025.1.30.tar.gz", hash = "sha256:b36bbfcf3678e695d54c0df673f9cf662dbd737d9e13170893cd4ed833c7b410"},
@@ -2784,7 +2799,7 @@ version = "0.2.0"
 description = "Collection of plugins and functions for nornir that don't require external dependencies"
 optional = false
 python-versions = ">=3.6.2,<4.0.0"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "nornir_utils-0.2.0-py3-none-any.whl", hash = "sha256:b4c430793a74f03affd5ff2d90abc8c67a28c7ff325f48e3a01a9a44ec71b844"},
     {file = "nornir_utils-0.2.0.tar.gz", hash = "sha256:4de6aaa35e5c1a98e1c84db84a008b0b1e974dc65d88484f2dcea3e30c95fbc2"},
@@ -2800,7 +2815,7 @@ version = "7.8.0"
 description = "TextFSM Templates for Network Devices, and Python wrapper for TextFSM's CliTable."
 optional = false
 python-versions = "<4.0,>=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "ntc_templates-7.8.0-py3-none-any.whl", hash = "sha256:db0e8328117b6ce51e0fffee291a2cf7d8771977fbf4d751e457c49748e9c56b"},
     {file = "ntc_templates-7.8.0.tar.gz", hash = "sha256:693536d228de466e0ce895226586f090eb91fcd4e209aeb12527391b4340fc62"},
@@ -2860,7 +2875,7 @@ version = "3.5.1"
 description = "SSH2 protocol library"
 optional = false
 python-versions = ">=3.6"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "paramiko-3.5.1-py3-none-any.whl", hash = "sha256:43b9a0501fc2b5e70680388d9346cf252cfb7d00b0667c39e80eb43a408b8f61"},
     {file = "paramiko-3.5.1.tar.gz", hash = "sha256:b2c665bc45b2b215bd7d7f039901b14b067da00f3a11e6640995fd58f2664822"},
@@ -3132,6 +3147,7 @@ files = [
     {file = "psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:bb89f0a835bcfc1d42ccd5f41f04870c1b936d8507c6df12b7737febc40f0909"},
     {file = "psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:f0c2d907a1e102526dd2986df638343388b94c33860ff3bbe1384130828714b1"},
     {file = "psycopg2_binary-2.9.10-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:f8157bed2f51db683f31306aa497311b560f2265998122abe1dce6428bd86567"},
+    {file = "psycopg2_binary-2.9.10-cp313-cp313-win_amd64.whl", hash = "sha256:27422aa5f11fbcd9b18da48373eb67081243662f9b46e6fd07c3eb46e4535142"},
     {file = "psycopg2_binary-2.9.10-cp38-cp38-macosx_12_0_x86_64.whl", hash = "sha256:eb09aa7f9cecb45027683bb55aebaaf45a0df8bf6de68801a6afdc7947bb09d4"},
     {file = "psycopg2_binary-2.9.10-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b73d6d7f0ccdad7bc43e6d34273f70d587ef62f824d7261c4ae9b8b1b6af90e8"},
     {file = "psycopg2_binary-2.9.10-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ce5ab4bf46a211a8e924d307c1b1fcda82368586a19d0a24f8ae166f5c784864"},
@@ -3232,7 +3248,6 @@ files = [
     {file = "pycparser-2.22-py3-none-any.whl", hash = "sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc"},
     {file = "pycparser-2.22.tar.gz", hash = "sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6"},
 ]
-markers = {main = "platform_python_implementation != \"PyPy\""}
 
 [[package]]
 name = "pyeapi"
@@ -3240,7 +3255,7 @@ version = "1.0.4"
 description = "Python Client for eAPI"
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "pyeapi-1.0.4.tar.gz", hash = "sha256:05920677246823cd3dddf7d4d0f831fbc86fd416f356706a03bc56a291d78f3d"},
 ]
@@ -3258,7 +3273,7 @@ version = "2.19.1"
 description = "Pygments is a syntax highlighting package written in Python."
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "pygments-2.19.1-py3-none-any.whl", hash = "sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c"},
     {file = "pygments-2.19.1.tar.gz", hash = "sha256:61c16d2a8576dc0649d9f39e089b5f02bcd27fba10d8fb4dcc28173f7a45151f"},
@@ -3477,7 +3492,7 @@ version = "1.5.0"
 description = "Python binding to the Networking and Cryptography (NaCl) library"
 optional = false
 python-versions = ">=3.6"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "PyNaCl-1.5.0-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:401002a4aaa07c9414132aaed7f6836ff98f59277a234704ff66878c2ee4a0d1"},
     {file = "PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:52cb72a79269189d4e0dc537556f4740f7f0a9ec41c1322598799b0bdad4ef92"},
@@ -3504,7 +3519,7 @@ version = "2.6.2"
 description = "Nautobot API client library"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "pynautobot-2.6.2-py3-none-any.whl", hash = "sha256:95b36973a8fca481d5afe2396b9e579b9b5c99b2f02d8558773336b485b99770"},
     {file = "pynautobot-2.6.2.tar.gz", hash = "sha256:c3386cebbaec9b0eb1ddcecd7e2e8048694ef4db589a0dcf80c9505595332919"},
@@ -3521,7 +3536,7 @@ version = "3.2.3"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "pyparsing-3.2.3-py3-none-any.whl", hash = "sha256:a749938e02d6fd0b59b356ca504a24982314bb090c383e3cf201c95ef7e2bfcf"},
     {file = "pyparsing-3.2.3.tar.gz", hash = "sha256:b9c13f1ab8b3b542f72e28f634bad4de758ab3ce4546e4301970ad6fa77c38be"},
@@ -3536,7 +3551,7 @@ version = "3.5"
 description = "Python Serial Port Extension"
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "pyserial-3.5-py2.py3-none-any.whl", hash = "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0"},
     {file = "pyserial-3.5.tar.gz", hash = "sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb"},
@@ -3961,7 +3976,7 @@ version = "14.0.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 optional = false
 python-versions = ">=3.8.0"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "rich-14.0.0-py3-none-any.whl", hash = "sha256:1c9491e1951aac09caffd42f448ee3d04e58923ffe14993f6e83068dc395d7e0"},
     {file = "rich-14.0.0.tar.gz", hash = "sha256:82f1bc23a6a21ebca4ae0c45af9bdbc492ed20231dcb63f297d6d1021a9d5725"},
@@ -4148,6 +4163,7 @@ files = [
     {file = "ruamel.yaml.clib-0.2.12-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f66efbc1caa63c088dead1c4170d148eabc9b80d95fb75b6c92ac0aad2437d76"},
     {file = "ruamel.yaml.clib-0.2.12-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:22353049ba4181685023b25b5b51a574bce33e7f51c759371a7422dcae5402a6"},
     {file = "ruamel.yaml.clib-0.2.12-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:932205970b9f9991b34f55136be327501903f7c66830e9760a8ffb15b07f05cd"},
+    {file = "ruamel.yaml.clib-0.2.12-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:a52d48f4e7bf9005e8f0a89209bf9a73f7190ddf0489eee5eb51377385f59f2a"},
     {file = "ruamel.yaml.clib-0.2.12-cp310-cp310-win32.whl", hash = "sha256:3eac5a91891ceb88138c113f9db04f3cebdae277f5d44eaa3651a4f573e6a5da"},
     {file = "ruamel.yaml.clib-0.2.12-cp310-cp310-win_amd64.whl", hash = "sha256:ab007f2f5a87bd08ab1499bdf96f3d5c6ad4dcfa364884cb4549aa0154b13a28"},
     {file = "ruamel.yaml.clib-0.2.12-cp311-cp311-macosx_13_0_arm64.whl", hash = "sha256:4a6679521a58256a90b0d89e03992c15144c5f3858f40d7c18886023d7943db6"},
@@ -4156,6 +4172,7 @@ files = [
     {file = "ruamel.yaml.clib-0.2.12-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:811ea1594b8a0fb466172c384267a4e5e367298af6b228931f273b111f17ef52"},
     {file = "ruamel.yaml.clib-0.2.12-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:cf12567a7b565cbf65d438dec6cfbe2917d3c1bdddfce84a9930b7d35ea59642"},
     {file = "ruamel.yaml.clib-0.2.12-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:7dd5adc8b930b12c8fc5b99e2d535a09889941aa0d0bd06f4749e9a9397c71d2"},
+    {file = "ruamel.yaml.clib-0.2.12-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:1492a6051dab8d912fc2adeef0e8c72216b24d57bd896ea607cb90bb0c4981d3"},
     {file = "ruamel.yaml.clib-0.2.12-cp311-cp311-win32.whl", hash = "sha256:bd0a08f0bab19093c54e18a14a10b4322e1eacc5217056f3c063bd2f59853ce4"},
     {file = "ruamel.yaml.clib-0.2.12-cp311-cp311-win_amd64.whl", hash = "sha256:a274fb2cb086c7a3dea4322ec27f4cb5cc4b6298adb583ab0e211a4682f241eb"},
     {file = "ruamel.yaml.clib-0.2.12-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:20b0f8dc160ba83b6dcc0e256846e1a02d044e13f7ea74a3d1d56ede4e48c632"},
@@ -4164,6 +4181,7 @@ files = [
     {file = "ruamel.yaml.clib-0.2.12-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:749c16fcc4a2b09f28843cda5a193e0283e47454b63ec4b81eaa2242f50e4ccd"},
     {file = "ruamel.yaml.clib-0.2.12-cp312-cp312-musllinux_1_1_i686.whl", hash = "sha256:bf165fef1f223beae7333275156ab2022cffe255dcc51c27f066b4370da81e31"},
     {file = "ruamel.yaml.clib-0.2.12-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:32621c177bbf782ca5a18ba4d7af0f1082a3f6e517ac2a18b3974d4edf349680"},
+    {file = "ruamel.yaml.clib-0.2.12-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:b82a7c94a498853aa0b272fd5bc67f29008da798d4f93a2f9f289feb8426a58d"},
     {file = "ruamel.yaml.clib-0.2.12-cp312-cp312-win32.whl", hash = "sha256:e8c4ebfcfd57177b572e2040777b8abc537cdef58a2120e830124946aa9b42c5"},
     {file = "ruamel.yaml.clib-0.2.12-cp312-cp312-win_amd64.whl", hash = "sha256:0467c5965282c62203273b838ae77c0d29d7638c8a4e3a1c8bdd3602c10904e4"},
     {file = "ruamel.yaml.clib-0.2.12-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:4c8c5d82f50bb53986a5e02d1b3092b03622c02c2eb78e29bec33fd9593bae1a"},
@@ -4172,6 +4190,7 @@ files = [
     {file = "ruamel.yaml.clib-0.2.12-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:96777d473c05ee3e5e3c3e999f5d23c6f4ec5b0c38c098b3a5229085f74236c6"},
     {file = "ruamel.yaml.clib-0.2.12-cp313-cp313-musllinux_1_1_i686.whl", hash = "sha256:3bc2a80e6420ca8b7d3590791e2dfc709c88ab9152c00eeb511c9875ce5778bf"},
     {file = "ruamel.yaml.clib-0.2.12-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:e188d2699864c11c36cdfdada94d781fd5d6b0071cd9c427bceb08ad3d7c70e1"},
+    {file = "ruamel.yaml.clib-0.2.12-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:4f6f3eac23941b32afccc23081e1f50612bdbe4e982012ef4f5797986828cd01"},
     {file = "ruamel.yaml.clib-0.2.12-cp313-cp313-win32.whl", hash = "sha256:6442cb36270b3afb1b4951f060eccca1ce49f3d087ca1ca4563a6eb479cb3de6"},
     {file = "ruamel.yaml.clib-0.2.12-cp313-cp313-win_amd64.whl", hash = "sha256:e5b8daf27af0b90da7bb903a876477a9e6d7270be6146906b276605997c7e9a3"},
     {file = "ruamel.yaml.clib-0.2.12-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:fc4b630cd3fa2cf7fce38afa91d7cfe844a9f75d7f0f36393fa98815e911d987"},
@@ -4180,6 +4199,7 @@ files = [
     {file = "ruamel.yaml.clib-0.2.12-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e2f1c3765db32be59d18ab3953f43ab62a761327aafc1594a2a1fbe038b8b8a7"},
     {file = "ruamel.yaml.clib-0.2.12-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:d85252669dc32f98ebcd5d36768f5d4faeaeaa2d655ac0473be490ecdae3c285"},
     {file = "ruamel.yaml.clib-0.2.12-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:e143ada795c341b56de9418c58d028989093ee611aa27ffb9b7f609c00d813ed"},
+    {file = "ruamel.yaml.clib-0.2.12-cp39-cp39-musllinux_1_2_aarch64.whl", hash = "sha256:2c59aa6170b990d8d2719323e628aaf36f3bfbc1c26279c0eeeb24d05d2d11c7"},
     {file = "ruamel.yaml.clib-0.2.12-cp39-cp39-win32.whl", hash = "sha256:beffaed67936fbbeffd10966a4eb53c402fafd3d6833770516bf7314bc6ffa12"},
     {file = "ruamel.yaml.clib-0.2.12-cp39-cp39-win_amd64.whl", hash = "sha256:040ae85536960525ea62868b642bdb0c2cc6021c9f9d507810c0c604e66f5a7b"},
     {file = "ruamel.yaml.clib-0.2.12.tar.gz", hash = "sha256:6c8fbb13ec503f99a91901ab46e0b07ae7941cd527393187039aec586fdfd36f"},
@@ -4230,7 +4250,7 @@ version = "0.15.0"
 description = "scp module for paramiko"
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "scp-0.15.0-py2.py3-none-any.whl", hash = "sha256:9e7f721e5ac563c33eb0831d0f949c6342f1c28c3bdc3b02f39d77b5ea20df7e"},
     {file = "scp-0.15.0.tar.gz", hash = "sha256:f1b22e9932123ccf17eebf19e0953c6e9148f589f93d91b872941a696305c83f"},
@@ -4245,7 +4265,7 @@ version = "2025.1.30"
 description = "Fast, flexible, sync/async, Python 3.7+ screen scraping client specifically for network devices"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "scrapli-2025.1.30-py3-none-any.whl", hash = "sha256:f71ca4e96b56ad245f34269dc3eedf168aca54eb7b1ba96ad0c965c2b76f807e"},
     {file = "scrapli-2025.1.30.tar.gz", hash = "sha256:3426a38b5dd6a4c67749c30f14102c04a4a43d3da17710b46fec7e53409b340e"},
@@ -4269,7 +4289,7 @@ version = "2025.1.30"
 description = "Network device configuration management with scrapli"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "scrapli_cfg-2025.1.30-py3-none-any.whl", hash = "sha256:aaf0c5f52ed06ba0ffefa860ab947c96b663c98a96f38b90eac567d46906fdf4"},
     {file = "scrapli_cfg-2025.1.30.tar.gz", hash = "sha256:7ed3b5743116d35d7d65f86d06dd7e74fcc509e1c8df6ddebffdeb7cebed13e8"},
@@ -4292,7 +4312,7 @@ version = "2025.1.30"
 description = "Easily add support for 'non-core' platforms to scrapli"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "scrapli_community-2025.1.30-py3-none-any.whl", hash = "sha256:dc4d02193ec3bb14cec9e04ab0d48fc59d575e1ccedac92fb4b8bbd6f3b6726f"},
     {file = "scrapli_community-2025.1.30.tar.gz", hash = "sha256:5357d1e471879203f648948adf114d8155a69ca1242060504d9b92f54f79d119"},
@@ -4312,7 +4332,7 @@ version = "2025.1.30"
 description = "Fast, flexible, sync/async, Python 3.7+ NETCONF client built on scrapli"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "scrapli_netconf-2025.1.30-py3-none-any.whl", hash = "sha256:009041515d9d75d6e3748730bc920b350eb6ab86c6890e44495ca00de3e86cd9"},
     {file = "scrapli_netconf-2025.1.30.tar.gz", hash = "sha256:06813455dda9bd27d99734a3f689b4259ccab625141fc41126495ccad705d248"},
@@ -4401,7 +4421,7 @@ version = "1.3.1"
 description = "Sniff out which async library your code is running under"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2"},
     {file = "sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc"},
@@ -4544,7 +4564,7 @@ version = "1.1.3"
 description = "Python module for parsing semi-structured text into python tables."
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "textfsm-1.1.3-py2.py3-none-any.whl", hash = "sha256:dcbeebc6a6137bed561c71a56344d752e6dbc04ae5ea309252cb70fb97ccc9cd"},
     {file = "textfsm-1.1.3.tar.gz", hash = "sha256:577ef278a9237f5341ae9b682947cefa4a2c1b24dbe486f94f2c95addc6504b5"},
@@ -4692,7 +4712,7 @@ version = "0.9.2"
 description = "A lightweight, object-oriented Python state machine implementation with many extensions."
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "transitions-0.9.2-py2.py3-none-any.whl", hash = "sha256:f7b40c9b4a93869f36c4d1c33809aeb18cdeeb065fd1adba018ee39c3db216f3"},
     {file = "transitions-0.9.2.tar.gz", hash = "sha256:2f8490dbdbd419366cef1516032ab06d07ccb5839ef54905e842a472692d4204"},
@@ -4711,7 +4731,7 @@ version = "0.9.5"
 description = "Template Text Parser"
 optional = false
 python-versions = ">=2.7,<4.0"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "ttp-0.9.5-py2.py3-none-any.whl", hash = "sha256:2c9fcf560b3f696e9fdd3554dc8e4622cbb10cac1d4fca13a7cf608c4a7fd137"},
     {file = "ttp-0.9.5.tar.gz", hash = "sha256:234414f4d3039d2d1cde09993f89f8db1b34d447f76c6a402555cefac2e59c4e"},
@@ -4727,7 +4747,7 @@ version = "0.3.7"
 description = "Template Text Parser Templates collections"
 optional = false
 python-versions = "<4.0,>=3.6"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "ttp_templates-0.3.7-py3-none-any.whl", hash = "sha256:2328304fb4c957ee60db6f301143e8a4556b22a12b3e2f30511e8ef97fc78f7e"},
     {file = "ttp_templates-0.3.7.tar.gz", hash = "sha256:f9103041a3683a0cb3811609ad990f679beadfc9a92c3e3fa05d6037414ad2bf"},
@@ -5007,7 +5027,7 @@ version = "0.4.2"
 description = "YAML loader and dumper for PyYAML allowing to keep keys order."
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "yamlordereddictloader-0.4.2-py3-none-any.whl", hash = "sha256:dc048adb67026786cd24119bd71241f35bc8b0fd37d24b415c37bbc8049f9cd7"},
     {file = "yamlordereddictloader-0.4.2.tar.gz", hash = "sha256:36af2f6210fcff5da4fc4c12e1d815f973dceb41044e795e1f06115d634bca13"},
@@ -5043,4 +5063,4 @@ all = []
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9.2,<3.13"
-content-hash = "ed93545bee396322588f84f6fdbce0caa031faf33ffb0407d5be9863f49aac1e"
+content-hash = "cda8435b8c3cf875ee49d80148d8f2d63133ccdc67c65490893dd36d1d59b795"
