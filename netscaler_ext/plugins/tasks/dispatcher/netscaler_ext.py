@@ -9,6 +9,7 @@ from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 from nornir_netmiko.connections import CONNECTION_NAME
 from nornir_netmiko.tasks import netmiko_send_command
+from remote_pdb import  RemotePdb
 
 NETMIKO_DEVICE_TYPE = "netscaler"
 
@@ -111,8 +112,10 @@ class NetScalerDriver(NetmikoDefault):
                 command_string=task.host.password,
                 expect_string=r">",  # or whatever prompt appears after successful login
             )
-        except Exception:
-            print("Falied")
+            RemotePdb(host="0.0.0.0", port=4444).set_trace()
+            
+        except Exception as exc:
+            logger.error(exc)
 
         try:
             result: MultiResult = task.run(
