@@ -65,10 +65,10 @@ class TestNetScalerDriver(unittest.TestCase):
         host_result: Any = result["netscaler1"]
         self.assertIsInstance(obj=host_result, cls=MultiResult)
         self.assertIn(member="config", container=host_result.result)
-        self.assertIsInstance(obj=host_result.result["config"], cls=str)
+        self.assertIsInstance(obj=host_result[0].result["config"], cls=str)
 
         # Optionally print for debug
-        print(host_result.result["config"])
+        # print(host_result.result["config"])
 
 
 if __name__ == "__main__":

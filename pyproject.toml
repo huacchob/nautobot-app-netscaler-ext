@@ -34,6 +34,7 @@ nautobot = "2.4.2"
 nornir = "^3.5.0"
 nautobot-plugin-nornir = "^2.2.1"
 remote-pdb = "^2.1.0"
+nautobot-golden-config = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
