@@ -10,6 +10,7 @@ from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 from nornir_netmiko.connections import CONNECTION_NAME
 from nornir_netmiko.tasks import netmiko_send_command
+from remote_pdb import RemotePdb
 
 NETMIKO_DEVICE_TYPE = "netscaler"
 
@@ -36,6 +37,7 @@ class NetScalerDriver(NetmikoDefault):
         command: str = cls.config_command
 
         try:
+            RemotePdb(host="0.0.0.0", port=4444).set_trace()
             task.run(task=netmiko_send_command, command_string="nscli", expect_string=r">")
             task.run(
                 task=netmiko_send_command,
