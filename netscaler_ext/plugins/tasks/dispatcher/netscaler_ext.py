@@ -137,6 +137,7 @@ class NetScalerDriver(NetmikoDefault):
             substitute_lines=substitute_lines,
             backup_file=backup_file,
         )
+        logger.info("Finished custom dispatcher")
         return Result(host=task.host, result={"config": processed_config})
 
     # @staticmethod
