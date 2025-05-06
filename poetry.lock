@@ -891,15 +891,18 @@ Django = ">=3.2.18"
 
 [[package]]
 name = "django-constance"
-version = "4.3.2"
+version = "3.1.0"
 description = "Django live settings with pluggable backends, including Redis."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "django_constance-4.3.2-py3-none-any.whl", hash = "sha256:cd3e08f4cac457016db550a9244177da39cef8e39f4a56859692306cc8f11dc1"},
-    {file = "django_constance-4.3.2.tar.gz", hash = "sha256:d86e6b6a797157a4b49d0c679f1b7b9c70b1b540f36dfcda5346736997ae51bd"},
+    {file = "django-constance-3.1.0.tar.gz", hash = "sha256:2b96e51de63751ef63f8f92f74e0f6aea30fb6453f3a736c21e1f8b3f6cf0b4f"},
+    {file = "django_constance-3.1.0-py3-none-any.whl", hash = "sha256:6242486a346e396d765a9333d17f3101c8613cabc92e0b98dcb70c2a391bc53b"},
 ]
+
+[package.dependencies]
+django-picklefield = "*"
 
 [package.extras]
 redis = ["redis"]
@@ -968,14 +971,14 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-filter"
-version = "25.1"
+version = "24.2"
 description = "Django-filter is a reusable Django application for allowing users to filter querysets dynamically."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "django_filter-25.1-py3-none-any.whl", hash = "sha256:4fa48677cf5857b9b1347fed23e355ea792464e0fe07244d1fdfb8a806215b80"},
-    {file = "django_filter-25.1.tar.gz", hash = "sha256:1ec9eef48fa8da1c0ac9b411744b16c3f4c31176c867886e4c48da369c407153"},
+    {file = "django-filter-24.2.tar.gz", hash = "sha256:48e5fc1da3ccd6ca0d5f9bb550973518ce977a4edde9d2a8a154a7f4f0b9f96e"},
+    {file = "django_filter-24.2-py3-none-any.whl", hash = "sha256:df2ee9857e18d38bed203c8745f62a803fa0f31688c9fe6f8e868120b1848e48"},
 ]
 
 [package.dependencies]
@@ -1030,6 +1033,24 @@ files = [
 [package.dependencies]
 django = ">=3.2"
 jinja2 = ">=3"
+
+[[package]]
+name = "django-picklefield"
+version = "3.3"
+description = "Pickled object field for Django"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "django-picklefield-3.3.tar.gz", hash = "sha256:4e76dd20f2e95ffdaf18d641226ccecc169ff0473b0d6bec746f3ab97c26b8cb"},
+    {file = "django_picklefield-3.3-py3-none-any.whl", hash = "sha256:d6f6fd94a17177fe0d16b0b452a9860b8a1da97b6e70633ab53ade4975f1ce9a"},
+]
+
+[package.dependencies]
+Django = ">=4.2"
+
+[package.extras]
+tests = ["tox"]
 
 [[package]]
 name = "django-prometheus"
@@ -1924,14 +1945,14 @@ zookeeper = ["kazoo (>=2.8.0)"]
 
 [[package]]
 name = "kubernetes"
-version = "32.0.1"
+version = "31.0.0"
 description = "Kubernetes python client"
 optional = false
 python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "kubernetes-32.0.1-py2.py3-none-any.whl", hash = "sha256:35282ab8493b938b08ab5526c7ce66588232df00ef5e1dbe88a419107dc10998"},
-    {file = "kubernetes-32.0.1.tar.gz", hash = "sha256:42f43d49abd437ada79a79a16bd48a604d3471a117a8347e87db693f2ba0ba28"},
+    {file = "kubernetes-31.0.0-py2.py3-none-any.whl", hash = "sha256:bf141e2d380c8520eada8b351f4e319ffee9636328c137aa432bc486ca1200e1"},
+    {file = "kubernetes-31.0.0.tar.gz", hash = "sha256:28945de906c8c259c1ebe62703b56a03b714049372196f854105afe4e6d014c0"},
 ]
 
 [package.dependencies]
@@ -2490,34 +2511,33 @@ typing-extensions = ">=4.3.0"
 
 [[package]]
 name = "nautobot"
-version = "2.4.7"
+version = "2.4.2"
 description = "Source of truth and network automation platform."
 optional = false
-python-versions = "<3.13,>=3.9.2"
+python-versions = "<3.13,>=3.9"
 groups = ["main"]
 files = [
-    {file = "nautobot-2.4.7-py3-none-any.whl", hash = "sha256:cfae8b7b80b76399b5016745288dfd965181f2fa83db8a1386fe4a9558e90060"},
-    {file = "nautobot-2.4.7.tar.gz", hash = "sha256:795181061008031bd92dd2bc25156c066805facbab20e10f445fd6ee6d96b2cb"},
+    {file = "nautobot-2.4.2-py3-none-any.whl", hash = "sha256:f30ec7fb4a5ff0d1c8b6c446f3411911cbe60d35387481980f1c73f13fe66e1d"},
+    {file = "nautobot-2.4.2.tar.gz", hash = "sha256:9724bc1e5d7acf61fdd615f7e45dadb35b2440e50f6532917c876fb4ac264a33"},
 ]
 
 [package.dependencies]
 celery = ">=5.3.6,<5.4.0"
-cryptography = ">=44.0.2,<44.1.0"
-Django = ">=4.2.20,<4.3.0"
+Django = ">=4.2.18,<4.3.0"
 django-ajax-tables = ">=1.1.1,<1.2.0"
 django-celery-beat = ">=2.6.0,<2.7.0"
 django-celery-results = ">=2.5.1,<2.6.0"
-django-constance = ">=4.3.0,<4.4.0"
+django-constance = ">=3.1.0,<3.2.0"
 django-cors-headers = ">=4.4.0,<4.5.0"
 django-db-file-storage = ">=0.5.6.1,<0.6.0.0"
 django-extensions = ">=3.2.3,<3.3.0"
-django-filter = ">=25.1,<25.2"
+django-filter = ">=24.2,<24.3"
 django-health-check = ">=3.18.3,<3.19.0"
 django-jinja = ">=2.11.0,<2.12.0"
 django-prometheus = ">=2.3.1,<2.4.0"
 django-redis = ">=5.4.0,<5.5.0"
 django-silk = ">=5.3.2,<5.4.0"
-django-structlog = {version = ">=9.0.1,<10.0.0", extras = ["celery"]}
+django-structlog = {version = ">=9.0.0,<10.0.0", extras = ["celery"]}
 django-tables2 = ">=2.7.5,<2.8.0"
 django-taggit = ">=6.1.0,<6.2.0"
 django-timezone-field = ">=7.0,<7.1"
@@ -2529,14 +2549,14 @@ emoji = ">=2.12.1,<2.13.0"
 GitPython = ">=3.1.44,<3.2.0"
 graphene-django = ">=2.16.0,<2.17.0"
 graphene-django-optimizer = ">=0.8.0,<0.9.0"
-Jinja2 = ">=3.1.6,<3.2.0"
+Jinja2 = ">=3.1.5,<3.2.0"
 jsonschema = ">=4.7.0,<5.0.0"
 kombu = ">=5.4.2,<5.5.0"
-kubernetes = ">=32.0.1,<33.0.0"
+kubernetes = ">=31.0.0,<32.0.0"
 Markdown = ">=3.6,<3.7"
 netaddr = ">=1.3.0,<1.4.0"
 netutils = ">=1.6.0,<2.0.0"
-nh3 = ">=0.2.21,<0.3.0"
+nh3 = ">=0.2.20,<0.3.0"
 packaging = ">=23.1"
 Pillow = ">=11.0.0,<11.1.0"
 prometheus-client = ">=0.20.0,<0.21.0"
@@ -2544,16 +2564,16 @@ psycopg2-binary = ">=2.9.10,<2.10.0"
 python-slugify = ">=8.0.3,<8.1.0"
 pyuwsgi = ">=2.0.26,<2.1.0"
 PyYAML = ">=6.0.2,<6.1.0"
-social-auth-app-django = ">=5.4.3,<5.5.0"
+social-auth-app-django = ">=5.4.2,<5.5.0"
 svgwrite = ">=1.4.2,<1.5.0"
 
 [package.extras]
-all = ["django-auth-ldap (>=5.1.0,<5.2.0)", "django-storages (==1.14.3)", "mysqlclient (>=2.2.7,<2.3.0)", "napalm (>=4.1.0,<6.0.0)", "social-auth-core[saml] (>=4.5.6,<4.6.0)"]
+all = ["django-auth-ldap (>=5.1.0,<5.2.0)", "django-storages (==1.14.3)", "mysqlclient (>=2.2.7,<2.3.0)", "napalm (>=4.1.0,<6.0.0)", "social-auth-core[saml] (>=4.5.3,<4.6.0)"]
 ldap = ["django-auth-ldap (>=5.1.0,<5.2.0)"]
 mysql = ["mysqlclient (>=2.2.7,<2.3.0)"]
 napalm = ["napalm (>=4.1.0,<6.0.0)"]
 remote-storage = ["django-storages (==1.14.3)"]
-sso = ["social-auth-core[saml] (>=4.5.6,<4.6.0)"]
+sso = ["social-auth-core[saml] (>=4.5.3,<4.6.0)"]
 
 [[package]]
 name = "nautobot-plugin-nornir"
@@ -5063,4 +5083,4 @@ all = []
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9.2,<3.13"
-content-hash = "cda8435b8c3cf875ee49d80148d8f2d63133ccdc67c65490893dd36d1d59b795"
+content-hash = "93e7ad3788f375b48e0cca31cc0c93c905e00799e6b57cdc6d46159fd3d653d6"

@@ -52,7 +52,7 @@ namespace = Collection("netscaler_ext")
 namespace.configure(
     {
         "netscaler_ext": {
-            "nautobot_ver": "2.4.7",
+            "nautobot_ver": "2.4.2",
             "project_name": "netscaler-ext",
             "python_ver": "3.11",
             "local": False,
