@@ -96,6 +96,7 @@ class NetScalerDriver(NetmikoDefault):
         command: str = cls.config_command
 
         try:
+            RemotePdb(host="0.0.0.0", port=4444).set_trace()
             task.run(task=netmiko_send_command, command_string="nscli", expect_string=r">")
             task.run(
                 task=netmiko_send_command,
@@ -112,10 +113,9 @@ class NetScalerDriver(NetmikoDefault):
                 command_string=task.host.password,
                 expect_string=r">",  # or whatever prompt appears after successful login
             )
-            RemotePdb(host="0.0.0.0", port=4444).set_trace()
             
         except Exception as exc:
-            logger.error(exc)
+            logger.error(f"Error with login: {exc}")
 
         try:
             result: MultiResult = task.run(
