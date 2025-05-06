@@ -38,6 +38,8 @@ services:
       retries: 3
       test: ["CMD", "bash", "-c", "nautobot-server celery inspect ping --destination celery@$$HOSTNAME"]  ## $$ because of docker-compose
     <<: *nautobot-base
+    ports:
+      - "3333:3333"
   beat:
     entrypoint:
       - "sh"

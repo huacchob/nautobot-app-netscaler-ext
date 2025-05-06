@@ -1,7 +1,6 @@
 """default network_importer API-based driver for Citrix Netscaler."""
 
 from logging import Logger
-import pdb
 
 from nautobot.dcim.models import Device
 from nornir.core.exceptions import NornirSubTaskError
@@ -35,30 +34,27 @@ class NetScalerDriver(NetmikoDefault):
         task.host.platform = NETMIKO_DEVICE_TYPE
 
         command: str = cls.config_command
-
         try:
-            RemotePdb(host="0.0.0.0", port=4444).set_trace()
-            task.run(task=netmiko_send_command, command_string="nscli", expect_string=r">")
             task.run(
                 task=netmiko_send_command,
+                use_timing=True,
+                command_string="nscli",
+            )
+            task.run(
+                task=netmiko_send_command,
+                use_timing=True,
                 command_string="login",
-                expect_string=r"Enter userName:",
             )
             task.run(
                 task=netmiko_send_command,
+                use_timing=True,
                 command_string=task.host.username,
-                expect_string=r"Enter password",
             )
             task.run(
                 task=netmiko_send_command,
+                use_timing=True,
                 command_string=task.host.password,
-                expect_string=r">",  # or whatever prompt appears after successful login
             )
-            
-        except NornirSubTaskError as exc:
-            logger.error(f"Command was not successful: {exc}")
-
-        try:
             result: MultiResult = task.run(
                 task=netmiko_send_command,
                 use_timing=True,
@@ -81,5 +77,4 @@ class NetScalerDriver(NetmikoDefault):
             substitute_lines=substitute_lines,
             backup_file=backup_file,
         )
-        logger.info("Finished custom dispatcher")
         return Result(host=task.host, result={"config": processed_config})
