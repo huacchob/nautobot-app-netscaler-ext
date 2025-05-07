@@ -12,10 +12,10 @@ from nautobot.dcim.models import (
 )
 from nautobot.extras.models import (
     Role,
-    Status,
     Secret,
     SecretsGroup,
     SecretsGroupAssociation,
+    Status,
 )
 from nautobot.ipam.models import IPAddress, Namespace, Prefix
 
@@ -27,6 +27,7 @@ def create_netscalerextexamplemodel():
     NetscalerExtExampleModel.objects.create(name="Test One")
     NetscalerExtExampleModel.objects.create(name="Test Two")
     NetscalerExtExampleModel.objects.create(name="Test Three")
+
 
 def create_devices_in_orm():
     # Status and Role
@@ -274,9 +275,8 @@ def create_devices_in_orm():
         )
 
         sg.validated_save()
-        
+
         device: Device = Device.objects.get(name=secret.get("device"))
         device.secrets_group = sg
 
         device.validated_save()
-
