@@ -44,15 +44,24 @@ def snmp_user_command_build(parsed_snmp_user: list[dict[str, str]]) -> str:
     for snmp_user in parsed_snmp_user:
         single_user: str = ""
         single_user += f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']}"
-        if snmp_user["AUTH"]:
-            single_user += f" auth {snmp_user['AUTH']} <<<SNMP_USER_AUTH_KEY>>>"
-        if snmp_user["PRIV"]:
-            single_user += f" priv {snmp_user['PRIV']} <<<SNMP_USER_PRIV_KEY>>>"
+        if snmp_user["AUTH"] and snmp_user["AUTH"] != "no":
+            if "(no)" in snmp_user["AUTH"]:
+                auth = snmp_user["AUTH"].replace("(no)", "")
+            else:
+                auth: str = snmp_user["AUTH"]
+            single_user += f" auth {auth} <<<SNMP_USER_AUTH_KEY>>>"
+        if snmp_user["PRIV"] and snmp_user["PRIV"] != "no":
+            if "(no)" in snmp_user["PRIV"]:
+                priv = snmp_user["PRIV"].replace("(no)", "")
+            else:
+                priv: str = snmp_user["PRIV"]
+            single_user += f" priv {priv} <<<SNMP_USER_PRIV_KEY>>>"
         single_user += " localizedkey"
         snmp_user_commands.append(single_user)
         if snmp_user["ACL_FILTER"]:
+            acl: str = snmp_user["ACL_FILTER"].replace("ipv4:", "")
             snmp_user_commands.append(
-                f"snmp-server user {snmp_user['USERNAME']} use-ipv4 acl {snmp_user['ACL_FILTER'][4:]}",
+                f"snmp-server user {snmp_user['USERNAME']} use-ipv4 acl {acl}",
             )
 
     return "\n".join(snmp_user_commands)
