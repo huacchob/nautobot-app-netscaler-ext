@@ -41,6 +41,9 @@ def snmp_user_command_build(parsed_snmp_user: list[dict[str, str]]) -> str:
         str: SNMP user commands.
     """
     snmp_user_commands: list[str] = []
+    if not parsed_snmp_user:
+        return ""
+    snmp_user_commands.append("! show snmp user")
     for snmp_user in parsed_snmp_user:
         single_user: str = ""
         single_user += f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']}"
@@ -99,7 +102,7 @@ class NetmikoCiscoNxos(NetmikoDefault):
         full_config: str = ""
         for command in cls.config_commands:
             getter_result = cls.get_command(task, logger, obj, command)
-            if "snmp" in command:
+            if "show snmp user" in command:
                 snmp_user_result: list[dict[str, str]] = snmp_user_template(
                     snmp_user_output=getter_result.result.get("output").get(
                         command,
