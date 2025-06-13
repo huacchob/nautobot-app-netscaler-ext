@@ -87,9 +87,11 @@ class MerakiDispatcher(NetmikoDefault):
         substitute_lines: list[str],
     ) -> None | Result:
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
+        logger.info(f"Config Context: {cfg_cntx}")
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:
             logger.error("Could not find the Meraki Dashboard API URL")
+            raise ValueError("Could not find the Meraki Dashboard API URL")
             return
         api_key: str = get_api_key(device=obj)
         dashboard: DashboardAPI = open_dashboard_api(
