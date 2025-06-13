@@ -103,7 +103,7 @@ class MerakiDispatcher(NetmikoDefault):
         _running_config: list[dict[Any, Any]] = dashboard.organizations.getOrganizations()
         processed_config: str = cls._process_config(
             logger=logger,
-            running_config=_running_config,
+            running_config=str(_running_config),
             remove_lines=remove_lines,
             substitute_lines=substitute_lines,
             backup_file=backup_file,
