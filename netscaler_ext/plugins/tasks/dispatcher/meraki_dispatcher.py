@@ -15,7 +15,6 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 def get_api_key(device: Device) -> str:
@@ -87,7 +86,6 @@ class MerakiDispatcher(NetmikoDefault):
         remove_lines: list[str],
         substitute_lines: list[str],
     ) -> None | Result:
-        RemotePdb(host="0.0.0.0", port=4444).set_trace()
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         logger.info(f"Config Context: {cfg_cntx}")
         dash_url: str = cfg_cntx.get("dashboard_url", "")

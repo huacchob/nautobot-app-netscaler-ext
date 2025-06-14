@@ -18,11 +18,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "development.nautobot_config")
 django.setup()
 
 # Import the driver
-from netscaler_ext.plugins.tasks.dispatcher.netscaler_ext import NetScalerDriver
+from netscaler_ext.plugins.tasks.dispatcher.meraki_dispatcher import MerakiDispatcher
 
 
 def setup_logger() -> Logger:
-    logger: Logger = getLogger(name="netscaler_test")
+    logger: Logger = getLogger(name="meraki_test")
     if not logger.handlers:
         handler = StreamHandler()
         formatter = Formatter(fmt="%(asctime)s - %(levelname)s - %(message)s")
@@ -36,7 +36,7 @@ def build_nornir() -> Any:
     return InitNornir(config_file="netscaler_ext/tests/fixtures/dispatcher/config.yml")
 
 
-class TestNetScalerDriver(unittest.TestCase):
+class TestMerakiDispatcher(unittest.TestCase):
     """Test case for NetScalerDispatcher methods."""
 
     def setUp(self) -> None:
@@ -45,14 +45,14 @@ class TestNetScalerDriver(unittest.TestCase):
         self.nornir: Nornir = build_nornir()
 
     def test_get_config_runs_successfully(self) -> None:
-        """Ensure NetScalerDriver.get_config() runs and returns expected structure."""
+        """Ensure MerakiDispatcher.get_config() runs and returns expected structure."""
 
         def runner(task: Task) -> Result | None:
-            return NetScalerDriver.get_config(
+            return MerakiDispatcher.get_config(
                 task=task,
                 logger=self.logger,
                 obj=self.device,
-                backup_file="netscaler_ext/tests/fixtures/backup_files/netscaler.cfg",
+                backup_file="netscaler_ext/tests/fixtures/backup_files/meraki.cfg",
                 remove_lines=[],
                 substitute_lines=[],
             )
