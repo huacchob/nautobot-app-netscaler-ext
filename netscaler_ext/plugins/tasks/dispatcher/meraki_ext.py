@@ -13,6 +13,8 @@ from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 
+NETMIKO_DEVICE_TYPE = "cisco_meraki"
+
 
 def get_api_key(device: Device) -> str:
     """Get Meraki Dashboard API Key.
@@ -84,6 +86,7 @@ class MerakiDriver(NetmikoDefault):
         remove_lines: list[str],
         substitute_lines: list[str],
     ) -> None | Result:
+        task.host.platform = NETMIKO_DEVICE_TYPE
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:
