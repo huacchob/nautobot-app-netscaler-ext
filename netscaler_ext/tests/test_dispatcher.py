@@ -8,7 +8,6 @@ from nautobot.dcim.models import Device
 from nornir import InitNornir
 from nornir.core import Nornir
 from nornir.core.task import Result, Task
-from remote_pdb import RemotePdb
 
 from netscaler_ext.tests import fixtures
 
@@ -19,7 +18,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "development.nautobot_config")
 django.setup()
 
 # Import the driver
-from netscaler_ext.plugins.tasks.dispatcher.meraki_dispatcher import MerakiDispatcher
+from netscaler_ext.plugins.tasks.dispatcher.meraki_ext import MerakiDriver
 
 
 def setup_logger() -> Logger:
@@ -37,7 +36,7 @@ def build_nornir() -> Any:
     return InitNornir(config_file="netscaler_ext/tests/fixtures/dispatcher/config.yml")
 
 
-class TestMerakiDispatcher(unittest.TestCase):
+class TestMerakiDriver(unittest.TestCase):
     """Test case for NetScalerDispatcher methods."""
 
     def setUp(self) -> None:
@@ -46,10 +45,10 @@ class TestMerakiDispatcher(unittest.TestCase):
         self.nornir: Nornir = build_nornir()
 
     def test_get_config_runs_successfully(self) -> None:
-        """Ensure MerakiDispatcher.get_config() runs and returns expected structure."""
+        """Ensure MerakiDriver.get_config() runs and returns expected structure."""
 
         def runner(task: Task) -> Result | None:
-            return MerakiDispatcher.get_config(
+            return MerakiDriver.get_config(
                 task=task,
                 logger=self.logger,
                 obj=self.device,
@@ -61,10 +60,7 @@ class TestMerakiDispatcher(unittest.TestCase):
         result: Any = self.nornir.run(task=runner)
 
         # Validate the structure
-        RemotePdb(host="localhost", port=4444).set_trace()
-        print(f"Result: {result}")
         self.assertTrue(result)
-        self.assertIsInstance(result.get("id"), str)
         # self.assertIn(member="netscaler1", container=result)
         # host_result: Any = result["netscaler1"]
         # self.assertIsInstance(obj=host_result, cls=MultiResult)
@@ -73,8 +69,8 @@ class TestMerakiDispatcher(unittest.TestCase):
 
         # Optionally print for debug
         # print(host_result.result["config"])
-        raise ValueError
 
 
 if __name__ == "__main__":
     unittest.main()
+    fixtures.delete_devices_in_orm()

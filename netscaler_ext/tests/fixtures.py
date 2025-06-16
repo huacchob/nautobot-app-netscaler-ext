@@ -125,8 +125,8 @@ def create_devices_in_orm():
     meraki_dev: dict[str, str] = {
         "manufacturer_name": "Cisco",
         "device_type_name": "Meraki-Controller-Type",
-        "platform_name": "meraki_controller",
-        "network_driver_name": "meraki_controller",
+        "platform_name": "cisco_meraki",
+        "network_driver_name": "cisco_meraki",
         "device_name": "meraki-controller",
         "location": "UNCC",
         "config_context": "fixtures/config_context/meraki_context.json",
@@ -145,11 +145,13 @@ def create_devices_in_orm():
 
     # status
     status, _ = Status.objects.get_or_create(name=status_name)
+    status.validated_save()
 
     # Role
     role, _ = Role.objects.get_or_create(
         name=role_name,
     )
+    role.validated_save()
 
     role.content_types.add(device_ct, interface_ct)
 
@@ -157,22 +159,27 @@ def create_devices_in_orm():
     region_lt, _ = LocationType.objects.get_or_create(
         name=region_lt_name,
     )
+    region_lt.validated_save()
     country_lt, _ = LocationType.objects.get_or_create(
         name=country_lt_name,
         parent_id=region_lt.id,
     )
+    country_lt.validated_save()
     state_lt, _ = LocationType.objects.get_or_create(
         name=state_lt_name,
         parent_id=country_lt.id,
     )
+    state_lt.validated_save()
     city_lt, _ = LocationType.objects.get_or_create(
         name=city_lt_name,
         parent_id=state_lt.id,
     )
+    city_lt.validated_save()
     building_lt, _ = LocationType.objects.get_or_create(
         name=building_lt_name,
         parent_id=city_lt.id,
     )
+    building_lt.validated_save()
     building_lt.content_types.add(device_ct)
 
     for site in sites:
@@ -183,6 +190,7 @@ def create_devices_in_orm():
                 "status": status,
             },
         )
+        region.validated_save()
 
         country, _ = Location.objects.get_or_create(
             name=site.get("country_name"),
@@ -229,24 +237,28 @@ def create_devices_in_orm():
                 provider=secret.get("provider"),
                 parameters={"variable": secret.get("secret1")},
             )
+            s1.validated_save()
             sga1, _ = SecretsGroupAssociation.objects.get_or_create(
                 secret=s1,
                 access_type=secret.get("sga_access_type"),
                 secret_type=secret.get("sga1_secret_type"),
                 secrets_group=sg,
             )
+            sga1.validated_save()
         if secret.get("secret2") and secret.get("sga2_secret_type"):
             s2, _ = Secret.objects.get_or_create(
                 name=secret.get("secret2"),
                 provider=secret.get("provider"),
                 parameters={"variable": secret.get("secret2")},
             )
+            s2.validated_save()
             sga2, _ = SecretsGroupAssociation.objects.get_or_create(
                 secret=s2,
                 access_type=secret.get("sga_access_type"),
                 secret_type=secret.get("sga2_secret_type"),
                 secrets_group=sg,
             )
+            sga2.validated_save()
 
         sg.validated_save()
 
@@ -255,12 +267,14 @@ def create_devices_in_orm():
         manufacturer, _ = Manufacturer.objects.get_or_create(
             name=dev.get("manufacturer_name"),
         )
+        manufacturer.validated_save()
 
         # Device Type
         dt, _ = DeviceType.objects.get_or_create(
             manufacturer_id=manufacturer.id,
             model=dev.get("device_type_name"),
         )
+        dt.validated_save()
 
         # Platform
         plat, _ = Platform.objects.get_or_create(
@@ -268,6 +282,7 @@ def create_devices_in_orm():
             manufacturer_id=manufacturer.id,
             network_driver=dev.get("network_driver_name"),
         )
+        plat.validated_save()
 
         # Device
         loc = Location.objects.get(
@@ -287,6 +302,7 @@ def create_devices_in_orm():
             namespace, _ = Namespace.objects.get_or_create(
                 name=dev.get("namespace_name"),
             )
+            namespace.validated_save()
 
             # Prefix
             prefix, _ = Prefix.objects.get_or_create(
@@ -294,12 +310,14 @@ def create_devices_in_orm():
                 namespace=namespace,
                 status_id=status.id,
             )
+            prefix.validated_save()
 
             # IP Address
             ip, _ = IPAddress.objects.get_or_create(
                 address=dev.get("ip_addr"),
                 status_id=status.id,
             )
+            ip.validated_save()
 
             # Interface
             interface, _ = Interface.objects.get_or_create(
@@ -316,19 +334,32 @@ def create_devices_in_orm():
             device.primary_ip4 = ip
 
         if dev.get("secrets_group"):
-            device.secrets_group = SecretsGroup.objects.get(name=dev.get("secrets_group_name"))
+            device.secrets_group = SecretsGroup.objects.get(name=dev.get("secrets_group"))
 
         if dev.get("config_context"):
-            try:
-                existing_context = ConfigContext.objects.get(name=dev.get("context_name"))
-                existing_context.delete()
-            except ConfigContext.DoesNotExist:
-                pass
+            if cntx := ConfigContext.objects.filter(name=dev.get("context_name")):
+                cntx[0].delete()
             with open(file=Path(__file__).parent.joinpath(dev.get("config_context"))) as f:
                 json_data: dict[Any, Any] = json.load(fp=f)
             cntx, _ = ConfigContext.objects.get_or_create(
                 name=dev.get("context_name"),
                 data=json_data,
             )
-            cntx.validated_save()
         device.validated_save()
+
+
+def delete_devices_in_orm():
+    IPAddress.objects.all().delete()
+    Namespace.objects.all().delete()
+    Interface.objects.all().delete()
+    Device.objects.all().delete()
+    Platform.objects.all().delete()
+    DeviceType.objects.all().delete()
+    Manufacturer.objects.all().delete()
+    Location.objects.all().delete()
+    LocationType.objects.all().delete()
+    Status.objects.all().delete()
+    Role.objects.all().delete()
+    Secret.objects.all().delete()
+    SecretsGroup.objects.all().delete()
+    ConfigContext.objects.all().delete()

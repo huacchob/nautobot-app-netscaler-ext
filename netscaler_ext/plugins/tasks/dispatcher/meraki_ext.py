@@ -67,10 +67,11 @@ def get_org_id(dash: DashboardAPI) -> str:
     Returns:
         str: Organization ID.
     """
-    return dash.organizations.getOrganizations()[0].get("id", "")
+    orgs = dash.organizations.getOrganizations()
+    return orgs[0].get("id", "")
 
 
-class MerakiDispatcher(NetmikoDefault):
+class MerakiDriver(NetmikoDefault):
     """Meraki Dispatcher class."""
 
     @classmethod
@@ -89,6 +90,7 @@ class MerakiDispatcher(NetmikoDefault):
             logger.error("Could not find the Meraki Dashboard API URL")
             raise ValueError("Could not find the Meraki Dashboard API URL")
         api_key: str = get_api_key(device=obj)
+        logger.info(f"key: {api_key}")
         dashboard: DashboardAPI = open_dashboard_api(
             dash_url=dash_url,
             dash_api_key=api_key,
