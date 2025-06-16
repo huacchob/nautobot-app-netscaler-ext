@@ -60,6 +60,41 @@ def create_devices_in_orm():
     }
     sites: list[dict[str, str]] = [uncc_site]
 
+    # Secrets
+    netscaler_secret: dict[str, str] = {
+        "secret1": "NETSCALER_USER",
+        "secret2": "NETSCALER_PASS",
+        "provider": "environment-variable",
+        "secrets_group_name": "NETSCALER",
+        "sga_access_type": SecretsGroupAccessTypeChoices.TYPE_GENERIC,
+        "sga1_secret_type": SecretsGroupSecretTypeChoices.TYPE_USERNAME,
+        "sga2_secret_type": SecretsGroupSecretTypeChoices.TYPE_PASSWORD,
+        "device": "netscaler1",
+    }
+    nxos_secret: dict[str, str] = {
+        "secret1": "NXOS_USER",
+        "secret2": "NXOS_PASS",
+        "provider": "environment-variable",
+        "secrets_group_name": "NXOS",
+        "sga_access_type": SecretsGroupAccessTypeChoices.TYPE_GENERIC,
+        "sga1_secret_type": SecretsGroupSecretTypeChoices.TYPE_USERNAME,
+        "sga2_secret_type": SecretsGroupSecretTypeChoices.TYPE_PASSWORD,
+        "device": "nxos1",
+    }
+    meraki_secret: dict[str, str] = {
+        "secret1": "MERAKI_API_KEY",
+        "provider": "environment-variable",
+        "secrets_group_name": "MERAKI_SECRET",
+        "sga_access_type": SecretsGroupAccessTypeChoices.TYPE_HTTP,
+        "sga1_secret_type": SecretsGroupSecretTypeChoices.TYPE_TOKEN,
+        "device": "meraki-controller",
+    }
+    secrets: list[dict[str, str]] = [
+        netscaler_secret,
+        nxos_secret,
+        meraki_secret,
+    ]
+
     # Devices
     netscaler_dev: dict[str, str] = {
         "manufacturer_name": "Citrix",
@@ -72,6 +107,7 @@ def create_devices_in_orm():
         "prefix_range": "172.18.0.0/16",
         "ip_addr": "172.18.0.8/32",
         "interface_name": "int1",
+        "secrets_group": "NETSCALER",
     }
     nxos_dev: dict[str, str] = {
         "manufacturer_name": "Cisco",
@@ -84,6 +120,7 @@ def create_devices_in_orm():
         "prefix_range": "172.20.0.0/16",
         "ip_addr": "172.20.20.2/32",
         "interface_name": "int1",
+        "secrets_group": "NXOS",
     }
     meraki_dev: dict[str, str] = {
         "manufacturer_name": "Cisco",
@@ -94,46 +131,12 @@ def create_devices_in_orm():
         "location": "UNCC",
         "config_context": "fixtures/config_context/meraki_context.json",
         "context_name": "meraki_endpoints",
+        "secrets_group": "MERAKI_SECRET",
     }
     devices: list[dict[str, str]] = [
-        # netscaler_dev,
-        # nxos_dev,
+        netscaler_dev,
+        nxos_dev,
         meraki_dev,
-    ]
-
-    # Secrets
-    netscaler_secret: dict[str, str] = {
-        "secret1": "NETSCALER_USER",
-        "secret2": "NETSCALER_PASS",
-        "provider": "environment-variable",
-        "secrets_group_name": "NETSCALER",
-        "sga_access_type": "Generic",
-        "sga1_secret_type": "username",
-        "sga2_secret_type": "password",
-        "device": "netscaler1",
-    }
-    nxos_secret: dict[str, str] = {
-        "secret1": "NXOS_USER",
-        "secret2": "NXOS_PASS",
-        "provider": "environment-variable",
-        "secrets_group_name": "NXOS",
-        "sga_access_type": "Generic",
-        "sga1_secret_type": "username",
-        "sga2_secret_type": "password",
-        "device": "nxos1",
-    }
-    meraki_secret: dict[str, str] = {
-        "secret1": "MERAKI_API_KEY",
-        "provider": "environment-variable",
-        "secrets_group_name": "MERAKI_SECRET",
-        "sga_access_type": SecretsGroupAccessTypeChoices.TYPE_HTTP,
-        "sga1_secret_type": SecretsGroupSecretTypeChoices.TYPE_TOKEN,
-        "device": "meraki-controller",
-    }
-    secrets: list[dict[str, str]] = [
-        # netscaler_secret,
-        # nxos_secret,
-        meraki_secret,
     ]
 
     # Contet types
@@ -213,6 +216,40 @@ def create_devices_in_orm():
             },
         )
 
+    for secret in secrets:
+        # Secrets
+        if not secret.get("secrets_group_name"):
+            continue
+        sg, _ = SecretsGroup.objects.get_or_create(
+            name=secret.get("secrets_group_name"),
+        )
+        if secret.get("secret1") and secret.get("sga1_secret_type"):
+            s1, _ = Secret.objects.get_or_create(
+                name=secret.get("secret1"),
+                provider=secret.get("provider"),
+                parameters={"variable": secret.get("secret1")},
+            )
+            sga1, _ = SecretsGroupAssociation.objects.get_or_create(
+                secret=s1,
+                access_type=secret.get("sga_access_type"),
+                secret_type=secret.get("sga1_secret_type"),
+                secrets_group=sg,
+            )
+        if secret.get("secret2") and secret.get("sga2_secret_type"):
+            s2, _ = Secret.objects.get_or_create(
+                name=secret.get("secret2"),
+                provider=secret.get("provider"),
+                parameters={"variable": secret.get("secret2")},
+            )
+            sga2, _ = SecretsGroupAssociation.objects.get_or_create(
+                secret=s2,
+                access_type=secret.get("sga_access_type"),
+                secret_type=secret.get("sga2_secret_type"),
+                secrets_group=sg,
+            )
+
+        sg.validated_save()
+
     for dev in devices:
         # Manufacturer
         manufacturer, _ = Manufacturer.objects.get_or_create(
@@ -277,7 +314,9 @@ def create_devices_in_orm():
             interface.validated_save()
 
             device.primary_ip4 = ip
-            device.validated_save()
+
+        if dev.get("secrets_group"):
+            device.secrets_group = SecretsGroup.objects.get(name=dev.get("secrets_group_name"))
 
         if dev.get("config_context"):
             try:
@@ -292,42 +331,4 @@ def create_devices_in_orm():
                 data=json_data,
             )
             cntx.validated_save()
-
-    for secret in secrets:
-        # Secrets
-        if not secret.get("secrets_group_name"):
-            continue
-        sg, _ = SecretsGroup.objects.get_or_create(
-            name=secret.get("secrets_group_name"),
-        )
-        if secret.get("secret1") and secret.get("sga1_secret_type"):
-            s1, _ = Secret.objects.get_or_create(
-                name=secret.get("secret1"),
-                provider=secret.get("provider"),
-                parameters={"variable": secret.get("secret1")},
-            )
-            sga1, _ = SecretsGroupAssociation.objects.get_or_create(
-                secret=s1,
-                access_type=secret.get("sga_access_type"),
-                secret_type=secret.get("sga1_secret_type"),
-                secrets_group=sg,
-            )
-        if secret.get("secret2") and secret.get("sga2_secret_type"):
-            s2, _ = Secret.objects.get_or_create(
-                name=secret.get("secret2"),
-                provider=secret.get("provider"),
-                parameters={"variable": secret.get("secret2")},
-            )
-            sga2, _ = SecretsGroupAssociation.objects.get_or_create(
-                secret=s2,
-                access_type=secret.get("sga_access_type"),
-                secret_type=secret.get("sga2_secret_type"),
-                secrets_group=sg,
-            )
-
-        sg.validated_save()
-
-        device: Device = Device.objects.get(name=secret.get("device"))
-        device.secrets_group = sg
-
         device.validated_save()

@@ -98,7 +98,6 @@ class MerakiDispatcher(NetmikoDefault):
             logger.error("Could not find the Meraki organization ID")
             raise ValueError("Could not find Meraki organization ID")
         _running_config: list[dict[Any, Any]] = dashboard.organizations.getOrganizations()
-        logger.info(f"Orgs: {_running_config}")
         processed_config: str = cls._process_config(
             logger=logger,
             running_config=str(_running_config),

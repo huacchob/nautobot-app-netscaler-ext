@@ -8,6 +8,7 @@ from nautobot.dcim.models import Device
 from nornir import InitNornir
 from nornir.core import Nornir
 from nornir.core.task import Result, Task
+from remote_pdb import RemotePdb
 
 from netscaler_ext.tests import fixtures
 
@@ -60,8 +61,10 @@ class TestMerakiDispatcher(unittest.TestCase):
         result: Any = self.nornir.run(task=runner)
 
         # Validate the structure
-        print(result)
-        self.assertTrue(False)
+        RemotePdb(host="localhost", port=4444).set_trace()
+        print(f"Result: {result}")
+        self.assertTrue(result)
+        self.assertIsInstance(result.get("id"), str)
         # self.assertIn(member="netscaler1", container=result)
         # host_result: Any = result["netscaler1"]
         # self.assertIsInstance(obj=host_result, cls=MultiResult)
