@@ -1,5 +1,9 @@
 """Create fixtures for tests."""
 
+import json
+from pathlib import Path
+from typing import Any
+
 from django.contrib.contenttypes.models import ContentType
 from nautobot.dcim.models import (
     Device,
@@ -11,6 +15,7 @@ from nautobot.dcim.models import (
     Platform,
 )
 from nautobot.extras.models import (
+    ConfigContext,
     Role,
     Secret,
     SecretsGroup,
@@ -83,10 +88,8 @@ def create_devices_in_orm():
         "network_driver_name": "meraki_controller",
         "device_name": "meraki-controller",
         "location": "UNCC",
-        "namespace_name": "Global",
-        "prefix_range": "172.20.0.0/16",
-        "ip_addr": "172.20.20.2/32",
-        "interface_name": "int1",
+        "config_context": "fixtures/config_context/meraki_context.json",
+        "context_name": "meraki_endpoints",
     }
     devices: list[dict[str, str]] = [netscaler_dev, nxos_dev, meraki_dev]
 
@@ -267,6 +270,20 @@ def create_devices_in_orm():
 
             device.primary_ip4 = ip
             device.validated_save()
+
+        if dev.get("config_context"):
+            try:
+                existing_context = ConfigContext.objects.get(name=dev.get("context_name"))
+                existing_context.delete()
+            except ConfigContext.DoesNotExist:
+                pass
+            with open(file=Path(__file__).parent.joinpath(dev.get("config_context"))) as f:
+                json_data: dict[Any, Any] = json.load(fp=f)
+            cntx, _ = ConfigContext.objects.get_or_create(
+                name=dev.get("context_name"),
+                data=json_data,
+            )
+            cntx.validated_save()
 
     for secret in secrets:
         # Secrets

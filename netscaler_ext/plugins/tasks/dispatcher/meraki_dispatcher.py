@@ -1,8 +1,5 @@
 """nornir dispatcher for cisco Meraki."""
 
-# import json
-# import os
-
 from logging import Logger
 from typing import Any, OrderedDict
 
@@ -15,6 +12,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 def get_api_key(device: Device) -> str:
@@ -38,7 +36,7 @@ def get_api_key(device: Device) -> str:
         )
     except SecretsGroupAssociation.DoesNotExist as e:
         raise SecretsGroupAssociation.DoesNotExist(
-            "SecretsGroupAssociation TYPE_HTTP or TYPE_USERNAME/TYPE_SECRET does not exist in the SecretsGroup"
+            "SecretsGroupAssociation access_type TYPE_HTTP secret_type TYPE_TOKEN does not exist in the SecretsGroup"
         ) from e
     return api_key
 
@@ -87,8 +85,8 @@ class MerakiDispatcher(NetmikoDefault):
         substitute_lines: list[str],
     ) -> None | Result:
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        logger.info(f"Config Context: {cfg_cntx}")
         dash_url: str = cfg_cntx.get("dashboard_url", "")
+        RemotePdb(host="localhost", port=4444).set_trace()
         if not dash_url:
             logger.error("Could not find the Meraki Dashboard API URL")
             raise ValueError("Could not find the Meraki Dashboard API URL")
@@ -102,6 +100,7 @@ class MerakiDispatcher(NetmikoDefault):
             logger.error("Could not find the Meraki organization ID")
             raise ValueError("Could not find Meraki organization ID")
         _running_config: list[dict[Any, Any]] = dashboard.organizations.getOrganizations()
+        logger.info(f"Orgs: {_running_config}")
         processed_config: str = cls._process_config(
             logger=logger,
             running_config=str(_running_config),

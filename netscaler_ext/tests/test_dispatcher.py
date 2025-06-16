@@ -7,7 +7,7 @@ import django
 from nautobot.dcim.models import Device
 from nornir import InitNornir
 from nornir.core import Nornir
-from nornir.core.task import MultiResult, Result, Task
+from nornir.core.task import Result, Task
 
 from netscaler_ext.tests import fixtures
 
@@ -41,7 +41,7 @@ class TestMerakiDispatcher(unittest.TestCase):
 
     def setUp(self) -> None:
         self.logger: Logger = setup_logger()
-        self.device: Device = Device.objects.get(name="netscaler1")
+        self.device: Device = Device.objects.get(name="meraki-controller")
         self.nornir: Nornir = build_nornir()
 
     def test_get_config_runs_successfully(self) -> None:
@@ -60,11 +60,13 @@ class TestMerakiDispatcher(unittest.TestCase):
         result: Any = self.nornir.run(task=runner)
 
         # Validate the structure
-        self.assertIn(member="netscaler1", container=result)
-        host_result: Any = result["netscaler1"]
-        self.assertIsInstance(obj=host_result, cls=MultiResult)
-        self.assertIn(member="config", container=host_result.result)
-        self.assertIsInstance(obj=host_result[0].result["config"], cls=str)
+        print(result)
+        self.assertTrue(False)
+        # self.assertIn(member="netscaler1", container=result)
+        # host_result: Any = result["netscaler1"]
+        # self.assertIsInstance(obj=host_result, cls=MultiResult)
+        # self.assertIn(member="config", container=host_result.result)
+        # self.assertIsInstance(obj=host_result[0].result["config"], cls=str)
 
         # Optionally print for debug
         # print(host_result.result["config"])

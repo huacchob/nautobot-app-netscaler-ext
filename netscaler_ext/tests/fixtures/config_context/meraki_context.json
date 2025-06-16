@@ -1,0 +1,5 @@
+{
+  "endpoints": ["ntp_endpoints"],
+  "dashboard_url": "https://api.meraki.com/api/v1/",
+  "ntp_endpoints": ["/networks/{networkId}"]
+}
