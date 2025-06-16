@@ -14,6 +14,10 @@ from nautobot.dcim.models import (
     Manufacturer,
     Platform,
 )
+from nautobot.extras.choices import (
+    SecretsGroupAccessTypeChoices,
+    SecretsGroupSecretTypeChoices,
+)
 from nautobot.extras.models import (
     ConfigContext,
     Role,
@@ -91,7 +95,11 @@ def create_devices_in_orm():
         "config_context": "fixtures/config_context/meraki_context.json",
         "context_name": "meraki_endpoints",
     }
-    devices: list[dict[str, str]] = [netscaler_dev, nxos_dev, meraki_dev]
+    devices: list[dict[str, str]] = [
+        # netscaler_dev,
+        # nxos_dev,
+        meraki_dev,
+    ]
 
     # Secrets
     netscaler_secret: dict[str, str] = {
@@ -118,13 +126,13 @@ def create_devices_in_orm():
         "secret1": "MERAKI_API_KEY",
         "provider": "environment-variable",
         "secrets_group_name": "MERAKI_SECRET",
-        "sga_access_type": "HTTP",
-        "sga1_secret_type": "token",
+        "sga_access_type": SecretsGroupAccessTypeChoices.TYPE_HTTP,
+        "sga1_secret_type": SecretsGroupSecretTypeChoices.TYPE_TOKEN,
         "device": "meraki-controller",
     }
     secrets: list[dict[str, str]] = [
-        netscaler_secret,
-        nxos_secret,
+        # netscaler_secret,
+        # nxos_secret,
         meraki_secret,
     ]
 
@@ -287,6 +295,8 @@ def create_devices_in_orm():
 
     for secret in secrets:
         # Secrets
+        if not secret.get("secrets_group_name"):
+            continue
         sg, _ = SecretsGroup.objects.get_or_create(
             name=secret.get("secrets_group_name"),
         )
