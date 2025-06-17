@@ -12,6 +12,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 NETMIKO_DEVICE_TYPE = "cisco_meraki"
 
@@ -30,6 +31,7 @@ def get_api_key(device: Device) -> str:
         str: API key.
     """
     secrets_group: SecretsGroup = device.secrets_group
+    RemotePdb(host="localhost", port=4444).set_trace()
     try:
         api_key: str = secrets_group.get_secret_value(
             access_type=SecretsGroupAccessTypeChoices.TYPE_HTTP,
