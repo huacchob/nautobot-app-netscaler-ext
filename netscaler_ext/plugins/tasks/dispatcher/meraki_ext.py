@@ -12,16 +12,13 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
-
-NETMIKO_DEVICE_TYPE = "cisco_meraki"
 
 
-def get_api_key(device: Device) -> str:
+def get_api_key(secrets_group: SecretsGroup) -> str:
     """Get Meraki Dashboard API Key.
 
     Args:
-        device (Device): Device object.
+        secrets_group (SecretsGroup): SecretsGroup object.
 
     Raises:
         SecretsGroupAssociation.DoesNotExist: SecretsGroupAssociation access
@@ -30,8 +27,6 @@ def get_api_key(device: Device) -> str:
     Returns:
         str: API key.
     """
-    secrets_group: SecretsGroup = device.secrets_group
-    RemotePdb(host="localhost", port=4444).set_trace()
     try:
         api_key: str = secrets_group.get_secret_value(
             access_type=SecretsGroupAccessTypeChoices.TYPE_HTTP,
@@ -88,13 +83,12 @@ class MerakiDriver(NetmikoDefault):
         remove_lines: list[str],
         substitute_lines: list[str],
     ) -> None | Result:
-        task.host.platform = NETMIKO_DEVICE_TYPE
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:
             logger.error("Could not find the Meraki Dashboard API URL")
             raise ValueError("Could not find the Meraki Dashboard API URL")
-        api_key: str = get_api_key(device=obj)
+        api_key: str = get_api_key(secrets_group=obj.secrets_group)
         logger.info(f"key: {api_key}")
         dashboard: DashboardAPI = open_dashboard_api(
             dash_url=dash_url,
