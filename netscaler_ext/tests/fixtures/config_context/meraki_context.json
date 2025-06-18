@@ -1,5 +1,10 @@
 {
-  "endpoints": ["ntp_endpoints"],
+  "endpoints": ["org_endpoints"],
   "dashboard_url": "https://api.meraki.com/api/v1/",
-  "ntp_endpoints": ["/networks/{networkId}"]
+  "org_endpoints": [
+    {
+      "method": "organizations.getOrganization",
+      "parameters": ["organizationId"]
+    }
+  ]
 }

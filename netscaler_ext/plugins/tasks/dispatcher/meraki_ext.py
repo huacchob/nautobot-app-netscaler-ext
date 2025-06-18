@@ -12,7 +12,6 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -51,8 +50,8 @@ def open_dashboard_api(dashboard_url: str, dashboard_api_key: str) -> DashboardA
         DashboardAPI: Dashboard API object.
     """
     return DashboardAPI(
-        api_key=dash_api_key,
-        base_url=dash_url,
+        api_key=dashboard_api_key,
+        base_url=dashboard_url,
         output_log=False,
         print_console=False,
     )
@@ -120,13 +119,11 @@ class MerakiDriver(NetmikoDefault):
         substitute_lines: list[str],
     ) -> None | Result:
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        RemotePdb(host="localhost", port=4444).set_trace()
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:
             logger.error("Could not find the Meraki Dashboard API URL")
             raise ValueError("Could not find the Meraki Dashboard API URL")
         api_key: str = get_api_key(secrets_group=obj.secrets_group)
-        logger.info(f"key: {api_key}")
         dashboard: DashboardAPI = open_dashboard_api(
             dashboard_url=dash_url,
             dashboard_api_key=api_key,
