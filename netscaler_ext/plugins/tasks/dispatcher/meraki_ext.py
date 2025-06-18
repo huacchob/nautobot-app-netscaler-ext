@@ -43,8 +43,8 @@ def open_dashboard_api(dashboard_url: str, dashboard_api_key: str) -> DashboardA
     """Open Meraki Dashboard API.
 
     Args:
-        dash_url (str): Dashboard URL.
-        dash_api_key (str): Dashboard API key.
+        dashboard_url (str): Dashboard URL.
+        dashboard_api_key (str): Dashboard API key.
 
     Returns:
         DashboardAPI: Dashboard API object.
@@ -61,12 +61,31 @@ def get_org_id(dashboard: DashboardAPI) -> str:
     """Get org ID from dashboard.
 
     Args:
-        dash (DashboardAPI): The DashboardAPI object.
+        dashboard (DashboardAPI): The DashboardAPI object.
 
     Returns:
         str: Organization ID.
     """
     return dashboard.organizations.getOrganizations()[0].get("id", "")
+
+
+def get_case_insensitive_key(
+    params_mapper: dict[str, str],
+    param: str,
+) -> tuple[str, str]:
+    """Get case insensitive key from params mapper dict.
+
+    Args:
+        params_mapper (dict[str, str]): Params mapper.
+        param (str): Param key.
+
+    Returns:
+        tuple[str, str]: Param key and value.
+    """
+    for k, v in params_mapper.items():
+        if k.lower() == param.lower():
+            return (k, v)
+    return ("", "")
 
 
 def resolve_endpoint(
@@ -88,8 +107,8 @@ def resolve_endpoint(
     """
     responses: dict[str, dict[Any, Any]] = {}
     param_mapper: dict[str, str] = {
-        "organizationid": organizationId,
-        "networkid": networkId,
+        "organizationId": organizationId,
+        "networkId": networkId,
     }
     for endpoint in endpoint_context:
         meraki_class, meraki_method = endpoint["method"].split(".")
@@ -99,8 +118,13 @@ def resolve_endpoint(
         params: dict[str, str] = {}
         if endpoint.get("parameters"):
             for param in endpoint["parameters"]:
-                param_value = param.lower().strip()
-                params.update({param_value: param_mapper[param_value]})
+                if param.lower() not in [p.lower() for p in param_mapper]:
+                    continue
+                param_key, param_value = get_case_insensitive_key(
+                    params_mapper=param_mapper,
+                    param=param,
+                )
+                params.update({param_key: param_value})
         responses[meraki_class][meraki_method] = method_callable(**params)
 
     return responses
