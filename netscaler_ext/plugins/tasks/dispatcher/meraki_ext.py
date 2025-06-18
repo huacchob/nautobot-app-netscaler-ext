@@ -86,7 +86,7 @@ def resolve_endpoint(
         networkId (str): _description_
 
     Returns:
-        Any: _description_
+        Any: list of responses.
     """
     responses: list[dict[Any, Any]] = []
     param_mapper: dict[str, str] = {
@@ -94,7 +94,6 @@ def resolve_endpoint(
         "networkId": networkId,
     }
     for endpoint in endpoint_context:
-        RemotePdb(host="localhost", port=4444).set_trace()
         meraki_class, meraki_method = endpoint["method"].split(".")
         class_callable = getattr(dashboard, meraki_class)
         method_callable = getattr(class_callable, meraki_method)
@@ -121,6 +120,7 @@ class MerakiDriver(NetmikoDefault):
         substitute_lines: list[str],
     ) -> None | Result:
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
+        RemotePdb(host="localhost", port=4444).set_trace()
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:
             logger.error("Could not find the Meraki Dashboard API URL")
