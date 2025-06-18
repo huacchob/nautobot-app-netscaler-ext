@@ -12,6 +12,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -93,6 +94,7 @@ def resolve_endpoint(
         "networkId": networkId,
     }
     for endpoint in endpoint_context:
+        RemotePdb(host="localhost", port=4444).set_trace()
         meraki_class, meraki_method = endpoint["method"].split(".")
         class_callable = getattr(dashboard, meraki_class)
         method_callable = getattr(class_callable, meraki_method)
