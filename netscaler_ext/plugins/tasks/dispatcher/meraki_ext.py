@@ -1,5 +1,6 @@
 """nornir dispatcher for cisco Meraki."""
 
+import json
 from logging import Logger
 from typing import Any, Callable, OrderedDict
 
@@ -197,7 +198,7 @@ class MerakiDriver(NetmikoDefault):
             )
         processed_config: str = cls._process_config(
             logger=logger,
-            running_config=str(_running_config),
+            running_config=json.dumps(obj=_running_config, indent=4),
             remove_lines=remove_lines,
             substitute_lines=substitute_lines,
             backup_file=backup_file,
