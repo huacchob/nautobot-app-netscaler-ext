@@ -88,8 +88,27 @@ def get_case_insensitive_key(
     return ("", "")
 
 
+def feature_name_parser(feature_name: str) -> str:
+    """Feature name parser.
+
+    Args:
+        feature_name (str): The feature name from config context.
+
+    Returns:
+        str: Parsed feature name.
+    """
+    if "_" in feature_name:
+        feat = feature_name.rsplit(sep="_", maxsplit=1)[0]
+    elif "-" in feature_name:
+        feat = feature_name.rsplit(sep="-", maxsplit=1)[0]
+    else:
+        feat = feature_name.rsplit(sep=" ", maxsplit=1)[0]
+    return feat
+
+
 def resolve_endpoint(
     dashboard: DashboardAPI,
+    feature: str,
     endpoint_context: list[dict[Any, Any]],
     organizationId: str,
     networkId: str,
@@ -98,6 +117,7 @@ def resolve_endpoint(
 
     Args:
         dashboard (DashboardAPI): Dashboard API object.
+        feature (str): Feature key name.
         endpoint_context (list[dict[Any, Any]]): Meraki endpoint context.
         organizationId (str): Organization ID.
         networkId (str): Network ID.
@@ -110,11 +130,13 @@ def resolve_endpoint(
         "organizationId": organizationId,
         "networkId": networkId,
     }
+    feature_name: str = feature_name_parser(feature_name=feature)
     for endpoint in endpoint_context:
         meraki_class, meraki_method = endpoint["method"].split(".")
-        responses.update({meraki_class: {meraki_method: ""}})
-        class_callable: Callable[[Any], Any] = getattr(dashboard, meraki_class)
-        method_callable: Callable[[Any], Any] = getattr(class_callable, meraki_method)
+        method_callable: Callable[[Any], Any] = getattr(
+            getattr(dashboard, meraki_class),
+            meraki_method,
+        )
         params: dict[str, str] = {}
         if endpoint.get("parameters"):
             for param in endpoint["parameters"]:
@@ -125,7 +147,7 @@ def resolve_endpoint(
                     param=param,
                 )
                 params.update({param_key: param_value})
-        responses[meraki_class][meraki_method] = method_callable(**params)
+        responses.update({feature_name: {endpoint["method"]: method_callable(**params)}})
 
     return responses
 
@@ -167,6 +189,7 @@ class MerakiDriver(NetmikoDefault):
             _running_config.append(
                 resolve_endpoint(
                     dashboard=dashboard,
+                    feature=feature,
                     endpoint_context=endpoints,
                     organizationId=org_id,
                     networkId="",

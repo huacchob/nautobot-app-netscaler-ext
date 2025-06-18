@@ -61,7 +61,6 @@ class TestMerakiDriver(unittest.TestCase):
 
         # Validate the structure
         self.assertTrue(result)
-        self.assertTrue(False)
         # self.assertIn(member="netscaler1", container=result)
         # host_result: Any = result["netscaler1"]
         # self.assertIsInstance(obj=host_result, cls=MultiResult)
