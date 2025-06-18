@@ -1,7 +1,7 @@
 """nornir dispatcher for cisco Meraki."""
 
 from logging import Logger
-from typing import Any, OrderedDict
+from typing import Any, Callable, OrderedDict
 
 from meraki import DashboardAPI
 from nautobot.apps.choices import (
@@ -66,8 +66,7 @@ def get_org_id(dashboard: DashboardAPI) -> str:
     Returns:
         str: Organization ID.
     """
-    orgs = dashboard.organizations.getOrganizations()
-    return orgs[0].get("id", "")
+    return dashboard.organizations.getOrganizations()[0].get("id", "")
 
 
 def resolve_endpoint(
@@ -75,32 +74,34 @@ def resolve_endpoint(
     endpoint_context: list[dict[Any, Any]],
     organizationId: str,
     networkId: str,
-) -> Any:
+) -> dict[str, dict[Any, Any]]:
     """Resolve endpoint with parameters if any.
 
     Args:
-        dashboard (DashboardAPI): _description_
-        endpoint_context (list[dict[Any, Any]]): _description_
-        organizationId (str): _description_
-        networkId (str): _description_
+        dashboard (DashboardAPI): Dashboard API object.
+        endpoint_context (list[dict[Any, Any]]): Meraki endpoint context.
+        organizationId (str): Organization ID.
+        networkId (str): Network ID.
 
     Returns:
-        Any: list of responses.
+        Any: Dictionary of responses.
     """
-    responses: list[dict[Any, Any]] = []
+    responses: dict[str, dict[Any, Any]] = {}
     param_mapper: dict[str, str] = {
-        "organizationId": organizationId,
-        "networkId": networkId,
+        "organizationid": organizationId,
+        "networkid": networkId,
     }
     for endpoint in endpoint_context:
         meraki_class, meraki_method = endpoint["method"].split(".")
-        class_callable = getattr(dashboard, meraki_class)
-        method_callable = getattr(class_callable, meraki_method)
+        responses.update({meraki_class: {meraki_method: ""}})
+        class_callable: Callable[[Any], Any] = getattr(dashboard, meraki_class)
+        method_callable: Callable[[Any], Any] = getattr(class_callable, meraki_method)
         params: dict[str, str] = {}
         if endpoint.get("parameters"):
             for param in endpoint["parameters"]:
-                params.update({param: param_mapper[param]})
-            responses.append(method_callable(**params))
+                param_value = param.lower().strip()
+                params.update({param_value: param_mapper[param_value]})
+        responses[meraki_class][meraki_method] = method_callable(**params)
 
     return responses
 
@@ -136,9 +137,9 @@ class MerakiDriver(NetmikoDefault):
         if not feature_endpoints:
             logger.error("Could not find the Meraki endpoints")
             raise ValueError("Could not find Meraki endpoints")
-        _running_config: list[list[dict[Any, Any]]] = []
+        _running_config: list[dict[str, dict[Any, Any]]] = []
         for feature in feature_endpoints:
-            endpoints: str = cfg_cntx.get(feature, "")
+            endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             _running_config.append(
                 resolve_endpoint(
                     dashboard=dashboard,
