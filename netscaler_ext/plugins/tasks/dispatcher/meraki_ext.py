@@ -166,9 +166,12 @@ def resolve_endpoint(
                 params.update({param_key: param_value})
         try:
             response: dict[Any, Any] = method_callable(**params)
-        except TypeError:
+        except TypeError as e:
             logger.error(
                 f"The params {params} are not valid/sufficient for the {meraki_class}.{meraki_method} method",
+            )
+            logger.warning(
+                e,
             )
             continue
         for jpath in endpoint["jmespath"]:
