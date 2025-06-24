@@ -14,7 +14,6 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -218,7 +217,6 @@ class MerakiDriver(NetmikoDefault):
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             feature_name: str = feature_name_parser(feature_name=feature)
-            RemotePdb(host="localhost", port=4444).set_trace()
             _running_config.update(
                 {
                     feature_name: resolve_endpoint(
