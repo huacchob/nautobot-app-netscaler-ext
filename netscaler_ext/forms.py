@@ -19,7 +19,9 @@ class NetscalerExtExampleModelForm(NautobotModelForm):  # pylint: disable=too-ma
 class NetscalerExtExampleModelBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):  # pylint: disable=too-many-ancestors
     """NetscalerExtExampleModel bulk edit form."""
 
-    pk = forms.ModelMultipleChoiceField(queryset=models.NetscalerExtExampleModel.objects.all(), widget=forms.MultipleHiddenInput)
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.NetscalerExtExampleModel.objects.all(), widget=forms.MultipleHiddenInput
+    )
     description = forms.CharField(required=False)
 
     class Meta:

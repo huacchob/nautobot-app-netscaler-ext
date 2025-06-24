@@ -85,18 +85,19 @@ class NetmikoCiscoNxos(NetmikoDefault):
         remove_lines: list,
         substitute_lines: list,
     ) -> Result:
-        """Get the latest configuration from the device using Netmiko.
+        """Get the latest configuration from NXOS devices.
 
         Args:
             task (Task): Nornir Task.
-            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            logger (Logger): Nautobot logger.
             obj (Device): A Nautobot Device Django ORM object instance.
-            remove_lines (list): A list of regex lines to remove configurations.
-            substitute_lines (list): A list of dictionaries with to remove and replace lines.
+            backup_file (str): Backup file location.
+            remove_lines (list[str]): Lines to remove from the configuration.
+            substitute_lines (list[str]): Lines to replace in the configuration.
 
         Returns:
-            Result: Nornir Result object with a dict as a result containing the running configuration
-                { "config: <running configuration> }
+            Result: Nornir Result object with a dict as a result containing the
+                running configuration.
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         logger.info(obj.get_config_context())

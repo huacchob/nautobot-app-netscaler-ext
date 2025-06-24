@@ -5,9 +5,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 from nautobot.apps.urls import NautobotUIViewSetRouter
 
-
 from netscaler_ext import views
-
 
 app_name = "netscaler_ext"
 router = NautobotUIViewSetRouter()

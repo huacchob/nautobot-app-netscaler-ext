@@ -28,6 +28,20 @@ class NetScalerDriver(NetmikoDefault):
         remove_lines: list[str],
         substitute_lines: list[str],
     ) -> None | Result:
+        """Get the latest configuration from Netscaler devices.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (Logger): Nautobot logger.
+            obj (Device): Device object.
+            backup_file (str): Backup file location.
+            remove_lines (list[str]): Lines to remove from the configuration.
+            substitute_lines (list[str]): Lines to replace in the configuration.
+
+        Returns:
+            None | Result: Nornir Result object with a dict as a result
+                containing the running configuration or None.
+        """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         task.host.platform = NETMIKO_DEVICE_TYPE
 

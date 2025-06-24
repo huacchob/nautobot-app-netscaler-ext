@@ -1,3 +1,5 @@
+"""Tests for custom dispatchers."""
+
 import os
 import unittest
 from logging import Formatter, Logger, StreamHandler, getLogger
@@ -11,17 +13,20 @@ from nornir.core.task import Result, Task
 
 from netscaler_ext.tests import fixtures
 
-fixtures.create_devices_in_orm()
-
 # Set up Django settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "development.nautobot_config")
 django.setup()
 
 # Import the driver
-from netscaler_ext.plugins.tasks.dispatcher.meraki_ext import MerakiDriver
+from netscaler_ext.plugins.tasks.dispatcher.meraki_ext import MerakiDriver  # noqa: E402
 
 
 def setup_logger() -> Logger:
+    """Set up a logger for testing.
+
+    Returns:
+        Logger: Created logger.
+    """
     logger: Logger = getLogger(name="meraki_test")
     if not logger.handlers:
         handler = StreamHandler()
@@ -33,6 +38,11 @@ def setup_logger() -> Logger:
 
 
 def build_nornir() -> Any:
+    """Build Nornir object.
+
+    Returns:
+        Any: Nornir object.
+    """
     return InitNornir(config_file="netscaler_ext/tests/fixtures/dispatcher/config.yml")
 
 
@@ -40,7 +50,9 @@ class TestMerakiDriver(unittest.TestCase):
     """Test case for NetScalerDispatcher methods."""
 
     def setUp(self) -> None:
+        """Set up test case."""
         self.logger: Logger = setup_logger()
+        fixtures.create_devices_in_orm()
         self.device: Device = Device.objects.get(name="meraki-controller")
         self.nornir: Nornir = build_nornir()
 
@@ -48,6 +60,14 @@ class TestMerakiDriver(unittest.TestCase):
         """Ensure MerakiDriver.get_config() runs and returns expected structure."""
 
         def runner(task: Task) -> Result | None:
+            """Test runner.
+
+            Args:
+                task (Task): Nornir task.
+
+            Returns:
+                Result | None: Nornir Result object or None.
+            """
             return MerakiDriver.get_config(
                 task=task,
                 logger=self.logger,

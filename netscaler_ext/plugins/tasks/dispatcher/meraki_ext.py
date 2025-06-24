@@ -198,6 +198,20 @@ class MerakiDriver(NetmikoDefault):
         remove_lines: list[str],
         substitute_lines: list[str],
     ) -> None | Result:
+        """Get the latest configuration from Meraki dashboard.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (Logger): Nautobot logger.
+            obj (Device): Device object.
+            backup_file (str): Backup file location.
+            remove_lines (list[str]): Lines to remove from the configuration.
+            substitute_lines (list[str]): Lines to replace in the configuration.
+
+        Returns:
+            None | Result: Nornir Result object with a dict as a result
+                containing the running configuration or None.
+        """
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:

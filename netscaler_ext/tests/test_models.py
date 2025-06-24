@@ -27,6 +27,8 @@ class TestNetscalerExtExampleModel(ModelTestCases.BaseModelTestCase):
 
     def test_create_netscalerextexamplemodel_all_fields_success(self):
         """Create NetscalerExtExampleModel with all fields."""
-        netscalerextexamplemodel = models.NetscalerExtExampleModel.objects.create(name="Development", description="Development Test")
+        netscalerextexamplemodel = models.NetscalerExtExampleModel.objects.create(
+            name="Development", description="Development Test"
+        )
         self.assertEqual(netscalerextexamplemodel.name, "Development")
         self.assertEqual(netscalerextexamplemodel.description, "Development Test")
