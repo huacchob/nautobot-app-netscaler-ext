@@ -14,6 +14,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -110,6 +111,7 @@ def feature_name_parser(feature_name: str) -> str:
 
 def resolve_endpoint(
     dashboard: DashboardAPI,
+    logger: Logger,
     endpoint_context: list[dict[Any, Any]],
     organizationId: str,
     networkId: str,
@@ -118,6 +120,7 @@ def resolve_endpoint(
 
     Args:
         dashboard (DashboardAPI): Dashboard API object.
+        logger (Logger): Logger object.
         endpoint_context (list[dict[Any, Any]]): Meraki endpoint context.
         organizationId (str): Organization ID.
         networkId (str): Network ID.
@@ -132,10 +135,26 @@ def resolve_endpoint(
     }
     for endpoint in endpoint_context:
         meraki_class, meraki_method = endpoint["method"].split(".")
-        method_callable: Callable[[Any], Any] = getattr(
-            getattr(dashboard, meraki_class),
-            meraki_method,
-        )
+        try:
+            class_callable: Callable[[Any], Any] = getattr(
+                dashboard,
+                meraki_class,
+            )
+        except AttributeError:
+            logger.error(
+                f"The class {meraki_class} does not exist in the Dashboard API",
+            )
+            continue
+        try:
+            method_callable: Callable[[Any], Any] = getattr(
+                class_callable,
+                meraki_method,
+            )
+        except AttributeError:
+            logger.error(
+                f"The method {meraki_method} does not exist in the {meraki_class} class",
+            )
+            continue
         params: dict[str, str] = {}
         if endpoint.get("parameters"):
             for param in endpoint["parameters"]:
@@ -146,7 +165,13 @@ def resolve_endpoint(
                     param=param,
                 )
                 params.update({param_key: param_value})
-        response: dict[Any, Any] = method_callable(**params)
+        try:
+            response: dict[Any, Any] = method_callable(**params)
+        except TypeError:
+            logger.error(
+                f"The params {params} are not valid/sufficient for the {meraki_class}.{meraki_method} method",
+            )
+            continue
         for jpath in endpoint["jmespath"]:
             for key, value in jpath.items():
                 j_value = jmespath.search(
@@ -193,10 +218,12 @@ class MerakiDriver(NetmikoDefault):
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             feature_name: str = feature_name_parser(feature_name=feature)
+            RemotePdb(host="localhost", port=4444).set_trace()
             _running_config.update(
                 {
                     feature_name: resolve_endpoint(
                         dashboard=dashboard,
+                        logger=logger,
                         endpoint_context=endpoints,
                         organizationId=org_id,
                         networkId="",

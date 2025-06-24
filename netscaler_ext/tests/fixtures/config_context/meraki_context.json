@@ -4,7 +4,7 @@
   "org_endpoints": [
     {
       "method": "organizations.getOrganization",
-      "parameters": ["organizationId"],
+      "parameters": ["organizationIds"],
       "jmespath": [
         {
           "id": "id"
