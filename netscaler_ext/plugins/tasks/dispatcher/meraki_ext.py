@@ -4,6 +4,7 @@ import json
 from logging import Logger
 from typing import Any, Callable, OrderedDict
 
+import jmespath
 from meraki import DashboardAPI
 from nautobot.apps.choices import (
     SecretsGroupAccessTypeChoices,
@@ -109,7 +110,6 @@ def feature_name_parser(feature_name: str) -> str:
 
 def resolve_endpoint(
     dashboard: DashboardAPI,
-    feature: str,
     endpoint_context: list[dict[Any, Any]],
     organizationId: str,
     networkId: str,
@@ -118,7 +118,6 @@ def resolve_endpoint(
 
     Args:
         dashboard (DashboardAPI): Dashboard API object.
-        feature (str): Feature key name.
         endpoint_context (list[dict[Any, Any]]): Meraki endpoint context.
         organizationId (str): Organization ID.
         networkId (str): Network ID.
@@ -131,7 +130,6 @@ def resolve_endpoint(
         "organizationId": organizationId,
         "networkId": networkId,
     }
-    feature_name: str = feature_name_parser(feature_name=feature)
     for endpoint in endpoint_context:
         meraki_class, meraki_method = endpoint["method"].split(".")
         method_callable: Callable[[Any], Any] = getattr(
@@ -148,7 +146,14 @@ def resolve_endpoint(
                     param=param,
                 )
                 params.update({param_key: param_value})
-        responses.update({feature_name: {endpoint["method"]: method_callable(**params)}})
+        response: dict[Any, Any] = method_callable(**params)
+        for jpath in endpoint["jmespath"]:
+            for key, value in jpath.items():
+                j_value = jmespath.search(
+                    expression=value,
+                    data=response,
+                )
+                responses.update({key: j_value})
 
     return responses
 
@@ -184,17 +189,19 @@ class MerakiDriver(NetmikoDefault):
         if not feature_endpoints:
             logger.error("Could not find the Meraki endpoints")
             raise ValueError("Could not find Meraki endpoints")
-        _running_config: list[dict[str, dict[Any, Any]]] = []
+        _running_config: list[dict[str, dict[Any, Any]]] = {}
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
-            _running_config.append(
-                resolve_endpoint(
-                    dashboard=dashboard,
-                    feature=feature,
-                    endpoint_context=endpoints,
-                    organizationId=org_id,
-                    networkId="",
-                )
+            feature_name: str = feature_name_parser(feature_name=feature)
+            _running_config.update(
+                {
+                    feature_name: resolve_endpoint(
+                        dashboard=dashboard,
+                        endpoint_context=endpoints,
+                        organizationId=org_id,
+                        networkId="",
+                    )
+                }
             )
         processed_config: str = cls._process_config(
             logger=logger,

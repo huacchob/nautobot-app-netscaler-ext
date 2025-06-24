@@ -36,6 +36,7 @@ nautobot-plugin-nornir = "^2.2.1"
 remote-pdb = "^2.1.0"
 nautobot-golden-config = "^2.4.0"
 meraki = "^2.0.3"
+jmespath = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
