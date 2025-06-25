@@ -128,6 +128,7 @@ def resolve_endpoint(
     Returns:
         Any: Dictionary of responses.
     """
+    RemotePdb(host="localhost", port=4444).set_trace()
     responses: dict[str, dict[Any, Any]] = {}
     param_mapper: dict[str, str] = {
         "organizationId": organizationId,
@@ -157,7 +158,6 @@ def resolve_endpoint(
             continue
         params: dict[str, str] = {}
         if endpoint.get("parameters"):
-            RemotePdb(host="localhost", port=4444).set_trace()
             for param in endpoint["parameters"]:
                 if param.lower() not in [p.lower() for p in param_mapper]:
                     continue
