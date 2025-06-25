@@ -14,7 +14,6 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -35,10 +34,12 @@ def get_api_key(secrets_group: SecretsGroup) -> str:
             access_type=SecretsGroupAccessTypeChoices.TYPE_HTTP,
             secret_type=SecretsGroupSecretTypeChoices.TYPE_TOKEN,
         )
-    except SecretsGroupAssociation.DoesNotExist as e:
-        raise SecretsGroupAssociation.DoesNotExist(
-            "SecretsGroupAssociation access_type TYPE_HTTP secret_type TYPE_TOKEN does not exist in the SecretsGroup"
-        ) from e
+    except SecretsGroupAssociation.DoesNotExist:
+        api_key: str = secrets_group.get_secret_value(
+            access_type=SecretsGroupAccessTypeChoices.TYPE_GENERIC,
+            secret_type=SecretsGroupSecretTypeChoices.TYPE_PASSWORD,
+        )
+        return api_key
     return api_key
 
 
@@ -213,8 +214,6 @@ class MerakiDriver(NetmikoDefault):
             None | Result: Nornir Result object with a dict as a result
                 containing the running configuration or None.
         """
-        logger.info("Running Meraki job")
-        RemotePdb(host="127.0.0.1", port=4444).set_trace()
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:
