@@ -14,6 +14,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -156,6 +157,7 @@ def resolve_endpoint(
             continue
         params: dict[str, str] = {}
         if endpoint.get("parameters"):
+            RemotePdb(host="localhost", port=4444).set_trace()
             for param in endpoint["parameters"]:
                 if param.lower() not in [p.lower() for p in param_mapper]:
                     continue
