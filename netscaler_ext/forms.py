@@ -32,7 +32,7 @@ class NetscalerExtExampleModelBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEd
         ]
 
 
-class NetscalerExtExampleModelFilterForm(NautobotFilterForm):
+class NetscalerExtExampleModelFilterForm(NautobotFilterForm):  # pylint: disable=too-many-ancestors
     """Filter form to filter searches."""
 
     model = models.NetscalerExtExampleModel

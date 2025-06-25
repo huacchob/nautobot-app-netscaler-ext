@@ -13,6 +13,8 @@ from nornir.core.task import Result, Task
 
 from netscaler_ext.tests import fixtures
 
+# pylint: disable=wrong-import-position
+
 # Set up Django settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "development.nautobot_config")
 django.setup()

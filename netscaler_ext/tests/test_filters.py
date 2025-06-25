@@ -6,7 +6,7 @@ from netscaler_ext import filters, models
 from netscaler_ext.tests import fixtures
 
 
-class NetscalerExtExampleModelFilterTestCase(FilterTestCases.FilterTestCase):
+class NetscalerExtExampleModelFilterTestCase(FilterTestCases.FilterTestCase):  # pylint: disable=too-many-ancestors
     """NetscalerExtExampleModel Filter Test Case."""
 
     queryset = models.NetscalerExtExampleModel.objects.all()

@@ -30,6 +30,8 @@ from nautobot.ipam.models import IPAddress, Namespace, Prefix
 
 from netscaler_ext.models import NetscalerExtExampleModel
 
+# pylint: disable=too-many-locals, too-many-statements
+
 
 def create_netscalerextexamplemodel():
     """Fixture to create necessary number of NetscalerExtExampleModel for tests."""
@@ -38,7 +40,8 @@ def create_netscalerextexamplemodel():
     NetscalerExtExampleModel.objects.create(name="Test Three")
 
 
-def create_devices_in_orm():
+def create_devices_in_orm() -> None:
+    """Create devices in ORM."""
     # Status and Role
     status_name = "Active"
     role_name = "Network"
@@ -192,7 +195,7 @@ def create_devices_in_orm():
         )
         region.validated_save()
 
-        country, _ = Location.objects.get_or_create(
+        Location.objects.get_or_create(
             name=site.get("country_name"),
             defaults={
                 "location_type": country_lt,
@@ -200,7 +203,7 @@ def create_devices_in_orm():
             },
         )
 
-        state, _ = Location.objects.get_or_create(
+        Location.objects.get_or_create(
             name=site.get("state_name"),
             defaults={
                 "location_type": state_lt,
@@ -208,7 +211,7 @@ def create_devices_in_orm():
             },
         )
 
-        city, _ = Location.objects.get_or_create(
+        Location.objects.get_or_create(
             name=site.get("city_name"),
             defaults={
                 "location_type": city_lt,
@@ -216,7 +219,7 @@ def create_devices_in_orm():
             },
         )
 
-        building, _ = Location.objects.get_or_create(
+        Location.objects.get_or_create(
             name=site.get("building_name"),
             defaults={
                 "location_type": building_lt,
@@ -339,7 +342,11 @@ def create_devices_in_orm():
         if dev.get("config_context"):
             if cntx := ConfigContext.objects.filter(name=dev.get("context_name")):
                 cntx[0].delete()
-            with open(file=Path(__file__).parent.joinpath(dev.get("config_context"))) as f:
+            with open(
+                file=Path(__file__).parent.joinpath(dev.get("config_context")),
+                mode="r",
+                encoding="utf-8",
+            ) as f:
                 json_data: dict[Any, Any] = json.load(fp=f)
             cntx, _ = ConfigContext.objects.get_or_create(
                 name=dev.get("context_name"),
@@ -348,7 +355,8 @@ def create_devices_in_orm():
         device.validated_save()
 
 
-def delete_devices_in_orm():
+def delete_devices_in_orm() -> None:
+    """Delete created objects in ORM."""
     IPAddress.objects.all().delete()
     Namespace.objects.all().delete()
     Interface.objects.all().delete()
