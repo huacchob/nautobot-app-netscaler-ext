@@ -128,7 +128,6 @@ def resolve_endpoint(
     Returns:
         Any: Dictionary of responses.
     """
-    RemotePdb(host="localhost", port=4444).set_trace()
     responses: dict[str, dict[Any, Any]] = {}
     param_mapper: dict[str, str] = {
         "organizationId": organizationId,
@@ -214,6 +213,8 @@ class MerakiDriver(NetmikoDefault):
             None | Result: Nornir Result object with a dict as a result
                 containing the running configuration or None.
         """
+        logger.info("Running Meraki job")
+        RemotePdb(host="127.0.0.1", port=4444).set_trace()
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:
@@ -247,7 +248,6 @@ class MerakiDriver(NetmikoDefault):
                     )
                 }
             )
-            logger.info(_running_config)
         processed_config: str = cls._process_config(
             logger=logger,
             running_config=json.dumps(obj=_running_config, indent=4),
