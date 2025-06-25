@@ -245,6 +245,7 @@ class MerakiDriver(NetmikoDefault):
                     )
                 }
             )
+            logger.info(_running_config)
         processed_config: str = cls._process_config(
             logger=logger,
             running_config=json.dumps(obj=_running_config, indent=4),
