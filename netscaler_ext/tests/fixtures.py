@@ -30,7 +30,7 @@ from nautobot.ipam.models import IPAddress, Namespace, Prefix
 
 from netscaler_ext.models import NetscalerExtExampleModel
 
-# pylint: disable=too-many-locals, too-many-statements
+# pylint: disable=too-many-locals, too-many-statements, invalid-name
 
 
 def create_netscalerextexamplemodel():
