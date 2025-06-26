@@ -3,7 +3,7 @@
 import os
 import unittest
 from logging import Formatter, Logger, StreamHandler, getLogger
-from typing import Any
+from typing import Any, Optional
 
 import django
 from nautobot.dcim.models import Device
@@ -61,7 +61,7 @@ class TestMerakiDriver(unittest.TestCase):
     def test_get_config_runs_successfully(self) -> None:
         """Ensure MerakiDriver.get_config() runs and returns expected structure."""
 
-        def runner(task: Task) -> Result | None:
+        def runner(task: Task) -> Optional[Result]:
             """Test runner.
 
             Args:

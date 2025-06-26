@@ -1,7 +1,7 @@
 {
-  "endpoints": ["org_endpoints"],
+  "backup_endpoints": ["org_backup"],
   "dashboard_url": "https://api.meraki.com/api/v1/",
-  "org_endpoints": [
+  "org_backup": [
     {
       "method": "organizations.getOrganization",
       "parameters": ["organizationId"],

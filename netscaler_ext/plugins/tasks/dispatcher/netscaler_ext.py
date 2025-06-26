@@ -1,6 +1,7 @@
 """default network_importer API-based driver for Citrix Netscaler."""
 
 from logging import Logger
+from typing import Optional
 
 from nautobot.dcim.models import Device
 from nornir.core.exceptions import NornirSubTaskError
@@ -27,7 +28,7 @@ class NetScalerDriver(NetmikoDefault):
         backup_file: str,
         remove_lines: list[str],
         substitute_lines: list[str],
-    ) -> None | Result:
+    ) -> Optional[Result]:
         """Get the latest configuration from Netscaler devices.
 
         Args:

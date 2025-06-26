@@ -2,7 +2,7 @@
 
 import json
 from logging import Logger
-from typing import Any, Callable, OrderedDict
+from typing import Any, Callable, Optional, OrderedDict
 
 import jmespath
 from meraki import DashboardAPI
@@ -199,7 +199,7 @@ class MerakiDriver(NetmikoDefault):
         backup_file: str,
         remove_lines: list[str],
         substitute_lines: list[str],
-    ) -> None | Result:
+    ) -> Optional[Result]:
         """Get the latest configuration from Meraki dashboard.
 
         Args:
@@ -228,7 +228,7 @@ class MerakiDriver(NetmikoDefault):
         if not org_id:
             logger.error("Could not find the Meraki organization ID")
             raise ValueError("Could not find Meraki organization ID")
-        feature_endpoints: str = cfg_cntx.get("endpoints", "")
+        feature_endpoints: str = cfg_cntx.get("backup_endpoints", "")
         if not feature_endpoints:
             logger.error("Could not find the Meraki endpoints")
             raise ValueError("Could not find Meraki endpoints")
