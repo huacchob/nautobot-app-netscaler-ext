@@ -2,10 +2,7 @@
 
 # from django.core.exceptions import ValidationError
 # from hier_config import Host as HierConfigHost
-from nautobot_golden_config.models import (
-    ConfigCompliance,
-    _get_hierconfig_remediation,
-)
+from nautobot_golden_config import models
 
 # from nautobot_golden_config.models import (
 #     ConfigCompliance,
@@ -14,7 +11,7 @@ from nautobot_golden_config.models import (
 # )
 
 
-def remediation_func(obj: ConfigCompliance) -> str:
+def remediation_func(obj: models.ConfigCompliance) -> str:
     """Returns the remediating config.
 
     Args:
@@ -24,7 +21,7 @@ def remediation_func(obj: ConfigCompliance) -> str:
         str: Remediation config.
     """
     if obj.device.platform.name == "cisco_nxos":
-        return _get_hierconfig_remediation(obj=obj)
+        return models._get_hierconfig_remediation(obj=obj)
     # hierconfig_os = obj.device.platform.network_driver_mappings["hier_config"]
 
     # try:
