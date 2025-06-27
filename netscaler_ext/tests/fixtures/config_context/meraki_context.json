@@ -7,10 +7,13 @@
       "parameters": ["organizationId"],
       "jmespath": [
         {
-          "id": "id"
+          "name": "name"
         },
         {
-          "licensing": "licensing.model"
+          "api": "api"
+        },
+        {
+          "management": "management"
         }
       ]
     }

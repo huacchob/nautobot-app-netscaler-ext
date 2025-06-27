@@ -14,6 +14,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -214,6 +215,7 @@ class MerakiDriver(NetmikoDefault):
             None | Result: Nornir Result object with a dict as a result
                 containing the running configuration or None.
         """
+        RemotePdb(host="localhost", port=4444).remote_pdb()
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         dash_url: str = cfg_cntx.get("dashboard_url", "")
         if not dash_url:
