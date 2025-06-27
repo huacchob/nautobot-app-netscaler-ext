@@ -24,7 +24,7 @@ def remediation_func(obj: ConfigCompliance) -> str:
         str: Remediation config.
     """
     if obj.device.platform.name == "cisco_nxos":
-        _get_hierconfig_remediation(obj=obj)
+        return _get_hierconfig_remediation(obj=obj)
     # hierconfig_os = obj.device.platform.network_driver_mappings["hier_config"]
 
     # try:
