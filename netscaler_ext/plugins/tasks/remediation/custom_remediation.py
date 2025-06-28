@@ -1,49 +1,71 @@
 """Custom remediation."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.core.exceptions import ValidationError
 from hier_config import Host as HierConfigHost
-from nautobot_golden_config.models import (
-    RemediationSetting,
-)
+
+if TYPE_CHECKING:
+    from nautobot_golden_config.models import ConfigCompliance
 
 
-def remediation_func(
-    obj: "nautobot_golden_config.models.ConfigCompliance",
+def regular_compliance(
+    obj: "ConfigCompliance",
 ) -> str:
     """Returns the remediating config.
 
     Args:
-        obj (nautobot_golden_config.models.ConfigCompliance): Compliance object.
+        obj (ConfigCompliance): Compliance object.
 
     Returns:
         str: Remediation config.
     """
-    if obj.device.platform.name == "cisco_nxos":
-        hierconfig_os = obj.device.platform.network_driver_mappings["hier_config"]
-        if not hierconfig_os:
-            raise ValidationError(f"platform {obj.device.platform.network_driver} is not supported by hierconfig.")
+    from nautobot_golden_config.models import RemediationSetting
 
-        try:
-            remediation_setting_obj = RemediationSetting.objects.get(platform=obj.rule.platform)
-        except Exception as err:  # pylint: disable=broad-except:
-            raise ValidationError(f"Platform {obj.network_driver} has no Remediation Settings defined.") from err
+    hierconfig_os = obj.device.platform.network_driver_mappings["hier_config"]
+    if not hierconfig_os:
+        raise ValidationError(f"platform {obj.device.platform.network_driver} is not supported by hierconfig.")
 
-        remediation_options = remediation_setting_obj.remediation_options
+    try:
+        remediation_setting_obj = RemediationSetting.objects.get(platform=obj.rule.platform)
+    except Exception as err:  # pylint: disable=broad-except:
+        raise ValidationError(f"Platform {obj.network_driver} has no Remediation Settings defined.") from err
 
-        try:
-            hc_kwargs = {"hostname": obj.device.name, "os": hierconfig_os}
-            if remediation_options:
-                hc_kwargs.update(hconfig_options=remediation_options)
-            host = HierConfigHost(**hc_kwargs)
+    remediation_options = remediation_setting_obj.remediation_options
 
-        except Exception as err:  # pylint: disable=broad-except:
-            raise Exception(  # pylint: disable=broad-exception-raised
-                f"Cannot instantiate HierConfig on {obj.device.name}, check Device, Platform and Hier Options."
-            ) from err
+    try:
+        hc_kwargs = {"hostname": obj.device.name, "os": hierconfig_os}
+        if remediation_options:
+            hc_kwargs.update(hconfig_options=remediation_options)
+        host = HierConfigHost(**hc_kwargs)
 
-        host.load_generated_config(config_text=obj.intended)
-        host.load_running_config(config_text=obj.actual)
-        host.remediation_config()
-        remediation_config = host.remediation_config_filtered_text(include_tags={}, exclude_tags={})
+    except Exception as err:  # pylint: disable=broad-except:
+        raise Exception(  # pylint: disable=broad-exception-raised
+            f"Cannot instantiate HierConfig on {obj.device.name}, check Device, Platform and Hier Options."
+        ) from err
 
-        return remediation_config
+    host.load_generated_config(config_text=obj.intended)
+    host.load_running_config(config_text=obj.actual)
+    host.remediation_config()
+    remediation_config = host.remediation_config_filtered_text(include_tags={}, exclude_tags={})
+
+    return remediation_config
+
+
+def remediation_func(
+    obj: "ConfigCompliance",
+) -> str:
+    """Routes to the remediation function.
+
+    Args:
+        obj (ConfigCompliance): Compliance object.
+
+    Returns:
+        str: Remediation config.
+    """
+    if obj.device.platform.name == "meraki_managed":
+        pass
+    else:
+        return regular_compliance(obj=obj)
