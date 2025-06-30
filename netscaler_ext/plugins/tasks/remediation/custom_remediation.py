@@ -122,8 +122,8 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
             if actual != intended:
                 _process_diff(diff=diff, path=path, value=intended)
 
-    parsed_feature_name = _feature_name_parser(feature_name=obj.rule.feature.name)
-    return json.dumps(diff[parsed_feature_name], indent=4)
+    parsed_feature_name: str = _feature_name_parser(feature_name=obj.rule.feature.name)
+    return json.dumps(diff[parsed_feature_name.lower()], indent=4)
 
 
 def remediation_func(
