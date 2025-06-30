@@ -102,11 +102,11 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
 
         elif isinstance(actual, list) and isinstance(intended, list):
             if actual != intended:
-                set_in_diff(diff, path, intended)
+                _process_diff(diff=diff, path=path, value=intended)
 
         else:
             if actual != intended:
-                set_in_diff(diff, path, intended)
+                _process_diff(diff=diff, path=path, value=intended)
 
     return json.dumps(diff, indent=4)
 
