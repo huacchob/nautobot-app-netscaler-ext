@@ -89,17 +89,24 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
     while stack:
         path, actual, intended = stack.pop()
 
-        if not isinstance(actual, dict) and not isinstance(intended, dict):
-            raise TypeError("Intended or Actual is not a dict")
-        for i_key in intended:
-            if i_key not in actual:
-                _process_diff(
-                    diff=diff,
-                    path=path + (i_key,),
-                    value=intended[i_key],
-                )
-            else:
-                stack.append((path + (i_key,), actual[i_key], intended[i_key]))
+        if isinstance(actual, dict) and isinstance(intended, dict):
+            for i_key in intended:
+                if i_key not in actual:
+                    _process_diff(
+                        diff=diff,
+                        path=path + (i_key,),
+                        value=intended[i_key],
+                    )
+                else:
+                    stack.append((path + (i_key,), actual[i_key], intended[i_key]))
+
+        elif isinstance(actual, list) and isinstance(intended, list):
+            if actual != intended:
+                set_in_diff(diff, path, intended)
+
+        else:
+            if actual != intended:
+                set_in_diff(diff, path, intended)
 
     return json.dumps(diff, indent=4)
 
