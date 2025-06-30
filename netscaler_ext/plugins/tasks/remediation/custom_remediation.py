@@ -56,6 +56,24 @@ def regular_remediation(
     return remediation_config
 
 
+def _feature_name_parser(feature_name: str) -> str:
+    """Feature name parser.
+
+    Args:
+        feature_name (str): The feature name from config context.
+
+    Returns:
+        str: Parsed feature name.
+    """
+    if "_" in feature_name:
+        feat = feature_name.rsplit(sep="_", maxsplit=1)[0]
+    elif "-" in feature_name:
+        feat = feature_name.rsplit(sep="-", maxsplit=1)[0]
+    else:
+        feat = feature_name.rsplit(sep=" ", maxsplit=1)[0]
+    return feat
+
+
 def _process_diff(diff: Dict[Any, Any], path: Tuple[str, ...], value: Any) -> None:
     """Process the diff.
 
@@ -104,7 +122,8 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
             if actual != intended:
                 _process_diff(diff=diff, path=path, value=intended)
 
-    return json.dumps(diff[obj.rule.feature.name], indent=4)
+    parsed_feature_name = _feature_name_parser(feature_name=obj.rule.feature.name)
+    return json.dumps(diff[parsed_feature_name], indent=4)
 
 
 def remediation_func(
