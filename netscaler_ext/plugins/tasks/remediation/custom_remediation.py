@@ -100,10 +100,6 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
                 else:
                     stack.append((path + (i_key,), actual[i_key], intended[i_key]))
 
-        elif isinstance(actual, list) and isinstance(intended, list):
-            if actual != intended:
-                _process_diff(diff=diff, path=path, value=intended)
-
         else:
             if actual != intended:
                 _process_diff(diff=diff, path=path, value=intended)
