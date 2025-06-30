@@ -123,6 +123,6 @@ def remediation_func(
         str: Remediation config.
     """
     if obj.device.platform.name in ["meraki_managed"]:
-        controller_remediation(obj=obj)
+        return controller_remediation(obj=obj)
     else:
         return regular_remediation(obj=obj)
