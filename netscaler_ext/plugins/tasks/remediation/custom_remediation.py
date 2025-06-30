@@ -123,6 +123,8 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
                 _process_diff(diff=diff, path=path, value=intended)
 
     parsed_feature_name: str = _feature_name_parser(feature_name=obj.rule.feature.name)
+    if not diff.get(parsed_feature_name.lower()):
+        raise ValidationError(f"Feature {parsed_feature_name} not found in diff.")
     return json.dumps(diff[parsed_feature_name.lower()], indent=4)
 
 
