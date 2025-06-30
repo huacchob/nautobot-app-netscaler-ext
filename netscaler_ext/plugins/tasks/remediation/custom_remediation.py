@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import json
+from collections import deque
+from typing import TYPE_CHECKING, Any, Dict, Tuple
 
 from django.core.exceptions import ValidationError
-from hier_config import Host as HierConfigHost
+from hier_config import Host
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
 
 
-def regular_compliance(
+def regular_remediation(
     obj: "ConfigCompliance",
 ) -> str:
     """Returns the remediating config.
@@ -39,7 +41,7 @@ def regular_compliance(
         hc_kwargs = {"hostname": obj.device.name, "os": hierconfig_os}
         if remediation_options:
             hc_kwargs.update(hconfig_options=remediation_options)
-        host = HierConfigHost(**hc_kwargs)
+        host = Host(**hc_kwargs)
 
     except Exception as err:  # pylint: disable=broad-except:
         raise Exception(  # pylint: disable=broad-exception-raised
@@ -54,6 +56,54 @@ def regular_compliance(
     return remediation_config
 
 
+def _process_diff(diff: Dict[Any, Any], path: Tuple[str, ...], value: Any) -> None:
+    """Process the diff.
+
+    Args:
+        diff (Dict[Any, Any]): Diff dictionary.
+        path (Tuple[str, ...]): Path of dictionary keys.
+        value (Any): The key's value.
+    """
+    d: Dict[Any, Any] = diff
+    for key in path[:-1]:
+        d = d.setdefault(key, {})
+    d[path[-1]] = value
+
+
+def controller_remediation(obj: "ConfigCompliance") -> str:
+    """Controller remediation.
+
+    Args:
+        obj (ConfigCompliance): Compliance object.
+
+    Raises:
+        TypeError: Intended or Actual is not a dict.
+
+    Returns:
+        str: Remediation json config.
+    """
+    diff: Dict[str, Any] = {}
+    stack: deque[Tuple[Tuple[str, ...], Any, Any]] = deque()
+    stack.append((tuple(), obj.actual, obj.intended))
+
+    while stack:
+        path, actual, intended = stack.pop()
+
+        if not isinstance(actual, dict) and not isinstance(intended, dict):
+            raise TypeError("Intended or Actual is not a dict")
+        for i_key in intended:
+            if i_key not in actual:
+                _process_diff(
+                    diff=diff,
+                    path=path + (i_key,),
+                    value=intended[i_key],
+                )
+            else:
+                stack.append((path + (i_key,), actual[i_key], intended[i_key]))
+
+    return json.dumps(diff, indent=4)
+
+
 def remediation_func(
     obj: "ConfigCompliance",
 ) -> str:
@@ -65,7 +115,7 @@ def remediation_func(
     Returns:
         str: Remediation config.
     """
-    if obj.device.platform.name == "meraki_managed":
-        pass
+    if obj.device.platform.name in ["meraki_managed"]:
+        controller_remediation(obj=obj)
     else:
-        return regular_compliance(obj=obj)
+        return regular_remediation(obj=obj)
