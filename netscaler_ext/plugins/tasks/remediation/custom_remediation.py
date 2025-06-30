@@ -104,7 +104,7 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
             if actual != intended:
                 _process_diff(diff=diff, path=path, value=intended)
 
-    return json.dumps(diff, indent=4)
+    return json.dumps(diff[obj.rule.feature.name], indent=4)
 
 
 def remediation_func(
