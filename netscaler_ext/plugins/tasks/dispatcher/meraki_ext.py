@@ -4,6 +4,7 @@ import json
 from logging import Logger
 from typing import Any, Callable, Optional, OrderedDict
 
+import jmespath
 from meraki import DashboardAPI
 from nautobot.apps.choices import (
     SecretsGroupAccessTypeChoices,
@@ -112,20 +113,20 @@ def _resolve_params(
 
 
 def _resolve_jmespath(
-    jmespath: list[dict[str, str]],
+    jmespath_values: list[dict[str, str]],
     api_response: Any,
 ) -> dict[Any, Any]:
     """Resolve jmespath.
 
     Args:
-        jmespath (list[dict[str, str]]): Jmespath list.
+        jmespath_values (list[dict[str, str]]): Jmespath list.
         api_response (Any): API response.
 
     Returns:
         dict[str, Any]: Resolved jmespath data fields.
     """
     data_fields: dict[str, Any] = {}
-    for jpath in jmespath:
+    for jpath in jmespath_values:
         for key, value in jpath.items():
             j_value: Any = jmespath.search(
                 expression=value,
@@ -251,7 +252,7 @@ class MerakiDriver(BaseControllerDriver):
                 )
                 continue
             jpath_fields: dict[str, Any] = _resolve_jmespath(
-                jmespath=endpoint["jmespath"],
+                jmespath_values=endpoint["jmespath"],
                 api_response=response,
             )
             responses.update(jpath_fields)
