@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from netscaler_ext.plugins.tasks.remediation.controller_remediation import controller_remediation
 from netscaler_ext.plugins.tasks.remediation.hierconfig_remediation import hierconfig_remediation
-from netscaler_ext.plugins.tasks.remediation.json_remediation import json_remediation
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
@@ -23,6 +23,6 @@ def remediation_func(
         str: Remediation config.
     """
     if obj.device.platform.name in ["meraki_managed"]:
-        return json_remediation(obj=obj)
+        return controller_remediation(obj=obj)
     else:
         return hierconfig_remediation(obj=obj)

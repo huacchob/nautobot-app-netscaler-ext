@@ -44,7 +44,7 @@ def _process_diff(diff: Dict[Any, Any], path: Tuple[str, ...], value: Any) -> No
     d[path[-1]] = value
 
 
-def json_remediation(obj: "ConfigCompliance") -> str:
+def controller_remediation(obj: "ConfigCompliance") -> str:
     """Controller remediation.
 
     Args:
