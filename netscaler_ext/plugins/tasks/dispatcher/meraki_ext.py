@@ -107,9 +107,7 @@ def _resolve_params(
             for k, v in param_mapper.items():
                 if k.lower() == param.lower():
                     param_key, param_value = k, v
-                else:
-                    param_key, param_value = "", ""
-                params.update({param_key: param_value})
+                    params.update({param_key: param_value})
     return params
 
 
