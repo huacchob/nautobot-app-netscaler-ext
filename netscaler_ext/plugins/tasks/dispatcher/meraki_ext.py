@@ -104,16 +104,12 @@ def _resolve_params(
         for param in parameters:
             if param.lower() not in [p.lower() for p in param_mapper]:
                 continue
-            param_key, param_value = get_case_insensitive_key(
-                params_mapper=param_mapper,
-                param=param,
-            )
             for k, v in param_mapper.items():
                 if k.lower() == param.lower():
                     param_key, param_value = k, v
                 else:
                     param_key, param_value = "", ""
-            params.update({param_key: param_value})
+                params.update({param_key: param_value})
     return params
 
 
