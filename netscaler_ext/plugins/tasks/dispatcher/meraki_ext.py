@@ -3,46 +3,15 @@
 from logging import Logger
 from typing import Any, Callable, Optional, OrderedDict
 
-import jmespath
 from meraki import DashboardAPI
-from nautobot.apps.choices import (
-    SecretsGroupAccessTypeChoices,
-    SecretsGroupSecretTypeChoices,
-)
 from nautobot.dcim.models import Device
-from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
+    get_api_key,
+    resolve_jmespath,
+    resolve_params,
 )
-
-
-# Authentication private functions
-def _get_api_key(secrets_group: SecretsGroup) -> str:
-    """Get controller API Key.
-
-    Args:
-        secrets_group (SecretsGroup): SecretsGroup object.
-
-    Raises:
-        SecretsGroupAssociation.DoesNotExist: SecretsGroupAssociation access
-            type TYPE_HTTP or secret type TYPE_TOKEN does not exist.
-
-    Returns:
-        str: API key.
-    """
-    try:
-        api_key: str = secrets_group.get_secret_value(
-            access_type=SecretsGroupAccessTypeChoices.TYPE_HTTP,
-            secret_type=SecretsGroupSecretTypeChoices.TYPE_TOKEN,
-        )
-    except SecretsGroupAssociation.DoesNotExist:
-        api_key: str = secrets_group.get_secret_value(
-            access_type=SecretsGroupAccessTypeChoices.TYPE_GENERIC,
-            secret_type=SecretsGroupSecretTypeChoices.TYPE_PASSWORD,
-        )
-        return api_key
-    return api_key
 
 
 # Resolving endpoint private functions
@@ -85,55 +54,6 @@ def _resolve_method_callable(
     return method_callable
 
 
-def _resolve_params(
-    parameters: list[str],
-    param_mapper: dict[str, str],
-) -> dict[Any, Any]:
-    """Resolve parameters.
-
-    Args:
-        parameters (list[str]): Parameters list.
-        param_mapper (dict[str, str]): Parameters mapper.
-
-    Returns:
-        dict[Any, Any]: _description_
-    """
-    params: dict[Any, Any] = {}
-    if parameters:
-        for param in parameters:
-            if param.lower() not in [p.lower() for p in param_mapper]:
-                continue
-            for k, v in param_mapper.items():
-                if k.lower() == param.lower():
-                    param_key, param_value = k, v
-                    params.update({param_key: param_value})
-    return params
-
-
-def _resolve_jmespath(
-    jmespath_values: list[dict[str, str]],
-    api_response: Any,
-) -> dict[Any, Any]:
-    """Resolve jmespath.
-
-    Args:
-        jmespath_values (list[dict[str, str]]): Jmespath list.
-        api_response (Any): API response.
-
-    Returns:
-        dict[str, Any]: Resolved jmespath data fields.
-    """
-    data_fields: dict[str, Any] = {}
-    for jpath in jmespath_values:
-        for key, value in jpath.items():
-            j_value: Any = jmespath.search(
-                expression=value,
-                data=api_response,
-            )
-            data_fields.update({key: j_value})
-    return data_fields
-
-
 class MerakiDriver(BaseControllerDriver):
     """Meraki Dispatcher class."""
 
@@ -161,7 +81,7 @@ class MerakiDriver(BaseControllerDriver):
         if not controller_url:
             logger.error("Could not find the Meraki Dashboard API URL")
             raise ValueError("Could not find the Meraki Dashboard API URL")
-        api_key: str = _get_api_key(secrets_group=obj.secrets_group)
+        api_key: str = get_api_key(secrets_group=obj.secrets_group)
         controller_obj: DashboardAPI = DashboardAPI(
             api_key=api_key,
             base_url=controller_url,
@@ -235,7 +155,7 @@ class MerakiDriver(BaseControllerDriver):
             )
             if not method_callable:
                 continue
-            params: dict[Any, Any] = _resolve_params(
+            params: dict[Any, Any] = resolve_params(
                 parameters=endpoint.get("parameters"),
                 param_mapper=param_mapper,
             )
@@ -249,7 +169,7 @@ class MerakiDriver(BaseControllerDriver):
                     e,
                 )
                 continue
-            jpath_fields: dict[str, Any] = _resolve_jmespath(
+            jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
             )

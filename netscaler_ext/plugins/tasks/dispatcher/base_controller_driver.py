@@ -5,9 +5,91 @@ from abc import ABC, abstractmethod
 from logging import Logger
 from typing import Any, Optional, OrderedDict
 
+import jmespath
+from nautobot.apps.choices import (
+    SecretsGroupAccessTypeChoices,
+    SecretsGroupSecretTypeChoices,
+)
 from nautobot.dcim.models import Device
+from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+
+
+def get_api_key(secrets_group: SecretsGroup) -> str:
+    """Get controller API Key.
+
+    Args:
+        secrets_group (SecretsGroup): SecretsGroup object.
+
+    Raises:
+        SecretsGroupAssociation.DoesNotExist: SecretsGroupAssociation access
+            type TYPE_HTTP or secret type TYPE_TOKEN does not exist.
+
+    Returns:
+        str: API key.
+    """
+    try:
+        api_key: str = secrets_group.get_secret_value(
+            access_type=SecretsGroupAccessTypeChoices.TYPE_HTTP,
+            secret_type=SecretsGroupSecretTypeChoices.TYPE_TOKEN,
+        )
+    except SecretsGroupAssociation.DoesNotExist:
+        api_key: str = secrets_group.get_secret_value(
+            access_type=SecretsGroupAccessTypeChoices.TYPE_GENERIC,
+            secret_type=SecretsGroupSecretTypeChoices.TYPE_PASSWORD,
+        )
+        return api_key
+    return api_key
+
+
+def resolve_params(
+    parameters: list[str],
+    param_mapper: dict[str, str],
+) -> dict[Any, Any]:
+    """Resolve parameters.
+
+    Args:
+        parameters (list[str]): Parameters list.
+        param_mapper (dict[str, str]): Parameters mapper.
+
+    Returns:
+        dict[Any, Any]: _description_
+    """
+    params: dict[Any, Any] = {}
+    if parameters:
+        for param in parameters:
+            if param.lower() not in [p.lower() for p in param_mapper]:
+                continue
+            for k, v in param_mapper.items():
+                if k.lower() == param.lower():
+                    param_key, param_value = k, v
+                    params.update({param_key: param_value})
+    return params
+
+
+def resolve_jmespath(
+    jmespath_values: list[dict[str, str]],
+    api_response: Any,
+) -> dict[Any, Any]:
+    """Resolve jmespath.
+
+    Args:
+        jmespath_values (list[dict[str, str]]): Jmespath list.
+        api_response (Any): API response.
+
+    Returns:
+        dict[str, Any]: Resolved jmespath data fields.
+    """
+    data_fields: dict[str, Any] = {}
+    for jpath in jmespath_values:
+        for key, value in jpath.items():
+            j_value: Any = jmespath.search(
+                expression=value,
+                data=api_response,
+            )
+            data_fields.update({key: j_value})
+    return data_fields
 
 
 class BaseControllerDriver(NetmikoDefault, ABC):
