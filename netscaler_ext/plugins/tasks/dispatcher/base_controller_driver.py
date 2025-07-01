@@ -135,7 +135,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         _running_config: dict[str, dict[Any, Any]] = {}
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
-            feature_name: str = _feature_name_parser(feature_name=feature)
+            feature_name: str = cls._feature_name_parser(feature_name=feature)
             _running_config.update(
                 {
                     feature_name: cls.resolve_endpoint(
