@@ -164,7 +164,7 @@ class MerakiDriver(BaseControllerDriver):
         Returns:
             Any: Controller object.
         """
-        controller_url: str = config_context.get("dashboard_url", "")
+        controller_url: str = config_context.get("controller_url", "")
         if not controller_url:
             logger.error("Could not find the Meraki Dashboard API URL")
             raise ValueError("Could not find the Meraki Dashboard API URL")
@@ -289,7 +289,7 @@ class MerakiDriver(BaseControllerDriver):
                 containing the running configuration or None.
         """
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        controller_obj: DashboardAPI = cls.authenticate(
+        controller_obj: Any = cls.authenticate(
             config_context=cfg_cntx,
             logger=logger,
             obj=obj,
