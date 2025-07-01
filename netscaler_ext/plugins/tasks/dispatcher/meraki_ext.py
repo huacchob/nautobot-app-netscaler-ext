@@ -1,6 +1,5 @@
 """nornir dispatcher for cisco Meraki."""
 
-import json
 from logging import Logger
 from typing import Any, Callable, Optional, OrderedDict
 
@@ -12,7 +11,6 @@ from nautobot.apps.choices import (
 )
 from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
-from nornir.core.task import Result, Task
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
@@ -258,64 +256,3 @@ class MerakiDriver(BaseControllerDriver):
             responses.update(jpath_fields)
 
         return responses
-
-    @classmethod
-    def get_config(  # pylint: disable=R0913,R0914
-        cls,
-        task: Task,
-        logger: Logger,
-        obj: Device,
-        backup_file: str,
-        remove_lines: list[str],
-        substitute_lines: list[str],
-    ) -> Optional[Result]:
-        """Get the latest configuration from controller.
-
-        Args:
-            task (Task): Nornir Task.
-            logger (Logger): Nautobot logger.
-            obj (Device): Device object.
-            backup_file (str): Backup file location.
-            remove_lines (list[str]): Lines to remove from the configuration.
-            substitute_lines (list[str]): Lines to replace in the configuration.
-
-        Returns:
-            None | Result: Nornir Result object with a dict as a result
-                containing the running configuration or None.
-        """
-        cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        controller_obj: Any = cls.authenticate(
-            config_context=cfg_cntx,
-            logger=logger,
-            obj=obj,
-        )
-        controller_dict: dict[str, str] = cls.controller_setup(
-            controller_obj=controller_obj,
-            logger=logger,
-        )
-        feature_endpoints: str = cfg_cntx.get("backup_endpoints", "")
-        if not feature_endpoints:
-            logger.error("Could not find the Meraki endpoints")
-            raise ValueError("Could not find Meraki endpoints")
-        _running_config: dict[str, dict[Any, Any]] = {}
-        for feature in feature_endpoints:
-            endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
-            feature_name: str = cls._feature_name_parser(feature_name=feature)
-            _running_config.update(
-                {
-                    feature_name: cls.resolve_endpoint(
-                        controller_obj=controller_obj,
-                        logger=logger,
-                        endpoint_context=endpoints,
-                        **controller_dict,
-                    )
-                }
-            )
-        processed_config: str = cls._process_config(
-            logger=logger,
-            running_config=json.dumps(obj=_running_config, indent=4),
-            remove_lines=remove_lines,
-            substitute_lines=substitute_lines,
-            backup_file=backup_file,
-        )
-        return Result(host=task.host, result={"config": processed_config})
