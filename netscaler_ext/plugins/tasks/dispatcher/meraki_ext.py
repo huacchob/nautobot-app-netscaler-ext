@@ -4,7 +4,7 @@ from logging import Logger
 from typing import Any, Callable, Optional, OrderedDict
 
 from meraki import DashboardAPI
-from nautobot.dcim.models import Device
+from nautobot.dcim.models import Controller, Device
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
@@ -77,7 +77,14 @@ class MerakiDriver(BaseControllerDriver):
         Returns:
             Any: Controller object.
         """
-        controller_url: str = config_context.get("controller_url", "")
+        controller_url: str = ""
+        if controller_group := obj.controller_managed_device_group:
+            controller: Controller = controller_group.controller
+            controller_url = controller.external_integration.remote_url
+        elif controllers := obj.controllers.all():
+            for cntrlr in controllers:
+                if "meraki" in cntrlr.platform.name.lower():
+                    controller_url = cntrlr.external_integration.remote_url
         if not controller_url:
             logger.error("Could not find the Meraki Dashboard API URL")
             raise ValueError("Could not find the Meraki Dashboard API URL")
