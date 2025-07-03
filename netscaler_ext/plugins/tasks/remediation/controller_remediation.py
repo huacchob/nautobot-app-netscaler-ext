@@ -28,7 +28,6 @@ def _filter_allowed_params(
     Returns:
         dict[str, Any]: Filtered config.
     """
-    RemotePdb(host="localhost", port=4444).set_trace()
     valid_payload_config: dict[str, Any] = {feature_name: {}}
     all_optional_arguments: list[str] = []
     for endpoint in config_context:
@@ -77,6 +76,7 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
         config_context=obj.device.get_config_context().get(f"{feature_name}_remediation", ""),
         config=obj.actual,
     )
+    RemotePdb(host="localhost", port=4444).set_trace()
     diff: Dict[str, Any] = {}
     stack: deque[Tuple[Tuple[str, ...], Any, Any]] = deque()
     stack.append((tuple(), actual, intended))
