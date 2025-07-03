@@ -59,7 +59,7 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
         obj (ConfigCompliance): Compliance object.
 
     Raises:
-        TypeError: Intended or Actual is not a dict.
+        ValidationError: Intended or Actual does not have the feature name as the top level key.
 
     Returns:
         str: Remediation json config.
@@ -98,5 +98,5 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
                 _process_diff(diff=diff, path=path, value=intended)
 
     if not diff.get(feature_name):
-        raise ValidationError(f"Feature {feature_name} not found in diff.")
+        raise ValidationError(f"Feature {feature_name} not found in the config.")
     return json.dumps(diff[feature_name], indent=4)

@@ -6,10 +6,7 @@ from logging import Logger
 from typing import Any, Optional, OrderedDict
 
 import jmespath
-from nautobot.apps.choices import (
-    SecretsGroupAccessTypeChoices,
-    SecretsGroupSecretTypeChoices,
-)
+from nautobot.apps.choices import SecretsGroupAccessTypeChoices, SecretsGroupSecretTypeChoices
 from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
@@ -117,14 +114,12 @@ class BaseControllerDriver(NetmikoDefault, ABC):
     @abstractmethod
     def authenticate(
         cls,
-        config_context: OrderedDict[Any, Any],
         logger: Logger,
         obj: Device,
     ) -> Any:
         """Authenticate to controller.
 
         Args:
-            config_context (OrderedDict[Any, Any]): Config context.
             logger (Logger): Logger object.
             obj (Device): Device object.
 
@@ -202,7 +197,6 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         """
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         controller_obj: Any = cls.authenticate(
-            config_context=cfg_cntx,
             logger=logger,
             obj=obj,
         )

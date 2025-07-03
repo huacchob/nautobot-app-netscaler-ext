@@ -1,7 +1,7 @@
 """nornir dispatcher for cisco Meraki."""
 
 from logging import Logger
-from typing import Any, Callable, Optional, OrderedDict
+from typing import Any, Callable, Optional
 
 from meraki import DashboardAPI
 from nautobot.dcim.models import Controller, Device
@@ -60,7 +60,6 @@ class MerakiDriver(BaseControllerDriver):
     @classmethod
     def authenticate(
         cls,
-        config_context: OrderedDict[Any, Any],
         logger: Logger,
         obj: Device,
     ) -> Any:
