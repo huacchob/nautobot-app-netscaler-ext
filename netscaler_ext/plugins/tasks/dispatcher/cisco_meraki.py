@@ -1,4 +1,4 @@
-"""nornir dispatcher for cisco Meraki."""
+"""nornir dispatcher for cisco Meraki controllers."""
 
 from logging import Logger
 from typing import Any, Callable, Optional
@@ -54,8 +54,8 @@ def _resolve_method_callable(
     return method_callable
 
 
-class MerakiDriver(BaseControllerDriver):
-    """Meraki Dispatcher class."""
+class NetmikoCiscoMeraki(BaseControllerDriver):
+    """Meraki Controller Dispatcher class."""
 
     @classmethod
     def authenticate(
