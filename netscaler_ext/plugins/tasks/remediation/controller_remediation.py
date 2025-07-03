@@ -7,7 +7,6 @@ from collections import deque
 from typing import TYPE_CHECKING, Any, Dict, Tuple
 
 from django.core.exceptions import ValidationError
-from remote_pdb import RemotePdb
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
@@ -65,7 +64,7 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
     Returns:
         str: Remediation json config.
     """
-    feature_name: str = obj.rule.feature.name
+    feature_name: str = obj.rule.feature.name.lower()
     intended: dict[str, Any] = _filter_allowed_params(
         feature_name=feature_name,
         config_context=obj.device.get_config_context().get(f"{feature_name}_remediation", ""),
@@ -76,7 +75,6 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
         config_context=obj.device.get_config_context().get(f"{feature_name}_remediation", ""),
         config=obj.actual,
     )
-    RemotePdb(host="localhost", port=4444).set_trace()
     diff: Dict[str, Any] = {}
     stack: deque[Tuple[Tuple[str, ...], Any, Any]] = deque()
     stack.append((tuple(), actual, intended))
@@ -99,6 +97,6 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
             if actual != intended:
                 _process_diff(diff=diff, path=path, value=intended)
 
-    if not diff.get(feature_name.lower()):
+    if not diff.get(feature_name):
         raise ValidationError(f"Feature {feature_name} not found in diff.")
-    return json.dumps(diff[feature_name.lower()], indent=4)
+    return json.dumps(diff[feature_name], indent=4)
