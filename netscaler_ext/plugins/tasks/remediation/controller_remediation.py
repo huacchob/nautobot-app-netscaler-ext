@@ -7,6 +7,7 @@ from collections import deque
 from typing import TYPE_CHECKING, Any, Dict, Tuple
 
 from django.core.exceptions import ValidationError
+from remote_pdb import RemotePdb
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
@@ -27,6 +28,7 @@ def _filter_allowed_params(
     Returns:
         dict[str, Any]: Filtered config.
     """
+    RemotePdb(host="localhost", port=4444).set_trace()
     valid_payload_config: dict[str, Any] = {feature_name: {}}
     all_optional_arguments: list[str] = []
     for endpoint in config_context:
