@@ -46,10 +46,9 @@ def _process_diff(diff: Dict[Any, Any], path: Tuple[str, ...], value: Any) -> No
         path (Tuple[str, ...]): Path of dictionary keys.
         value (Any): The key's value.
     """
-    d: Dict[Any, Any] = diff
     for key in path[:-1]:
-        d = d.setdefault(key, {})
-    d[path[-1]] = value
+        diff = diff.setdefault(key, {})
+    diff[path[-1]] = value
 
 
 def controller_remediation(obj: "ConfigCompliance") -> str:
@@ -99,4 +98,4 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
 
     if not diff.get(feature_name):
         raise ValidationError(f"Feature {feature_name} not found in the config.")
-    return json.dumps(diff[feature_name], indent=4)
+    return json.dumps(diff, indent=4)
