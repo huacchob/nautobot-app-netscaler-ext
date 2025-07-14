@@ -11,6 +11,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -284,6 +285,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
+        RemotePdb(host="localhost", port=4444).set_trace()
         if isinstance(config, str):
             config = json.loads(config)
         logger.info("Config merge via controller dispatcher starting", extra={"object": obj})
