@@ -98,4 +98,4 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
 
     if not diff.get(feature_name):
         raise ValidationError(f"Feature {feature_name} not found in the config.")
-    return json.dumps(diff[feature_name], indent=4)
+    return json.dumps(diff, indent=4)
