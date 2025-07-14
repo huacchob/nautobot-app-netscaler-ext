@@ -11,7 +11,6 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -197,7 +196,6 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             None | Result: Nornir Result object with a dict as a result
                 containing the running configuration or None.
         """
-        RemotePdb(host="localhost", port=4444).set_trace()
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         controller_obj: Any = cls.authenticate(
             logger=logger,
@@ -286,6 +284,8 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
+        if isinstance(config, str):
+            config = json.loads(config)
         logger.info("Config merge via controller dispatcher starting", extra={"object": obj})
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         controller_obj: Any = cls.authenticate(
@@ -296,6 +296,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             controller_obj=controller_obj,
             logger=logger,
         )
+        aggregated_results: list[Any] = []
         feature_endpoints: str = cfg_cntx.get("remediation_endpoints", "")
         if not feature_endpoints:
             logger.error("Could not find the controller endpoints")
@@ -313,36 +314,29 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                     extra={"object": obj},
                 )
                 continue
-            push_results = cls.resolve_remediation_endpoint(
-                controller_obj=controller_obj,
-                logger=logger,
-                endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
-                payload=config[remediation_endpoint],
-                **controller_dict,
-            )
-        # Default code
-        push_result = task.run(
-            task=netmiko_send_config,
-            config_commands=config.splitlines(),
-            enable=True,
-        )
-
-        logger.info(
-            f"result: {push_result[0].result}, changed: {push_result[0].changed}",
-            extra={"object": obj},
-        )
-
-        if push_result.diff:
-            if can_diff:
-                logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
-            else:
-                logger.warning(
-                    "Diff was requested but may include sensitive data. Ignoring...",
-                    extra={"object": obj},
+            aggregated_results.append(
+                cls.resolve_remediation_endpoint(
+                    controller_obj=controller_obj,
+                    logger=logger,
+                    endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
+                    payload=config[remediation_endpoint],
+                    **controller_dict,
                 )
+            )
+        if can_diff:
+            logger.info(f"result: {aggregated_results}", extra={"object": obj})
+            result: dict[str, Any] = {
+                "changed": bool(aggregated_results),
+                "result": aggregated_results,
+            }
+        else:
+            result: dict[str, Any] = {
+                "changed": bool(aggregated_results),
+                "result": "Hidden to protect sensitive information",
+            }
 
         logger.info("Config merge ended", extra={"object": obj})
         return Result(
             host=task.host,
-            result={"changed": push_result[0].changed, "result": push_result[0].result},
+            result=result,
         )
