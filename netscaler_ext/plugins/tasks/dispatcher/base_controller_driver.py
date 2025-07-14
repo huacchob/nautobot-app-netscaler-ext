@@ -302,15 +302,15 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             logger.error("Could not find the controller endpoints")
             raise ValueError("Could not find controller endpoints")
         for remediation_endpoint in config:
-            if f"{remediation_endpoint}_remediation" not in feature_endpoints:
+            if f"{remediation_endpoint.lower()}_remediation" not in feature_endpoints:
                 logger.error(
-                    f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in {feature_endpoints}",
+                    f"Could not find the remediation endpoint: {remediation_endpoint.lower()}_remediation in {feature_endpoints}",
                     extra={"object": obj},
                 )
                 continue
-            if not cfg_cntx.get(f"{remediation_endpoint}_remediation", ""):
+            if not cfg_cntx.get(f"{remediation_endpoint.lower()}_remediation", ""):
                 logger.error(
-                    f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in the config context",
+                    f"Could not find the remediation endpoint: {remediation_endpoint.lower()}_remediation in the config context",
                     extra={"object": obj},
                 )
                 continue
@@ -318,8 +318,8 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 cls.resolve_remediation_endpoint(
                     controller_obj=controller_obj,
                     logger=logger,
-                    endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
-                    payload=config[remediation_endpoint],
+                    endpoint_context=cfg_cntx[f"{remediation_endpoint.lower()}_remediation"],
+                    payload=config[remediation_endpoint.lower()],
                     **controller_dict,
                 )
             )
