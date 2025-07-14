@@ -14,22 +14,26 @@ if TYPE_CHECKING:
 
 def _filter_allowed_params(
     feature_name: str,
-    config_context: list[dict[str, Any]],
     config: dict[str, Any],
+    config_context: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """Filter allowed parameters and remove unwanted parameters.
 
     Args:
         feature_name (str): Compliance feature name.
-        config_context (ConfigContext): Device config context.
         config (dict[str, Any]): Intended or actual config.
+        config_context (ConfigContext): Device config context.
 
     Returns:
         dict[str, Any]: Filtered config.
     """
+    if not config_context:
+        return {}
     valid_payload_config: dict[str, Any] = {feature_name: {}}
     all_optional_arguments: list[str] = []
     for endpoint in config_context:
+        if not endpoint.get("parameters", {}).get("optional"):
+            return {}
         all_optional_arguments.extend(endpoint["parameters"]["optional"])
 
     for key, value in config[feature_name].items():
@@ -66,14 +70,18 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
     feature_name: str = obj.rule.feature.name.lower()
     intended: dict[str, Any] = _filter_allowed_params(
         feature_name=feature_name,
-        config_context=obj.device.get_config_context().get(f"{feature_name}_remediation", ""),
         config=obj.intended,
+        config_context=obj.device.get_config_context().get(f"{feature_name}_remediation", ""),
     )
     actual: dict[str, Any] = _filter_allowed_params(
         feature_name=feature_name,
-        config_context=obj.device.get_config_context().get(f"{feature_name}_remediation", ""),
         config=obj.actual,
+        config_context=obj.device.get_config_context().get(f"{feature_name}_remediation", ""),
     )
+    if not actual or not intended:
+        raise ValidationError(
+            "There was no config context passed or the config context does not have optional parameters."
+        )
     diff: Dict[str, Any] = {}
     stack: deque[Tuple[Tuple[str, ...], Any, Any]] = deque()
     stack.append((tuple(), actual, intended))
