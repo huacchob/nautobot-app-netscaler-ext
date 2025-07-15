@@ -324,19 +324,19 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         if can_diff:
             logger.info(f"result: {aggregated_results}", extra={"object": obj})
             result: dict[str, Any] = {
-                "changed": bool(aggregated_results),
+                "changed": len(aggregated_results) > 0,
                 "result": aggregated_results,
                 "failed": False,
             }
         else:
             result: dict[str, Any] = {
-                "changed": bool(aggregated_results),
+                "changed": len(aggregated_results) > 0,
                 "result": "Hidden to protect sensitive information",
                 "failed": False,
             }
 
         logger.info("Config merge ended", extra={"object": obj})
         final_result: Result = Result(host=task.host, result=result)
-        final_result.changed = True
-        final_result.failed = False
+        # final_result.changed = True
+        # final_result.failed = False
         return final_result
