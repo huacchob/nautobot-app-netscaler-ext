@@ -11,6 +11,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -235,7 +236,6 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
-    @abstractmethod
     def resolve_remediation_endpoint(
         cls,
         controller_obj: Any,
@@ -243,20 +243,20 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         endpoint_context: list[dict[Any, Any]],
         payload: dict[str, Any],
         **kwargs: Any,
-    ) -> dict[str, dict[Any, Any]]:
+    ) -> list[dict[str, Any]]:
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object.
+            controller_obj (Any): Controller object, i.e. Meraki Dashboard object.
             logger (Logger): Logger object.
-            endpoint_context (list[dict[Any, Any]]): controller endpoint context.
+            endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
             payload (dict[str, Any]): Payload to pass to the API call.
             kwargs (Any): Keyword arguments.
 
         Returns:
-            Any: Dictionary of responses.
+            list[dict[str, Any]]: List of API responses.
         """
-        pass
+        raise NotImplementedError("Subclasses must implement this is merge_config is being used.")
 
     @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
@@ -276,11 +276,6 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             config (str): The remediation payload.
             can_diff (bool, optional): Can diff the config. Defaults to True.
 
-        Raises:
-            NornirNautobotException: Authentication error.
-            NornirNautobotException: Timeout error.
-            NornirNautobotException: Other exception.
-
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
@@ -296,46 +291,52 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             controller_obj=controller_obj,
             logger=logger,
         )
-        aggregated_results: list[Any] = []
+        aggregated_results: list[list[dict[str, Any]]] = []
         feature_endpoints: str = cfg_cntx.get("remediation_endpoints", "")
         if not feature_endpoints:
             logger.error("Could not find the controller endpoints")
             raise ValueError("Could not find controller endpoints")
         for remediation_endpoint in config:
-            if f"{remediation_endpoint.lower()}_remediation" not in feature_endpoints:
+            if f"{remediation_endpoint}_remediation" not in feature_endpoints:
                 logger.error(
-                    f"Could not find the remediation endpoint: {remediation_endpoint.lower()}_remediation in {feature_endpoints}",
+                    f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in {feature_endpoints}",
                     extra={"object": obj},
                 )
                 continue
-            if not cfg_cntx.get(f"{remediation_endpoint.lower()}_remediation", ""):
+            if not cfg_cntx.get(f"{remediation_endpoint}_remediation", ""):
                 logger.error(
-                    f"Could not find the remediation endpoint: {remediation_endpoint.lower()}_remediation in the config context",
+                    f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in the config context",
                     extra={"object": obj},
                 )
                 continue
-            aggregated_results.append(
-                cls.resolve_remediation_endpoint(
-                    controller_obj=controller_obj,
-                    logger=logger,
-                    endpoint_context=cfg_cntx[f"{remediation_endpoint.lower()}_remediation"],
-                    payload=config[remediation_endpoint.lower()],
-                    **controller_dict,
+            try:
+                aggregated_results.append(
+                    cls.resolve_remediation_endpoint(
+                        controller_obj=controller_obj,
+                        logger=logger,
+                        endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
+                        payload=config[remediation_endpoint],
+                        **controller_dict,
+                    )
                 )
-            )
+            except NotImplementedError:
+                logger.error("resolve_remediation_endpoint was not overriden.")
         if can_diff:
             logger.info(f"result: {aggregated_results}", extra={"object": obj})
             result: dict[str, Any] = {
                 "changed": bool(aggregated_results),
                 "result": aggregated_results,
+                "failed": False,
             }
         else:
             result: dict[str, Any] = {
                 "changed": bool(aggregated_results),
                 "result": "Hidden to protect sensitive information",
+                "failed": False,
             }
 
         logger.info("Config merge ended", extra={"object": obj})
+        RemotePdb(host="localhost", port=4444).set_trace()
         return Result(
             host=task.host,
             result=result,
