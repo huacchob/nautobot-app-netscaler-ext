@@ -11,7 +11,6 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -283,6 +282,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             config = json.loads(config)
         logger.info("Config merge via controller dispatcher starting", extra={"object": obj})
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
+        # The above Python code snippet is performing the following actions:
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
@@ -336,8 +336,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             }
 
         logger.info("Config merge ended", extra={"object": obj})
-        RemotePdb(host="localhost", port=4444).set_trace()
-        return Result(
-            host=task.host,
-            result=result,
-        )
+        final_result: Result = Result(host=task.host, result=result)
+        final_result.changed = True
+        final_result.failed = False
+        return final_result
