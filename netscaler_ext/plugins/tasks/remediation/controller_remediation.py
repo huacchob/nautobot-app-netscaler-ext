@@ -104,6 +104,6 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
             if actual != intended:
                 _process_diff(diff=diff, path=path, value=intended)
 
-    if not diff.get(feature_name):
+    if diff and not diff.get(feature_name):
         raise ValidationError(f"Feature {feature_name} not found in the config.")
     return json.dumps(diff, indent=4)
