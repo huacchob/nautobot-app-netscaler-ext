@@ -4,12 +4,24 @@ from __future__ import annotations
 
 import json
 from collections import deque
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Tuple
 
 from django.core.exceptions import ValidationError
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
+
+
+@dataclass(frozen=True)
+class DictKey:
+    """Dict key dataclass.
+
+    Attrs:
+        key (Any): The key.
+    """
+
+    key: Any
 
 
 class ControllerRemediation:
