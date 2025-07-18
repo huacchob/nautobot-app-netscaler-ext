@@ -22,6 +22,7 @@ class ControllerRemediation:
         Args:
             compliance_obj (ConfigCompliance): Golden Config Compliance object.
         """
+        self.compliance_obj = compliance_obj
         self.feature_name = compliance_obj.rule.feature.name.lower()
         self.intended_config = compliance_obj.intended
         self.backup_config = compliance_obj.actual
@@ -314,12 +315,12 @@ class ControllerRemediation:
         intended: dict[str, Any] = self._filter_allowed_params(
             feature_name=self.feature_name,
             config=self.intended_config,
-            config_context=remediation_endpoint,
+            config_context=self.compliance_obj.device.get_config_context().get(f"{self.feature_name}_remediation", ""),
         )
         actual: dict[str, Any] = self._filter_allowed_params(
             feature_name=self.feature_name,
             config=self.backup_config,
-            config_context=remediation_endpoint,
+            config_context=self.compliance_obj.device.get_config_context().get(f"{self.feature_name}_remediation", ""),
         )
         if not actual or not intended:
             raise ValidationError(
