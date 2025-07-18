@@ -26,5 +26,4 @@ def remediation_func(
     controller_device_groups = obj.device.controller_managed_device_group
     if controllers or controller_device_groups:
         return controller_remediation(obj=obj)
-    else:
-        return hierconfig_remediation(obj=obj)
+    return hierconfig_remediation(obj=obj)

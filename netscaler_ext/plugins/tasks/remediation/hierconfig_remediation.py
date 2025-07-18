@@ -22,7 +22,7 @@ def hierconfig_remediation(
     Returns:
         str: Remediation config.
     """
-    from nautobot_golden_config.models import RemediationSetting
+    from nautobot_golden_config.models import RemediationSetting  # pylint: disable=import-outside-toplevel
 
     hierconfig_os = obj.device.platform.network_driver_mappings["hier_config"]
     if not hierconfig_os:
