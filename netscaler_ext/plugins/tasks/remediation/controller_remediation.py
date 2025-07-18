@@ -25,12 +25,7 @@ class ControllerRemediation:
         self.feature_name = compliance_obj.rule.feature.name.lower()
         self.intended_config = compliance_obj.intended
         self.backup_config = compliance_obj.actual
-        self.required_parameters: list[str] = (
-            compliance_obj.device.get_config_context()
-            .get(f"{self.feature_name}_remediation")
-            .get("parameters")
-            .get("non_optional")
-        )
+        self.required_parameters: list[str]
 
     def _filter_allowed_params(
         self,
@@ -51,15 +46,17 @@ class ControllerRemediation:
         if not config_context:
             return {}
         all_optional_arguments: list[str] = []
+        self.required_parameters = []
         for endpoint in config_context:
             if not endpoint.get("parameters", {}).get("optional"):
                 return {}
             all_optional_arguments.extend(endpoint["parameters"]["optional"])
+            self.required_parameters.extend(endpoint["parameters"]["non_optional"])
 
         if isinstance(config[feature_name], dict):
             valid_payload_config: dict[str, Any] = {feature_name: {}}
             for key, value in config[feature_name].items():
-                if key in all_optional_arguments:
+                if key in all_optional_arguments or key in self.required_parameters:
                     valid_payload_config[feature_name][key] = value
             return valid_payload_config
 
@@ -68,7 +65,7 @@ class ControllerRemediation:
             for item in config[feature_name]:
                 params_dict = {}
                 for key, value in item.items():
-                    if key in all_optional_arguments:
+                    if key in all_optional_arguments or key in self.required_parameters:
                         params_dict[key] = value
                 if params_dict:
                     valid_payload_config[feature_name].append(params_dict)
