@@ -376,7 +376,7 @@ class ControllerRemediation:
             raise ValidationError(f"Feature {self.feature_name} not found in the config.")
         valid_diff: Dict[Any, Any] = self._inject_required_fields(
             diff=diff,
-            intended=intended_config,
+            intended=self.intended_config,
             path=(),
         )
         cleaned_diff: dict[Any, Any] = self._clean_diff(diff=valid_diff)
