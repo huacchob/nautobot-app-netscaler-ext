@@ -29,7 +29,7 @@ include = [
 [tool.poetry.dependencies]
 python = ">=3.9.2,<3.13"
 # Used for local development
-nautobot = {version = "2.4.13", python = "3.9"}
+nautobot = "2.4.13"
 nornir = "^3.5.0"
 nautobot-plugin-nornir = "^2.2.1"
 remote-pdb = "^2.1.0"
