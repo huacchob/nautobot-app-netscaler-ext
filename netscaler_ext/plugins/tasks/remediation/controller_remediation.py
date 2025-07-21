@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Tuple
+from typing import TYPE_CHECKING, Any, OrderedDict
 
+import xmltodict
 from django.core.exceptions import ValidationError
+from nautobot_golden_config.models import ConfigCompliance
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
@@ -26,8 +29,8 @@ class DictKey:
     key: Any
 
 
-class ControllerRemediation:  # pylint: disable=too-few-public-methods
-    """Remediation class for controllers."""
+class BaseControllerRemediation(ABC):  # pylint: disable=too-few-public-methods
+    """Base remediation class for controllers using JSON config."""
 
     def __init__(
         self,
@@ -38,11 +41,27 @@ class ControllerRemediation:  # pylint: disable=too-few-public-methods
         Args:
             compliance_obj (ConfigCompliance): Golden Config Compliance object.
         """
-        self.compliance_obj = compliance_obj
-        self.feature_name = compliance_obj.rule.feature.name.lower()
-        self.intended_config = compliance_obj.intended
-        self.backup_config = compliance_obj.actual
+        self.compliance_obj: ConfigCompliance = compliance_obj
+        self.feature_name: str = compliance_obj.rule.feature.name.lower()
+        self.intended_config: dict[str, Any] = compliance_obj.intended
+        self.backup_config: dict[str, Any] = compliance_obj.actual
         self.required_parameters: list[str]
+
+    @abstractmethod
+    def controller_remediation(self) -> str:
+        """Controller remediation.
+
+        Raises:
+            ValidationError: Intended or Actual does not have the feature name as the top level key.
+
+        Returns:
+            str: Remediation config.
+        """
+        pass
+
+
+class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=too-few-public-methods
+    """Remediation class for controllers."""
 
     def _filter_allowed_params(
         self,
@@ -91,15 +110,15 @@ class ControllerRemediation:  # pylint: disable=too-few-public-methods
 
     def _process_diff(  # pylint: disable=too-many-branches
         self,
-        diff: Dict[Any, Any],
-        path: Tuple[str, ...],
+        diff: dict[Any, Any],
+        path: tuple[str, ...],
         value: str,
     ) -> None:
         """Process the diff.
 
         Args:
-            diff (Dict[Any, Any]): Diff dictionary.
-            path (Tuple[str, ...]): Path of dictionary keys.
+            diff (dict[Any, Any]): Diff dictionary.
+            path (tuple[str, ...]): Path of dictionary keys.
             value (str): The key's value.
         """
         current = diff
@@ -352,7 +371,7 @@ class ControllerRemediation:  # pylint: disable=too-few-public-methods
             ValidationError: Intended or Actual does not have the feature name as the top level key.
 
         Returns:
-            str: Remediation json config.
+            str: Remediation config.
         """
         intended: dict[str, Any] = self._filter_allowed_params(
             feature_name=self.feature_name,
@@ -374,7 +393,7 @@ class ControllerRemediation:  # pylint: disable=too-few-public-methods
             raise ValidationError(
                 "There was no config context passed or the config context does not have optional parameters."
             )
-        diff: Dict[str, Any] = {}
+        diff: dict[str, Any] = {}
         stack: deque[Tuple[Tuple[str, ...], Any, Any]] = deque()
         stack.append((tuple(), actual, intended))
 
@@ -412,13 +431,36 @@ class ControllerRemediation:  # pylint: disable=too-few-public-methods
             raise ValidationError(
                 f"Feature {self.feature_name} not found in the config.",
             )
-        valid_diff: Dict[Any, Any] = self._inject_required_fields(
+        valid_diff: dict[Any, Any] = self._inject_required_fields(
             diff=diff,
             intended=self.intended_config,
             path=(),
         )
         cleaned_diff: dict[Any, Any] = self._clean_diff(diff=valid_diff)
         return json.dumps(cleaned_diff, indent=4)
+
+
+class XMLControllerRemediation(JsonControllerRemediation):  # pylint: disable=too-few-public-methods
+    """Remediation class for controllers using XML config."""
+
+    def __init__(
+        self,
+        compliance_obj: ConfigCompliance,
+    ) -> None:
+        """Controller remediation.
+
+        Args:
+            compliance_obj (ConfigCompliance): Golden Config Compliance object.
+        """
+        self.compliance_obj: ConfigCompliance = compliance_obj
+        self.feature_name: str = compliance_obj.rule.feature.name.lower()
+        self.intended_config: OrderedDict[str, Any] = xmltodict.parse(
+            xml_input=compliance_obj.intended,
+        )
+        self.backup_config: OrderedDict[str, Any] = xmltodict.parse(
+            xml_input=compliance_obj.actual,
+        )
+        self.required_parameters: list[str]
 
 
 def controller_remediation(obj: "ConfigCompliance") -> str:
@@ -430,7 +472,18 @@ def controller_remediation(obj: "ConfigCompliance") -> str:
     Returns:
         str: Remediation json config.
     """
-    remediation = ControllerRemediation(
-        compliance_obj=obj,
-    )
+    remediation: BaseControllerRemediation
+    config_type = obj.rule.config_type.lower().strip()
+    if config_type == "json":
+        remediation = JsonControllerRemediation(
+            compliance_obj=obj,
+        )
+    elif config_type == "xml":
+        remediation = XMLControllerRemediation(
+            compliance_obj=obj,
+        )
+    else:
+        raise ValidationError(
+            f"Config type {obj.rule.config_type} is not supported.",
+        )
     return remediation.controller_remediation()

@@ -22,8 +22,6 @@ def remediation_func(
     Returns:
         str: Remediation config.
     """
-    controllers = obj.device.controllers.all()
-    controller_device_groups = obj.device.controller_managed_device_group
-    if controllers or controller_device_groups:
+    if obj.device.get_config_context().get("remediation_endpoints"):
         return controller_remediation(obj=obj)
     return hierconfig_remediation(obj=obj)
