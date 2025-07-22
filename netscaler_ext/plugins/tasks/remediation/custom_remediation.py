@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from netscaler_ext.plugins.tasks.remediation.controller_remediation import controller_remediation
 from netscaler_ext.plugins.tasks.remediation.hierconfig_remediation import hierconfig_remediation
+from remote_pdb import RemotePdb
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
@@ -22,6 +23,7 @@ def remediation_func(
     Returns:
         str: Remediation config.
     """
+    RemotePdb(host="localhost", port=4444).set_trace()
     if obj.device.get_config_context().get("remediation_endpoints"):
         return controller_remediation(obj=obj)
     return hierconfig_remediation(obj=obj)
