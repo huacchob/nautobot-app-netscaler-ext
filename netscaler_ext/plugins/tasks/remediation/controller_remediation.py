@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Any, OrderedDict
 
 import xmltodict
 from django.core.exceptions import ValidationError
-from nautobot_golden_config.models import ConfigCompliance
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
