@@ -44,7 +44,7 @@ class BaseControllerRemediation(ABC):  # pylint: disable=too-few-public-methods
         self.feature_name: str = compliance_obj.rule.feature.name.lower()
         self.intended_config: dict[str, Any] = compliance_obj.intended
         self.backup_config: dict[str, Any] = compliance_obj.actual
-        self.required_parameters: list[str]
+        self.required_parameters: list[str] = []
 
     @abstractmethod
     def controller_remediation(self) -> str:
@@ -81,7 +81,6 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         if not config_context:
             return {}
         all_optional_arguments: list[str] = []
-        self.required_parameters = []
         for endpoint in config_context:
             if not endpoint.get("parameters", {}).get("optional"):
                 return {}
