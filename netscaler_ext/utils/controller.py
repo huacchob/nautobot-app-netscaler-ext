@@ -38,6 +38,22 @@ def format_base_url_with_endpoint(
     return f"{base_url}/{endpoint}"
 
 
+def add_api_path_to_url(api_path: str, base_url: str) -> str:
+    """Add API path to base url.
+
+    Args:
+        api_path (str): API path, i.e. api/v1
+        base_url (str): Controller base url.
+
+    Returns:
+        str: Base url with API path.
+    """
+    if api_path not in base_url:
+        return format_base_url_with_endpoint(base_url=base_url, endpoint=api_path)
+    else:
+        return base_url
+
+
 def get_api_key(secrets_group: SecretsGroup) -> str:
     """Get controller API Key.
 

@@ -24,7 +24,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
     post_headers: dict[str, str] = {}
     controller_url: str = ""
     session: Session
-    controller_type = "vmanage"
+    controller_type: str = "vmanage"
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:

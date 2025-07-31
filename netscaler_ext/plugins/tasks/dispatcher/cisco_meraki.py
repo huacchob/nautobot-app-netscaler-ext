@@ -8,7 +8,7 @@ from nautobot.dcim.models import Device
 from nornir.core.task import Task
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
-from netscaler_ext.utils.controller import resolve_controller_url, resolve_jmespath, resolve_params
+from netscaler_ext.utils.controller import add_api_path_to_url, resolve_controller_url, resolve_jmespath, resolve_params
 
 
 # Resolving endpoint private functions
@@ -126,10 +126,14 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             Any: Controller object or None.
         """
-        controller_url: str = resolve_controller_url(
+        url: str = resolve_controller_url(
             obj=obj,
             logger=logger,
             controller_type=cls.controller_type,
+        )
+        controller_url: str = add_api_path_to_url(
+            api_path="api/v1",
+            base_url=url,
         )
         api_key: str = task.host.password
         controller_obj: DashboardAPI = DashboardAPI(
