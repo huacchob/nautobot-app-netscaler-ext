@@ -42,7 +42,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        resolve_controller_url(
+        cls.controller_url = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
             logger=logger,
