@@ -13,7 +13,7 @@ from nornir_netmiko.tasks import netmiko_send_command
 NETMIKO_DEVICE_TYPE = "netscaler"
 
 
-class NetScalerDriver(NetmikoDefault):
+class NetmikoCitrixNetscaler(NetmikoDefault):
     """Simply override the config_command class attribute in the subclass."""
 
     config_command: str = "show runningConfig"
