@@ -54,7 +54,7 @@ namespace.configure(
         "netscaler_ext": {
             "nautobot_ver": "2.4.13",
             "project_name": "netscaler-ext",
-            "python_ver": "3.10",
+            "python_ver": "3.11",
             "local": False,
             "compose_dir": os.path.join(os.path.dirname(__file__), "development"),
             "compose_files": [
