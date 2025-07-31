@@ -1,93 +1,13 @@
-"""Base nornir dispatcher for controllers."""
+"""Base netmiko dispatcher for controllers."""
 
 import json
 from abc import ABC, abstractmethod
 from logging import Logger
-from typing import Any, Optional, OrderedDict
+from typing import Any, OrderedDict
 
-import jmespath
-from nautobot.apps.choices import SecretsGroupAccessTypeChoices, SecretsGroupSecretTypeChoices
 from nautobot.dcim.models import Device
-from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-
-
-def get_api_key(secrets_group: SecretsGroup) -> str:
-    """Get controller API Key.
-
-    Args:
-        secrets_group (SecretsGroup): SecretsGroup object.
-
-    Raises:
-        SecretsGroupAssociation.DoesNotExist: SecretsGroupAssociation access
-            type TYPE_HTTP or secret type TYPE_TOKEN does not exist.
-
-    Returns:
-        str: API key.
-    """
-    try:
-        api_key: str = secrets_group.get_secret_value(
-            access_type=SecretsGroupAccessTypeChoices.TYPE_HTTP,
-            secret_type=SecretsGroupSecretTypeChoices.TYPE_TOKEN,
-        )
-    except SecretsGroupAssociation.DoesNotExist:
-        api_key: str = secrets_group.get_secret_value(
-            access_type=SecretsGroupAccessTypeChoices.TYPE_GENERIC,
-            secret_type=SecretsGroupSecretTypeChoices.TYPE_PASSWORD,
-        )
-        return api_key
-    return api_key
-
-
-def resolve_params(
-    parameters: list[str],
-    param_mapper: dict[str, str],
-) -> dict[Any, Any]:
-    """Resolve parameters.
-
-    Args:
-        parameters (list[str]): Parameters list.
-        param_mapper (dict[str, str]): Parameters mapper.
-
-    Returns:
-        dict[Any, Any]: _description_
-    """
-    params: dict[Any, Any] = {}
-    if parameters:
-        for param in parameters:
-            if param.lower() not in [p.lower() for p in param_mapper]:
-                continue
-            for k, v in param_mapper.items():
-                if k.lower() == param.lower():
-                    param_key, param_value = k, v
-                    params.update({param_key: param_value})
-    return params
-
-
-def resolve_jmespath(
-    jmespath_values: list[dict[str, str]],
-    api_response: Any,
-) -> dict[Any, Any]:
-    """Resolve jmespath.
-
-    Args:
-        jmespath_values (list[dict[str, str]]): Jmespath list.
-        api_response (Any): API response.
-
-    Returns:
-        dict[str, Any]: Resolved jmespath data fields.
-    """
-    data_fields: dict[str, Any] = {}
-    for jpath in jmespath_values:
-        for key, value in jpath.items():
-            j_value: Any = jmespath.search(
-                expression=value,
-                data=api_response,
-            )
-            if j_value:
-                data_fields.update({key: j_value})
-    return data_fields
 
 
 class BaseControllerDriver(NetmikoDefault, ABC):
@@ -113,42 +33,42 @@ class BaseControllerDriver(NetmikoDefault, ABC):
 
     @classmethod
     @abstractmethod
-    def authenticate(
-        cls,
-        logger: Logger,
-        obj: Device,
-    ) -> Any:
+    def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
         """Authenticate to controller.
 
         Args:
             logger (Logger): Logger object.
             obj (Device): Device object.
+            task (Task): Nornir Task object.
 
         Raises:
             ValueError: Could not find the controller API URL in config context.
 
         Returns:
-            Any: Controller object.
+            Any: Controller object or None.
         """
         pass
 
     @classmethod
-    @abstractmethod
     def controller_setup(
         cls,
+        device_obj: Device,
         controller_obj: Any,
         logger: Logger,
     ) -> dict[str, str]:
         """Setup for controller.
 
         Args:
-            controller_obj (Any): The controller object, i.e DashboardAPI for controller.
+            device_obj (Device): Nautobot Device object.
+            controller_obj (Any): The controller object, i.e DashboardAPI for
+                controller or None is not SDK.
             logger (Logger): Logger object.
 
         Returns:
             dict[str, str]: Map for controller data.
         """
-        pass
+        # Overwrite if needed in child class
+        return {}
 
     @classmethod
     @abstractmethod
@@ -162,7 +82,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object.
+            controller_obj (Any): Controller object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
             kwargs (Any): Keyword arguments.
@@ -181,7 +101,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         backup_file: str,
         remove_lines: list[str],
         substitute_lines: list[str],
-    ) -> Optional[Result]:
+    ) -> Result | None:
         """Get the latest configuration from controller.
 
         Args:
@@ -200,8 +120,10 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
+            task=task,
         )
         controller_dict: dict[str, str] = cls.controller_setup(
+            device_obj=obj,
             controller_obj=controller_obj,
             logger=logger,
         )
@@ -240,16 +162,17 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         controller_obj: Any,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
-        payload: dict[str, Any],
+        payload: dict[Any, Any] | list[dict[str, Any]],
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object, i.e. Meraki Dashboard object.
+            controller_obj (Any): Controller object, i.e. Meraki Dashboard
+                object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
-            payload (dict[str, Any]): Payload to pass to the API call.
+            payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
             kwargs (Any): Keyword arguments.
 
         Returns:
@@ -286,8 +209,10 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
+            task=task,
         )
         controller_dict: dict[str, str] = cls.controller_setup(
+            device_obj=obj,
             controller_obj=controller_obj,
             logger=logger,
         )

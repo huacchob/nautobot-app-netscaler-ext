@@ -1,17 +1,14 @@
-"""nornir dispatcher for cisco Meraki controllers."""
+"""Netmiko dispatcher for cisco Meraki controllers."""
 
 from logging import Logger
-from typing import Any, Callable, Optional
+from typing import Any, Callable, OrderedDict
 
 from meraki import DashboardAPI
-from nautobot.dcim.models import Controller, Device
+from nautobot.dcim.models import Device
+from nornir.core.task import Task
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
-    BaseControllerDriver,
-    get_api_key,
-    resolve_jmespath,
-    resolve_params,
-)
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
+from netscaler_ext.utils.controller import resolve_controller_url, resolve_jmespath, resolve_params
 
 
 # Resolving endpoint private functions
@@ -19,7 +16,7 @@ def _resolve_method_callable(
     controller_obj: Any,
     method: str,
     logger: Logger,
-) -> Optional[Callable[[Any], Any]]:
+) -> Callable[[Any], Any] | None:
     """Resolve method callable.
 
     Args:
@@ -28,7 +25,7 @@ def _resolve_method_callable(
         logger (Logger): Logger object.
 
     Returns:
-        Optional[Callable[[Any], Any]]: Method callable or None.
+        Callable[[Any], Any] | None: Method callable or None.
     """
     cotroller_class, controller_method = method.split(sep=".")
     try:
@@ -54,40 +51,87 @@ def _resolve_method_callable(
     return method_callable
 
 
+def _send_call(
+    method_callable: Callable[[Any], Any],
+    logger: Logger,
+    payload: dict[Any, Any],
+) -> Any | None:
+    try:
+        return method_callable(**payload)
+    except TypeError as e:
+        logger.error(
+            f"The payload {payload} are not valid/sufficient for the {method_callable} method",
+        )
+        logger.warning(
+            e,
+        )
+        return
+    except Exception as e:
+        logger.error(e)
+        return
+
+
+def _send_remediation_call(
+    api_context: dict[str, Any],
+    method_callable: Callable[[Any], Any],
+    aggregated_results: list[Any],
+    logger: Logger,
+    payload: dict[Any, Any],
+    **kwargs: Any,
+) -> None:
+    """Send remediation call.
+
+    Args:
+        api_context (dict[str, Any]): API endpoint context.
+        method_callable (Callable[[Any], Any]): Method to call
+        aggregated_results (list[Any]): List of aggregated results.
+        logger (Logger): Logger object.
+        payload (dict[Any, Any]): Payload to pass to the API call.
+        kwargs (Any): Keyword arguments.
+    """
+    for param in api_context["parameters"]["non_optional"]:
+        if not kwargs.get(param):
+            logger.error(
+                f"resolve_endpoint method needs '{param}' in kwargs",
+            )
+        payload.update({param: kwargs[param]})
+    response: Any | None = _send_call(
+        method_callable=method_callable,
+        logger=logger,
+        payload=payload,
+    )
+    if not response:
+        return
+
+    aggregated_results.append(response)
+
+
 class NetmikoCiscoMeraki(BaseControllerDriver):
     """Meraki Controller Dispatcher class."""
 
+    controller_type = "meraki"
+
     @classmethod
-    def authenticate(
-        cls,
-        logger: Logger,
-        obj: Device,
-    ) -> Any:
+    def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
         """Authenticate to controller.
 
         Args:
-            config_context (OrderedDict[Any, Any]): Config context.
             logger (Logger): Logger object.
             obj (Device): Device object.
+            task (Task): Nornir Task object.
 
         Raises:
             ValueError: Could not find the controller API URL in config context.
 
         Returns:
-            Any: Controller object.
+            Any: Controller object or None.
         """
-        controller_url: str = ""
-        if controller_group := obj.controller_managed_device_group:
-            controller: Controller = controller_group.controller
-            controller_url = controller.external_integration.remote_url
-        elif controllers := obj.controllers.all():
-            for cntrlr in controllers:
-                if "meraki" in cntrlr.platform.name.lower():
-                    controller_url = cntrlr.external_integration.remote_url
-        if not controller_url:
-            logger.error("Could not find the Meraki Dashboard API URL")
-            raise ValueError("Could not find the Meraki Dashboard API URL")
-        api_key: str = get_api_key(secrets_group=obj.secrets_group)
+        controller_url: str = resolve_controller_url(
+            obj=obj,
+            logger=logger,
+            controller_type=cls.controller_type,
+        )
+        api_key: str = task.host.password
         controller_obj: DashboardAPI = DashboardAPI(
             api_key=api_key,
             base_url=controller_url,
@@ -99,26 +143,31 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
     @classmethod
     def controller_setup(
         cls,
+        device_obj: Device,
         controller_obj: Any,
         logger: Logger,
     ) -> dict[str, str]:
         """Setup for controller.
 
         Args:
-            controller_obj (Any): The controller object, i.e DashboardAPI for Meraki.
+            device_obj (Device): Nautobot Device object.
+            controller_obj (Any): The controller object, i.e DashboardAPI for
+                controller or None is not SDK.
             logger (Logger): Logger object.
 
         Returns:
             dict[str, str]: Map for controller data.
         """
-        org_id: str = controller_obj.organizations.getOrganizations()[0].get("id", "")
+        config_context: OrderedDict[Any, Any] = device_obj.get_config_context()
+        org_id: str = config_context.get("organization_id")
         if not org_id:
-            logger.error("Could not find the Meraki organization ID")
-            raise ValueError("Could not find Meraki organization ID")
-        networkId = ""
+            logger.error("Could not find the Meraki organization ID in API response")
+            raise ValueError("Could not find the Meraki organization ID in API response")
+        networkId = config_context.get("network_id")
         return {
             "organizationId": org_id,
             "networkId": networkId,
+            "serial": device_obj.serial,
         }
 
     @classmethod
@@ -132,9 +181,9 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object.
+            controller_obj (Any): Controller object or None.
             logger (Logger): Logger object.
-            endpoint_context (list[dict[Any, Any]]): Meraki endpoint context.
+            endpoint_context (list[dict[Any, Any]]): controller endpoint context.
             kwargs (Any): Keyword arguments.
 
         Returns:
@@ -154,9 +203,9 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             "networkId": network_id,
         }
         for endpoint in endpoint_context:
-            method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
+            method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
                 controller_obj=controller_obj,
-                method=endpoint["method"],
+                method=endpoint["endpoint"],
                 logger=logger,
             )
             if not method_callable:
@@ -165,20 +214,14 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                 parameters=endpoint.get("parameters"),
                 param_mapper=param_mapper,
             )
-            try:
-                response: Any = method_callable(**params)
-            except TypeError as e:
-                logger.error(
-                    f"The params {params} are not valid/sufficient for the {method_callable} method",
-                )
-                logger.warning(
-                    e,
-                )
+            response: Any | None = _send_call(
+                method_callable=method_callable,
+                logger=logger,
+                payload=params,
+            )
+            if not response:
                 continue
-            except Exception as e:
-                logger.error(e)
-                continue
-            jpath_fields: dict[str, Any] = resolve_jmespath(
+            jpath_fields: dict[str, Any] | list[dict[str, Any]] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
             )
@@ -195,46 +238,51 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         controller_obj: Any,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
-        payload: dict[str, Any],
+        payload: dict[Any, Any] | list[dict[str, Any]],
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object.
+            controller_obj (Any): Controller object, i.e. Meraki Dashboard
+                object or None.
             logger (Logger): Logger object.
-            endpoint_context (list[dict[Any, Any]]): controller feature endpoint config context.
-            payload (dict[str, Any]): Payload to pass to the API call.
+            endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
+            payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
             kwargs (Any): Keyword arguments.
 
         Returns:
             list[dict[str, Any]]: List of API responses.
         """
         aggregated_results: list[Any] = []
-        for method_context in endpoint_context:
-            method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
+        for api_context in endpoint_context:
+            method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
                 controller_obj=controller_obj,
-                method=method_context["method"],
+                method=api_context["endpoint"],
                 logger=logger,
             )
             if not method_callable:
                 logger.error(
-                    f"The method {method_context['method']} does not exist in the controller object",
+                    f"The method {api_context['endpoint']} does not exist in the controller object",
                 )
                 continue
-            for param in method_context["parameters"]["non_optional"]:
-                payload.update({param: kwargs[param]})
-            try:
-                response: Any = method_callable(**payload)
-            except TypeError:
-                logger.error(
-                    f"The params {payload} are not valid/sufficient for the {method_callable} method",
+            if isinstance(payload, dict):
+                _send_remediation_call(
+                    api_context=api_context,
+                    method_callable=method_callable,
+                    aggregated_results=aggregated_results,
+                    logger=logger,
+                    payload=payload,
+                    **kwargs,
                 )
-                continue
-            except Exception as e:
-                logger.warning(
-                    e,
-                )
-                continue
-            aggregated_results.append(response)
+            if isinstance(payload, list):
+                for item in payload:
+                    _send_remediation_call(
+                        api_context=api_context,
+                        method_callable=method_callable,
+                        aggregated_results=aggregated_results,
+                        logger=logger,
+                        payload=item,
+                        **kwargs,
+                    )
         return aggregated_results
