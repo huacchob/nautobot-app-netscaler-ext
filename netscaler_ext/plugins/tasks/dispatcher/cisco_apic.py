@@ -6,7 +6,7 @@ from typing import Any
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from requests import Response
+from requests import Response, Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
 from netscaler_ext.utils.controller import (
@@ -24,8 +24,8 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
     controller_url: str = ""
-    session = None
-    controller_type = "apic"
+    session: Session
+    controller_type: str = "apic"
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
@@ -54,6 +54,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             endpoint="api/aaaLogin.json",
         )
         # TODO: Change verify to true
+        cls.session: Session = cls.configure_session()
         auth_resp: Response = cls.return_response_content(
             session=cls.session,
             method="POST",
