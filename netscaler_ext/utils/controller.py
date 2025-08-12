@@ -1,5 +1,6 @@
 """Classes and functions for controller dispatcher utils."""
 
+from base64 import b64encode
 from logging import Logger
 from typing import Any
 
@@ -11,6 +12,26 @@ from requests import Response, Session
 from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError, JSONDecodeError
 from urllib3.util import Retry
+
+
+def base_64_encode_credentials(username: str, password: str) -> str:
+    """Encode username and password into base64.
+
+    Args:
+        username (str): The username to encode.
+        password (str): The password to encode.
+
+    Returns:
+        str: Base64 encoded credentials.
+
+    Raises:
+        ValueError: If username or password is not a string.
+    """
+    if not username or not password:
+        raise ValueError("Username and/or password not passed, can't encode.")
+
+    credentials_str: bytes = f"{username}:{password}".encode(encoding="utf-8")
+    return f"Basic {b64encode(s=credentials_str).decode(encoding='utf-8')}"
 
 
 def format_base_url_with_endpoint(
