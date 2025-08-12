@@ -41,6 +41,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
             Any: Controller object or None.
         """
         cls.device_url: str = f"https://{obj.primary_ip4.host}"
+        cls.session: Session = cls.configure_session()
         encoded_creds: str = base_64_encode_credentials(
             username=task.host.username,
             password=task.host.password,
