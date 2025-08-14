@@ -165,7 +165,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         actual: dict[Any, Any],
         diff: dict[Any, Any],
         path: tuple[Any],
-        stack: deque[Tuple[Tuple[str, ...], Any, Any]],
+        stack: deque[tuple[tuple[str, ...], Any, Any]],
     ) -> None:
         """Dictionary config.
 
@@ -228,7 +228,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         actual: list[Any],
         diff: dict[Any, Any],
         path: tuple[Any],
-        stack: deque[Tuple[Tuple[str, ...], Any, Any]],
+        stack: deque[tuple[tuple[str, ...], Any, Any]],
     ) -> None:
         """List config.
 
@@ -392,7 +392,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 "There was no config context passed or the config context does not have optional parameters."
             )
         diff: dict[str, Any] = {}
-        stack: deque[Tuple[Tuple[str, ...], Any, Any]] = deque()
+        stack: deque[tuple[tuple[str, ...], Any, Any]] = deque()
         stack.append((tuple(), actual, intended))
 
         while stack:
