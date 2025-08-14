@@ -102,79 +102,64 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
 
         return responses
 
-    # @classmethod
-    # def resolve_remediation_endpoint(
-    #     cls,
-    #     controller_obj: Any,
-    #     logger: Logger,
-    #     endpoint_context: list[dict[Any, Any]],
-    #     payload: dict[Any, Any] | list[dict[str, Any]],
-    #     **kwargs: Any,
-    # ) -> list[dict[str, Any]]:
-    #     """Resolve endpoint with parameters if any.
+    @classmethod
+    def resolve_remediation_endpoint(
+        cls,
+        controller_obj: Any,
+        logger: Logger,
+        endpoint_context: list[dict[Any, Any]],
+        payload: dict[Any, Any] | list[dict[str, Any]],
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
+        """Resolve endpoint with parameters if any.
 
-    #     Args:
-    #         controller_obj (Any): Controller object, i.e. Meraki Dashboard
-    #             object or None.
-    #         logger (Logger): Logger object.
-    #         endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
-    #         payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
-    #         kwargs (Any): Keyword arguments.
+        Args:
+            controller_obj (Any): Controller object, i.e. Meraki Dashboard
+                object or None.
+            logger (Logger): Logger object.
+            endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
+            payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
+            kwargs (Any): Keyword arguments.
 
-    #     Returns:
-    #         list[dict[str, Any]]: List of API responses.
-    #     """
-    #     aggregated_results: list[Any] = []
-    #     for method_context in endpoint_context:
-    #         method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
-    #             controller_obj=controller_obj,
-    #             method=method_context["endpoint"],
-    #             logger=logger,
-    #         )
-    #         if not method_callable:
-    #             logger.error(
-    #                 f"The method {method_context['endpoint']} does not exist in the controller object",
-    #             )
-    #             continue
-    #         if isinstance(payload, dict):
-    #             for param in method_context["parameters"]["non_optional"]:
-    #                 if not kwargs.get(param):
-    #                     logger.error(
-    #                         f"resolve_endpoint method needs '{param}' in kwargs",
-    #                     )
-    #                 payload.update({param: kwargs[param]})
-    #             try:
-    #                 response: Any = method_callable(**payload)
-    #             except TypeError:
-    #                 logger.error(
-    #                     f"The params {payload} are not valid/sufficient for the {method_callable} method",
-    #                 )
-    #                 continue
-    #             except Exception as e:
-    #                 logger.warning(
-    #                     e,
-    #                 )
-    #                 continue
-    #             aggregated_results.append(response)
-    #         if isinstance(payload, list):
-    #             for item in payload:
-    #                 for param in method_context["parameters"]["non_optional"]:
-    #                     if not kwargs.get(param):
-    #                         logger.error(
-    #                             f"resolve_endpoint method needs '{param}' in kwargs",
-    #                         )
-    #                     item.update({param: kwargs[param]})
-    #                 try:
-    #                     response: Any = method_callable(**item)
-    #                 except TypeError:
-    #                     logger.error(
-    #                         f"The params {item} are not valid/sufficient for the {method_callable} method",
-    #                     )
-    #                     continue
-    #                 except Exception as e:
-    #                     logger.warning(
-    #                         e,
-    #                     )
-    #                     continue
-    #                 aggregated_results.append(response)
-    #     return aggregated_results
+        Returns:
+            list[dict[str, Any]]: List of API responses.
+        """
+        aggregated_results: list[Any] = []
+        for endpoint in endpoint_context:
+            api_endpoint: str = endpoint["endpoint"]
+            if isinstance(payload, dict):
+                for param in endpoint["parameters"]["non_optional"]:
+                    if not kwargs.get(param):
+                        logger.error(
+                            f"resolve_endpoint method needs '{param}' in kwargs",
+                        )
+                    payload.update({param: kwargs[param]})
+                response = cls.return_response_content(
+                    session=cls.session,
+                    method=endpoint["method"],
+                    url=api_endpoint,
+                    headers=cls.get_headers,
+                    verify=False,
+                    logger=logger,
+                    body=payload,
+                )
+                aggregated_results.append(response)
+            if isinstance(payload, list):
+                for item in payload:
+                    for param in endpoint["parameters"]["non_optional"]:
+                        if not kwargs.get(param):
+                            logger.error(
+                                f"resolve_endpoint method needs '{param}' in kwargs",
+                            )
+                        item.update({param: kwargs[param]})
+                    response = cls.return_response_content(
+                        session=cls.session,
+                        method=endpoint["method"],
+                        url=api_endpoint,
+                        headers=cls.get_headers,
+                        verify=False,
+                        logger=logger,
+                        body=item,
+                    )
+                    aggregated_results.append(response)
+        return aggregated_results
