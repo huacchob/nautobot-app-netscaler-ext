@@ -201,7 +201,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             raise ValueError(
                 f"resolve_endpoint() needs '{missing}' in kwargs",
             ) from exc
-        responses: dict[str, dict[Any, Any]] = {}
+        responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         param_mapper: dict[str, str] = {
             "organizationId": organization_id,
             "networkId": network_id,
@@ -232,7 +232,19 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             if not jpath_fields:
                 logger.error(f"jmespath values not found in {response}")
                 continue
-            responses.update(jpath_fields)
+            if isinstance(jpath_fields, list):
+                if responses is None:
+                    responses = jpath_fields
+                    continue
+                if not isinstance(responses, list):
+                    raise TypeError(f"All responses should be list but got {type(responses)}")
+                responses.extend(jpath_fields)
+            else:
+                if responses is None:
+                    responses = jpath_fields
+                if not isinstance(responses, dict):
+                    raise TypeError(f"All responses should be dict but got {type(responses)}")
+                responses.update(jpath_fields)
 
         return responses
 

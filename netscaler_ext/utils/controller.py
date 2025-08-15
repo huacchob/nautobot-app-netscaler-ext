@@ -166,7 +166,7 @@ def resolve_jmespath(
     """Resolve jmespath.
 
     Args:
-        jmespath_values (dict[str, str]): Jmespath list.
+        jmespath_values (dict[str, str]): Jmespath dictionary.
         api_response (Any): API response.
 
     Returns:

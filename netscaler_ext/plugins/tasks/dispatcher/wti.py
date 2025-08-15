@@ -72,7 +72,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Dictionary of responses.
         """
-        responses: dict[str, dict[Any, Any]] = {}
+        responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         for endpoint in endpoint_context:
             api_endpoint: str = format_base_url_with_endpoint(
                 base_url=cls.device_url,
@@ -98,7 +98,19 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
             if not jpath_fields:
                 logger.error(f"jmespath values not found in {response}")
                 continue
-            responses.update(jpath_fields)
+            if isinstance(jpath_fields, list):
+                if responses is None:
+                    responses = jpath_fields
+                    continue
+                if not isinstance(responses, list):
+                    raise TypeError(f"All responses should be list but got {type(responses)}")
+                responses.extend(jpath_fields)
+            else:
+                if responses is None:
+                    responses = jpath_fields
+                if not isinstance(responses, dict):
+                    raise TypeError(f"All responses should be dict but got {type(responses)}")
+                responses.update(jpath_fields)
 
         return responses
 

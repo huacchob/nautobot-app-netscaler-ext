@@ -1,0 +1,21 @@
+{
+  "data": [
+    {
+      "templateId": "07a5de3c-4dfa-4eb3-bf52-7ee8076e29a9",
+      "templateName": "Default_Azure_vWAN_C8000V_VPN0_INTF_GE1_V01",
+      "templateDescription": "Default VPN 0 Interface GigabitEthernet1 template for Azure vWAN C8000V",
+      "templateType": "cisco_vpn_interface",
+      "deviceType": ["vedge-C8000V"],
+      "lastUpdatedBy": "system",
+      "lastUpdatedOn": 1631281281614,
+      "factoryDefault": true,
+      "devicesAttached": 0,
+      "attachedMastersCount": 1,
+      "templateMinVersion": "20.4.0",
+      "configType": "xml",
+      "createdBy": "system",
+      "createdOn": 1631281281614,
+      "resourceGroup": "global"
+    }
+  ]
+}
