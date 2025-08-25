@@ -42,6 +42,26 @@ def get_json_fixture(folder: str, file_name: str) -> dict[str, Any]:
     return context
 
 
+def get_cfg_fixture(folder: str, file_name: str) -> str:
+    """Fixture to return a mock config context for tests.
+
+    Args:
+        folder (str): The folder where the config context file is located.
+        file_name (str): The name of the config context file.
+
+    Returns:
+        str: Config str.
+    """
+    context_file: Path = Path(__file__).parent.joinpath(
+        "fixtures",
+        folder,
+        file_name,
+    )
+    with open(file=context_file, mode="r", encoding="utf-8") as file:
+        context: str = file.read()
+    return context
+
+
 def create_devices_in_orm() -> None:
     """Create devices in ORM."""
     # Status and Role
