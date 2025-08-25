@@ -45,8 +45,7 @@ def snmp_user_command_build(parsed_snmp_user: list[dict[str, str]]) -> str:
         return ""
     snmp_user_commands.append("! show snmp user")
     for snmp_user in parsed_snmp_user:
-        single_user: str = ""
-        single_user += f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']}"
+        single_user: str = f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']}"
         if snmp_user["AUTH"] and snmp_user["AUTH"] != "no":
             if "(no)" in snmp_user["AUTH"]:
                 auth = snmp_user["AUTH"].replace("(no)", "")
