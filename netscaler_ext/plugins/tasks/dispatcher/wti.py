@@ -3,6 +3,10 @@
 from logging import Logger
 from typing import Any
 
+from nautobot.dcim.models import Device
+from nornir.core.task import Task
+from requests import Session
+
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
 from netscaler_ext.utils.controller import (
     ConnectionMixin,
@@ -11,9 +15,6 @@ from netscaler_ext.utils.controller import (
     resolve_jmespath,
     resolve_query,
 )
-from nautobot.dcim.models import Device
-from nornir.core.task import Task
-from requests import Session
 
 
 class NetmikoWti(BaseControllerDriver, ConnectionMixin):
@@ -90,7 +91,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
-            jpath_fields: dict[str, Any] | list[Any] = resolve_jmespath(
+            jpath_fields: dict[Any, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
             )

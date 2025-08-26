@@ -181,6 +181,8 @@ def resolve_jmespath(
         )
         if j_value:
             data_fields.update({key: j_value})
+    if not data_fields:
+        return data_fields
     lengths = [len(v) for v in data_fields.values() if isinstance(v, list)]
     if lengths == [1]:
         return data_fields

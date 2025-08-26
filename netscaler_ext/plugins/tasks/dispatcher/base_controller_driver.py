@@ -127,7 +127,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             controller_obj=controller_obj,
             logger=logger,
         )
-        feature_endpoints: str = cfg_cntx.get("backup_endpoints", "")
+        feature_endpoints: list[str] = cfg_cntx.get("backup_endpoints", "")
         if not feature_endpoints:
             logger.error("Could not find the controller endpoints")
             raise ValueError("Could not find controller endpoints")
@@ -135,6 +135,11 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             feature_name: str = cls._cc_feature_name_parser(feature_name=feature)
+            if not endpoints:
+                logger.error(
+                    f"Could not find the endpoint context for {feature} in the config context",
+                )
+                continue
             feature_response: dict[str, dict[Any, Any]] = cls.resolve_backup_endpoint(
                 controller_obj=controller_obj,
                 logger=logger,
