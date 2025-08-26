@@ -3,8 +3,8 @@
 from logging import Logger
 from typing import Any
 
-from ipaper_dispatchers.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
-from ipaper_dispatchers.utils.controller import (
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
+from netscaler_ext.utils.controller import (
     ConnectionMixin,
     base_64_encode_credentials,
     format_base_url_with_endpoint,
