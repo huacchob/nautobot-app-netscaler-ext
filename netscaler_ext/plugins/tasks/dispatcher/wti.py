@@ -3,18 +3,17 @@
 from logging import Logger
 from typing import Any
 
-from nautobot.dcim.models import Device
-from nornir.core.task import Task
-from requests import Session
-
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
-from netscaler_ext.utils.controller import (
+from ipaper_dispatchers.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
+from ipaper_dispatchers.utils.controller import (
     ConnectionMixin,
     base_64_encode_credentials,
     format_base_url_with_endpoint,
     resolve_jmespath,
     resolve_query,
 )
+from nautobot.dcim.models import Device
+from nornir.core.task import Task
+from requests import Session
 
 
 class NetmikoWti(BaseControllerDriver, ConnectionMixin):
@@ -91,7 +90,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
-            jpath_fields: dict[str, Any] = resolve_jmespath(
+            jpath_fields: dict[str, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
             )
@@ -105,14 +104,20 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                 if not isinstance(responses, list):
                     raise TypeError(f"All responses should be list but got {type(responses)}")
                 responses.extend(jpath_fields)
-            else:
+            elif isinstance(jpath_fields, dict):
                 if responses is None:
                     responses = jpath_fields
                 if not isinstance(responses, dict):
                     raise TypeError(f"All responses should be dict but got {type(responses)}")
                 responses.update(jpath_fields)
+            else:
+                logger.error(f"Unexpected jmespath response type: {type(jpath_fields)}")
 
-        return responses
+        if responses:
+            return responses
+        else:
+            logger.error("No valid responses found")
+            raise ValueError("No valid responses found")
 
     @classmethod
     def resolve_remediation_endpoint(
