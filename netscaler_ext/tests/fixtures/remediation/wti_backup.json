@@ -1,0 +1,12 @@
+{
+  "hostname": {
+    "unitid": {
+      "timestamp": "2025-08-26T20:29:46+00:00",
+      "siteid": "Location ID",
+      "location": "Location Name",
+      "assettag": "",
+      "hostname": "WTI-Name",
+      "domain": "domain.com"
+    }
+  }
+}

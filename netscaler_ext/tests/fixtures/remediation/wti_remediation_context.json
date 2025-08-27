@@ -1,0 +1,14 @@
+{
+  "hostname_remediation": [
+    {
+      "endpoint": "/api/v2/config/hostname",
+      "method": "PUT",
+      "query": [],
+      "parameters": {
+        "non_optional": [],
+        "optional": ["unitid"]
+      }
+    }
+  ],
+  "remediation_endpoints": ["hostname_remediation"]
+}

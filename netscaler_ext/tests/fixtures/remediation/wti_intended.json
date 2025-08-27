@@ -1,0 +1,11 @@
+{
+  "hostname": {
+    "unitid": {
+      "siteid": "Location ID",
+      "location": "Location ID 1",
+      "assettag": "",
+      "hostname": "WTI-Name",
+      "domain": "domain.com"
+    }
+  }
+}

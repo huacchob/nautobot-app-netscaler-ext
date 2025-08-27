@@ -18,10 +18,10 @@ def load_fixture(filename: str) -> Any:
 class TestJsonControllerRemediation(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        base_fixtures_path: str = "netscaler_ext/tests/fixtures/remediation/"
-        cls.intended_config = load_fixture(filename=f"{base_fixtures_path}intended_config.json")
-        cls.actual_config = load_fixture(filename=f"{base_fixtures_path}actual_config.json")
-        cls.config_context = load_fixture(filename=f"{base_fixtures_path}config_context.json")
+        cls.base_fixtures_path: str = "netscaler_ext/tests/fixtures/remediation/"
+        cls.intended_config = load_fixture(filename=f"{cls.base_fixtures_path}intended_config.json")
+        cls.actual_config = load_fixture(filename=f"{cls.base_fixtures_path}actual_config.json")
+        cls.config_context = load_fixture(filename=f"{cls.base_fixtures_path}config_context.json")
 
     def setUp(self):
         rule = MagicMock()
@@ -124,6 +124,19 @@ class TestJsonControllerRemediation(unittest.TestCase):
         remediation = JsonControllerRemediation(compliance_obj)
         with self.assertRaises(Exception):
             remediation.controller_remediation()
+
+    def test_with_wti_config(self):
+        compliance_obj = MagicMock()
+        compliance_obj.rule.feature.name = "hostname"
+        compliance_obj.intended = load_fixture(filename=f"{self.base_fixtures_path}wti_intended.json")
+        compliance_obj.actual = load_fixture(filename=f"{self.base_fixtures_path}wti_backup.json")
+        compliance_obj.device.get_config_context.return_value = load_fixture(
+            filename=f"{self.base_fixtures_path}wti_remediation_context.json"
+        )
+        remediation = JsonControllerRemediation(compliance_obj)
+        result = remediation.controller_remediation()
+        self.assertIsInstance(result, str)
+        self.assertIn("hostname", result)
 
 
 if __name__ == "__main__":
