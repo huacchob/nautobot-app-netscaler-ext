@@ -6,9 +6,8 @@ import json
 from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, OrderedDict
+from typing import TYPE_CHECKING, Any
 
-import xmltodict
 from django.core.exceptions import ValidationError
 
 if TYPE_CHECKING:
@@ -268,13 +267,6 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                     path=path + (index,),
                     stack=stack,
                 )
-            elif isinstance(intended_item, (str, int, float)):
-                self._str_int_float_config(
-                    intended=intended_item,
-                    actual=actual_item,
-                    diff=diff,
-                    path=path + (index,),
-                )
             else:
                 self._str_int_float_config(
                     intended=intended_item,
@@ -436,52 +428,3 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         )
         cleaned_diff: dict[Any, Any] = self._clean_diff(diff=valid_diff)
         return json.dumps(cleaned_diff, indent=4)
-
-
-class XMLControllerRemediation(JsonControllerRemediation):  # pylint: disable=too-few-public-methods
-    """Remediation class for controllers using XML config."""
-
-    def __init__(
-        self,
-        compliance_obj: ConfigCompliance,
-    ) -> None:
-        """Controller remediation.
-
-        Args:
-            compliance_obj (ConfigCompliance): Golden Config Compliance object.
-        """
-        self.compliance_obj: ConfigCompliance = compliance_obj
-        self.feature_name: str = compliance_obj.rule.feature.name.lower()
-        self.intended_config: OrderedDict[str, Any] = xmltodict.parse(
-            xml_input=compliance_obj.intended,
-        )
-        self.backup_config: OrderedDict[str, Any] = xmltodict.parse(
-            xml_input=compliance_obj.actual,
-        )
-        self.required_parameters: list[str]
-
-
-def controller_remediation(obj: "ConfigCompliance") -> str:
-    """Controller remediation.
-
-    Args:
-        obj (ConfigCompliance): Compliance object.
-
-    Returns:
-        str: Remediation json config.
-    """
-    remediation: BaseControllerRemediation
-    config_type = obj.rule.config_type.lower().strip()
-    if config_type == "json":
-        remediation = JsonControllerRemediation(
-            compliance_obj=obj,
-        )
-    elif config_type == "xml":
-        remediation = XMLControllerRemediation(
-            compliance_obj=obj,
-        )
-    else:
-        raise ValidationError(
-            f"Config type {obj.rule.config_type} is not supported.",
-        )
-    return remediation.controller_remediation()

@@ -1,0 +1,8 @@
+[
+  {
+    "parameters": {
+      "optional": ["param3"],
+      "non_optional": ["param1", "param2"]
+    }
+  }
+]
