@@ -144,7 +144,10 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
         """
         aggregated_results: list[Any] = []
         for endpoint in endpoint_context:
-            api_endpoint: str = endpoint["endpoint"]
+            api_endpoint: str = format_base_url_with_endpoint(
+                base_url=cls.device_url,
+                endpoint=endpoint["endpoint"],
+            )
             if isinstance(payload, dict):
                 if req_params := endpoint["parameters"]["non_optional"]:
                     for param in req_params:
@@ -152,7 +155,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                             logger.error(
                                 f"resolve_endpoint method needs '{param}' in kwargs",
                             )
-                    payload.update({param: kwargs[param]})
+                        item.update({param: kwargs[param]})
                 response = cls.return_response_content(
                     session=cls.session,
                     method=endpoint["method"],
