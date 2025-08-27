@@ -1,13 +1,18 @@
 # Custom Golden Config Dispatchers
+
 ## Overview
+
 The custom dispatchers automates backup and remediation of different platform configurations using API calls defined in YAML files.
 
 - <platform_name>.py: Implements dispatcher logic.
-- <platform_name>_backup_endpoints.yml: Defines API endpoints for backup operations (get_config).
-- <platform_name>_remediation_endpoints.yml: Defines API endpoints for remediation operations (merge_config).
-- test_<platform_name>.py: Contains unit tests for dispatcher functionality.
+- <platform_name>\_backup_endpoints.yml: Defines API endpoints for backup operations (get_config).
+- <platform_name>\_remediation_endpoints.yml: Defines API endpoints for remediation operations (merge_config).
+- test\_<platform_name>.py: Contains unit tests for dispatcher functionality.
+
+---
 
 ## How It Works
+
 - API Endpoint Definitions
 
   - Endpoints for backup and remediation are defined in YAML files.
@@ -19,12 +24,16 @@ The custom dispatchers automates backup and remediation of different platform co
   - For backup, it fetches configuration data.
   - For remediation, it applies changes using defined endpoints.
 
+---
+
 ## Adding API Endpoints
-1. Backup Endpoints (<platform_name>_backup_endpoints.yml)
-**Purpose**: Define endpoints for retrieving configuration data.
+
+1. Backup Endpoints (<platform_name>\_backup_endpoints.yml)
+   **Purpose**: Define endpoints for retrieving configuration data.
 
 **Structure**:
-```
+
+```yaml
 ntp_backup:
   - endpoint: "endpoint.ntp"
     method: "GET"
@@ -50,12 +59,12 @@ backup_endpoints:
   - jmespath: jmespath strings used to grab only the important details about the call
 - Add the new section name to the **backup_endpoints** list.
 
-2. Remediation Endpoints (<platform_name>_remediation_endpoints.yml)
-**Purpose**: Define endpoints for applying configuration changes.
+2. Remediation Endpoints (<platform_name>\_remediation_endpoints.yml)
+   **Purpose**: Define endpoints for applying configuration changes.
 
 **Structure**:
 
-```
+```yaml
 ntp_remediation:
   - endpoint: "endpoint.updateNtp"
     method: "PUT
@@ -81,12 +90,15 @@ remediation_endpoints:
     - In **optional** the values must come from the remediation config from the config plan
 - Add the new section name to the **remediation_endpoints** list.
 
+---
+
 ## Example: Adding a New Backup Endpoint
 
 Suppose you want to back up VLAN settings:
 
-- Add to <platform_name>_backup_endpoints.yml:
-```
+- Add to <platform_name>\_backup_endpoints.yml:
+
+```yaml
 vlan_backup:
   - endpoint: "endpoint.toVlans"
     method: "GET"
@@ -100,12 +112,19 @@ vlan_backup:
 backup_endpoints:
   - "vlan_backup"
 ```
+
 - The dispatcher will now use this endpoint when performing backups.
 
+---
+
 ## Tests
+
 You can find the dispatcher tests in `netscaler_ext/tests/test_<platform_name>.py`
 
 ## Additional Information
+
 Platform specific documentation:
 
+- [Custom Remediation](golden_config_docs/custom_remediation.md)
 - [Cisco Meraki](golden_config_docs/cisco_meraki.md)
+- [Cisco APIC](golden_config_docs/cisco_apic.md)
