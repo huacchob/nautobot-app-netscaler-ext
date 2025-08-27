@@ -146,11 +146,12 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
         for endpoint in endpoint_context:
             api_endpoint: str = endpoint["endpoint"]
             if isinstance(payload, dict):
-                for param in endpoint["parameters"]["non_optional"]:
-                    if not kwargs.get(param):
-                        logger.error(
-                            f"resolve_endpoint method needs '{param}' in kwargs",
-                        )
+                if req_params := endpoint["parameters"]["non_optional"]:
+                    for param in req_params:
+                        if not kwargs.get(param):
+                            logger.error(
+                                f"resolve_endpoint method needs '{param}' in kwargs",
+                            )
                     payload.update({param: kwargs[param]})
                 response = cls.return_response_content(
                     session=cls.session,
@@ -164,12 +165,13 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                 aggregated_results.append(response)
             if isinstance(payload, list):
                 for item in payload:
-                    for param in endpoint["parameters"]["non_optional"]:
-                        if not kwargs.get(param):
-                            logger.error(
-                                f"resolve_endpoint method needs '{param}' in kwargs",
-                            )
-                        item.update({param: kwargs[param]})
+                    if req_params := endpoint["parameters"]["non_optional"]:
+                        for param in req_params:
+                            if not kwargs.get(param):
+                                logger.error(
+                                    f"resolve_endpoint method needs '{param}' in kwargs",
+                                )
+                            item.update({param: kwargs[param]})
                     response = cls.return_response_content(
                         session=cls.session,
                         method=endpoint["method"],

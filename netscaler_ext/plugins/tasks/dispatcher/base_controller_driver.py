@@ -207,7 +207,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
         if isinstance(config, str):
-            config = json.loads(config)
+            config: dict[Any, Any] = json.loads(config)
         logger.info("Config merge via controller dispatcher starting", extra={"object": obj})
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         # The above Python code snippet is performing the following actions:
