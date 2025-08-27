@@ -428,3 +428,25 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         )
         cleaned_diff: dict[Any, Any] = self._clean_diff(diff=valid_diff)
         return json.dumps(cleaned_diff, indent=4)
+
+
+def controller_remediation(obj: "ConfigCompliance") -> str:
+    """Controller remediation.
+
+    Args:
+        obj (ConfigCompliance): Compliance object.
+
+    Returns:
+        str: Remediation json config.
+    """
+    remediation: BaseControllerRemediation
+    config_type = obj.rule.config_type.lower().strip()
+    if config_type == "json":
+        remediation = JsonControllerRemediation(
+            compliance_obj=obj,
+        )
+    else:
+        raise ValidationError(
+            f"Config type {obj.rule.config_type} is not supported.",
+        )
+    return remediation.controller_remediation()
