@@ -2,10 +2,12 @@
 
 ## Overview
 
-The **Cisco APIC Golden Config Dispatcher** enables **backup** of ACI fabric data via the APIC REST API.  
-It authenticates to APIC, manages a persistent HTTP session with a cookie, and executes the YAML-defined backup endpoints to collect structured data (filtered by JMESPath) for Nautobot Golden Config.
+The **Cisco APIC Golden Config Dispatcher** provides **backup** workflows for Cisco ACI fabrics via the **APIC REST API**.  
+It authenticates with the APIC controller, maintains a persistent HTTP session using a cookie-based token, and executes YAML-defined endpoints to retrieve structured data filtered through **JMESPath** for Nautobot Golden Config.
 
-> Note: This dispatcher currently documents the **backup** flow. If you later add a remediation implementation, you can mirror the structure used by other dispatchers.
+- Transport: HTTPS (requests `Session`)
+- Auth: Username + Password → APIC login token (`APIC-cookie`)
+- Scope: Backup only
 
 ---
 
@@ -13,14 +15,12 @@ It authenticates to APIC, manages a persistent HTTP session with a cookie, and e
 
 ### 1) Authentication & Session
 
-- Resolves the **controller base URL** from the device’s Config Context for controller type `'apic'`.
-- Uses the device’s Nornir host credentials (`task.host.username`, `task.host.password`) to authenticate.
-- Performs a `POST` to `'api/aaaLogin.json'` with the APIC login payload to obtain a token.
-- Stores the token in a **cookie header**: `'Cookie: APIC-cookie=<token>'`.
-- Persists a `requests.Session` (via the `ConnectionMixin`) for all subsequent REST calls.
+- Resolves the APIC controller base URL from the Nautobot **ConfigContext** for controller type `'apic'`.
+- Uses the device’s Nornir host credentials (`username`, `password`) to authenticate.
+- Issues a `POST` to `api/aaaLogin.json` with APIC login payload.
+- Extracts the **login token** from the response and sets it in request headers:
 
 ```python
-# High-level idea (already implemented in the dispatcher):
 auth_url = format_base_url_with_endpoint(base_url=controller_url, endpoint="api/aaaLogin.json")
 auth_payload = {"aaaUser": {"attributes": {"name": username, "pwd": password}}}
 resp = session.post(auth_url, data=json.dumps(auth_payload), headers={"Content-Type": "text/plain"}, verify=False)
@@ -28,44 +28,50 @@ cookie = resp["imdata"][0]["aaaLogin"]["attributes"]["token"]
 get_headers = {"Cookie": f"APIC-cookie={cookie}", "Content-Type": "text/plain"}
 ```
 
-> Security note: TLS verification is currently disabled (`verify=False`) with a TODO to enable it. In production, provide an appropriate CA bundle or set `verify=True`.
+- A persistent `requests.Session` (via `ConnectionMixin`) is reused for all further API calls.
 
-### 2) Backup Endpoint Resolution
-
-For each configured endpoint in your `<platform_name>_backup_endpoints.yml`:
-
-1. Build the full API URL by joining the controller base URL with the endpoint path.
-2. If a `query` block is provided, append it as URL parameters.
-3. Send the request using the shared `Session` and `get_headers`.
-4. Extract the required fields with **JMESPath** via `resolve_jmespath`.
-5. Aggregate responses across all endpoints, returning a single **dict** or **list** depending on the endpoint outputs.
+> **TLS Note**: Calls are currently made with `verify=False`. For production, provide trusted CA bundles and enable verification.
 
 ---
 
-## Required Inputs & Context
+### 2) Backup Flow
 
-- **Device Config Context** must provide the APIC controller URL for controller type `'apic'`.
-- **Nornir Host Credentials** must contain:
-  - `username` → APIC username
-  - `password` → APIC password
+#### Processing Steps
+
+1. For each configured endpoint in `<platform_name>_backup_endpoints.yml`:
+   - Build full API URL with `format_base_url_with_endpoint`.
+   - If `query` params exist, append them with `resolve_query`.
+   - Send the request using the shared `session` and `get_headers`.
+2. Parse the API response with **resolve_jmespath** to extract only required fields.
+3. Aggregate results:
+   - If endpoints return lists → extend into one list.
+   - If endpoints return dicts → merge into a single dict.
+4. Return aggregated structured data to the Golden Config job.
 
 ---
 
-## Typical Data Flow (Backup)
+## File & Class Reference
 
-1. **Authenticate** → Cookie set in `get_headers`.
-2. **For each endpoint**:
-   - Build API URL with `format_base_url_with_endpoint`.
-   - Optionally add `query` parameters with `resolve_query`.
-   - Send request via `return_response_content`.
-   - Extract fields with `resolve_jmespath`.
-   - Aggregate result (list or dict).
-3. **Return** aggregated data to the caller (used by Golden Config backup job).
+- **Class**: `NetmikoCiscoApic`
+  - Inherits: `BaseControllerDriver`, `ConnectionMixin`
+  - Attributes:
+    - `controller_type = "apic"`
+    - `controller_url` – base APIC controller URL (from ConfigContext)
+    - `session` – shared `requests.Session`
+    - `get_headers` – includes APIC-cookie for authenticated calls
+  - Key Methods:
+    - `authenticate(logger, obj, task)` → logs into APIC and stores session cookie
+    - `resolve_backup_endpoint(controller_obj, logger, endpoint_context, **kwargs)` → executes backup endpoints, parses JMESPath, and aggregates results
 
 ---
 
 ## Usage Notes
 
-- You **do not** need to instantiate the dispatcher directly in most cases—your orchestration will call it via the Golden Config job.
-- Ensure the device’s Config Context includes the APIC controller URL for controller type `'apic'`.
-- Provide valid Nornir credentials for APIC login.
+- **Device ConfigContext**: Must define the APIC controller URL for controller type `'apic'`.
+- **ConfigContext Integration**: Backup and remediation endpoints should be defined in YAML (`cisco_apic_backup_endpoints.yml`, `cisco_apic_remediation_endpoints.yml`).
+- **Credentials**: The Nautobot device’s `username` and `password` must match valid APIC login credentials.
+- **TLS**: Update the dispatcher to use `verify=True` and trusted certificates in production.
+- **Error Handling**:
+  - If no cookie is returned from APIC, a `ValueError` is raised.
+  - If `jmespath` filters do not match the API response, the dispatcher logs an error and continues.
+- **Scope**: Backup endpoints only. Remediation is not implemented for APIC in this dispatcher.

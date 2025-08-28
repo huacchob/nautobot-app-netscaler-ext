@@ -2,21 +2,24 @@
 
 ## Overview
 
-The **Cisco Meraki Golden Config Dispatcher** enables **backup** and **remediation** of configurations on Cisco Meraki controllers.  
-Unlike other platforms that may use raw API requests, this dispatcher leverages the **Meraki Dashboard SDK ('DashboardAPI')** to interact with the controller.
+The **Cisco Meraki Golden Config Dispatcher** provides **backup** and **remediation** workflows for Cisco Meraki controllers using the official **Meraki Dashboard SDK (`DashboardAPI`)**.  
+Instead of raw REST calls, this dispatcher dynamically resolves **SDK callables** defined in YAML endpoint files, executes them, and extracts structured data for Nautobot Golden Config.
 
-The dispatcher is specific to the **'cisco_meraki' platform** and is designed to work seamlessly with Nautobot Golden Config.  
-For Meraki-managed devices, see the separate dispatcher: **'meraki_managed.py'**.
+- Transport: HTTPS (Meraki Dashboard SDK → REST API)
+- Auth: API key (from Nautobot device password)
+- Scope: Backup + Remediation
+- Platform: `cisco_meraki` only
+  > For Meraki-managed devices, see the **`meraki_managed.py`** dispatcher.
 
 ---
 
 ## How It Works
 
-### 1. Authentication
+### 1) Authentication & Session
 
-- The dispatcher authenticates to the Meraki controller using the **DashboardAPI** SDK.
-- The API key is retrieved from the device’s **Nornir host password**.
-- The base controller URL is resolved from the device’s **ConfigContext** and updated to include the API path ('api/v1').
+- Uses the **DashboardAPI SDK** for authentication.
+- The API key is pulled from the Nautobot device’s `task.host.password`.
+- The base controller URL is resolved from the device’s ConfigContext, with `api/v1` appended.
 
 ```python
 controller_obj = DashboardAPI(
@@ -27,48 +30,88 @@ controller_obj = DashboardAPI(
 )
 ```
 
-### 2. Controller Setup
+---
 
-- Reads configuration context from the device.
-- Requires:
-  - **organizationId** → must exist in ConfigContext.
-  - **networkId** → provided by ConfigContext.
-  - **serial** → from the Nautobot 'Device' model.
+### 2) Controller Setup
 
-These values are mapped for use in endpoint resolution.
+- The dispatcher maps required values from the Nautobot `Device` and its `ConfigContext`:
+  - **organizationId** – must exist in ConfigContext
+  - **networkId** – from ConfigContext
+  - **serial** – from the Device model
+
+These values are stored and injected when resolving endpoints.
 
 ---
 
 ## Backup Flow
 
-### Process
+### Processing Steps
 
-1. The dispatcher dynamically resolves the SDK callable using '\_resolve_method_callable'.
-2. Parameters are mapped ('organizationId', 'networkId') via 'resolve_params'.
-3. The method is executed with '\_send_call'.
-4. The API response is filtered with 'resolve_jmespath'.
-5. All results are aggregated (as dicts or lists) and returned.
+1. Dynamically resolve the SDK callable using `_resolve_method_callable`.
+2. Map required parameters (`organizationId`, `networkId`) with `resolve_params`.
+3. Execute the SDK method via `_send_call`.
+4. Filter the API response using `resolve_jmespath`.
+5. Aggregate results:
+   - If responses are lists → aggregate into one list.
+   - If responses are dicts → merge into a single dict.
 
 ---
 
 ## Remediation Flow
 
-### Process
+### Processing Steps
 
-1. Dispatcher resolves the SDK callable.
-2. Payloads are prepared and enriched with **non-optional parameters** from ConfigContext.
-3. '\_send_remediation_call' is executed.
-4. All responses are collected into a result list.
+1. Resolve the SDK callable from the endpoint definition.
+2. Prepare payloads, injecting **non-optional parameters** from ConfigContext or kwargs.
+3. Execute the method via `_send_remediation_call`.
+4. Collect responses into an aggregated list.
 
 Supports:
 
-- **Single dict payloads**.
-- **List of dict payloads** (each item sent separately).
+- **Single dict payloads**
+- **List of dict payloads** (each entry handled individually)
+
+### Example (Conceptual)
+
+```python
+payload = {"vlanId": "200", "name": "ProdVLAN"}
+responses = dispatcher.resolve_remediation_endpoint(
+    controller_obj=dashboard,
+    logger=logger,
+    endpoint_context=ctx["meraki_remediation"],
+    payload=payload,
+    organizationId="12345",
+    networkId="N_67890"
+)
+```
 
 ---
 
-## Additional Information
+## File & Class Reference
 
-- This dispatcher is only for **Cisco Meraki controllers** ('cisco_meraki').
-- For **Meraki-managed devices**, use the 'meraki_managed.py' dispatcher.
-- Example tests can be found in 'tests/test_cisco_meraki.py'.
+- **Class**: `NetmikoCiscoMeraki`
+  - Inherits: `BaseControllerDriver`
+  - Attributes:
+    - `controller_type = "meraki"`
+    - `controller_obj` – Meraki DashboardAPI instance
+  - Key Methods:
+    - `authenticate(logger, obj, task)` → establishes `DashboardAPI` connection
+    - `controller_setup(device_obj, controller_obj, logger)` → retrieves orgId, networkId, serial from ConfigContext
+    - `resolve_backup_endpoint(controller_obj, logger, endpoint_context, **kwargs)` → executes SDK calls for backup, aggregates results
+    - `resolve_remediation_endpoint(controller_obj, logger, endpoint_context, payload, **kwargs)` → executes SDK calls for remediation
+
+---
+
+## Usage Notes
+
+- **API Key**: The dispatcher uses the Nautobot device `password` field as the Meraki API key.
+- **ConfigContext Integration**: Backup and remediation endpoints should be defined in YAML (`cisco_meraki_backup_endpoints.yml`, `cisco_meraki_remediation_endpoints.yml`).
+- **ConfigContext Requirements**:
+  - Must define `organization_id` and `network_id`.
+  - Device `serial` is required.
+- **JMESPath**: Ensure endpoint YAMLs define valid `jmespath` queries to extract required fields.
+- **TLS**: The Meraki SDK handles HTTPS; always use trusted certificates in production.
+- **Scope**:
+  - Only for **Meraki controllers** (`cisco_meraki`).
+  - For Meraki-managed devices, use **`meraki_managed.py`**.
+- **Testing**: Example dispatcher tests are located in `tests/test_cisco_meraki.py`.

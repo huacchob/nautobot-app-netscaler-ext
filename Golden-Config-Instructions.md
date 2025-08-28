@@ -2,36 +2,71 @@
 
 ## Overview
 
-The custom dispatchers automates backup and remediation of different platform configurations using API calls defined in YAML files.
+The **Custom Golden Config Dispatchers** provide a unified pattern for integrating Nautobot Golden Config with controller APIs and SDKs.  
+They define **backup** and **remediation** workflows using YAML-driven endpoint definitions, allowing consistent automation across multiple platforms.
 
-- <platform_name>.py: Implements dispatcher logic.
-- <platform_name>\_backup_endpoints.yml: Defines API endpoints for backup operations (get_config).
-- <platform_name>\_remediation_endpoints.yml: Defines API endpoints for remediation operations (merge_config).
-- test\_<platform_name>.py: Contains unit tests for dispatcher functionality.
+- **Dispatcher File**: `<platform_name>.py` — Implements dispatcher logic.
+- **Backup Endpoints**: `<platform_name>_backup_endpoints.yml` — Defines API endpoints for backup (`get_config`).
+- **Remediation Endpoints**: `<platform_name>_remediation_endpoints.yml` — Defines API endpoints for remediation (`merge_config`).
+- **Tests**: `test_<platform_name>.py` — Unit tests validating dispatcher behavior.
+
+Scope: API-based platforms (e.g., Cisco Meraki, vManage, APIC, WTI). For CLI-based NXOS see [Cisco NXOS](golden_config_docs/cisco_nxos.md).
 
 ---
 
 ## How It Works
 
-- API Endpoint Definitions
+### 1) API Endpoint Definitions
 
-  - Endpoints for backup and remediation are defined in YAML files.
-  - Each endpoint specifies the API method, required parameters, and fields to extract from responses.
+- Endpoints are declared in YAML files.
+- Each endpoint specifies:
+  - **endpoint**: API path or SDK callable
+  - **method**: HTTP method (GET/POST/PUT/DELETE)
+  - **parameters**: required (`non_optional`) and optional values
+  - **jmespath**: field selectors to extract relevant response data
 
-- Dispatcher Logic
+### 2) Dispatcher Logic
 
-  - The dispatcher reads endpoint definitions and dynamically calls the API/SDK endpoints/callables.
-  - For backup, it fetches configuration data.
-  - For remediation, it applies changes using defined endpoints.
+- Reads endpoint definitions at runtime.
+- Dynamically executes the target API call (via SDK or raw HTTP).
+- Aggregates and normalizes responses:
+  - Dict responses → merged into a single dict
+  - List responses → concatenated into a single list
+
+---
+
+## Backup Flow
+
+### Processing Steps
+
+1. Resolve endpoint definitions from `<platform_name>_backup_endpoints.yml`.
+2. Map required parameters (from ConfigContext or controller_setup).
+3. Execute API call with defined method.
+4. Extract response fields with **JMESPath**.
+5. Aggregate results into a consistent dict or list.
+
+---
+
+## Remediation Flow
+
+### Processing Steps
+
+1. Resolve endpoint definitions from `<platform_name>_remediation_endpoints.yml`.
+2. For each endpoint:
+   - Resolve SDK callable or API path.
+   - Inject **non_optional parameters** into payload from `kwargs`.
+   - Send payload (single dict or list of dicts).
+3. Collect and return all responses.
 
 ---
 
 ## Adding API Endpoints
 
-1. Backup Endpoints (<platform_name>\_backup_endpoints.yml)
-   **Purpose**: Define endpoints for retrieving configuration data.
+### 1) Backup Endpoints
 
-**Structure**:
+**Purpose**: Retrieve configuration data from the controller.
+
+**Structure Example**:
 
 ```yaml
 ntp_backup:
@@ -47,27 +82,25 @@ backup_endpoints:
   - "ntp_backup"
 ```
 
-**How to Add**:
+**Steps**:
 
-- Create a new section (e.g., snmp_backup).
-- Add endpoint details: endpoint, method, parameters, and jmespath fields to extract.
-  - endpoint: Either SDK callable object or API endpoint
-  - method: The HTTP method
-  - parameters: Any parameters the call must use
-    - Just the name is added in the endpoint YAML definition
-    - The values must be added to the **controller_setup** method
-  - jmespath: jmespath strings used to grab only the important details about the call
-- Add the new section name to the **backup_endpoints** list.
+- Create a new section (e.g., `snmp_backup`).
+- Define endpoint, method, parameters, and JMESPath fields.
+- Add section name to the `backup_endpoints` list.
+- Values for parameters must be provided via `controller_setup`.
 
-2. Remediation Endpoints (<platform_name>\_remediation_endpoints.yml)
-   **Purpose**: Define endpoints for applying configuration changes.
+---
 
-**Structure**:
+### 2) Remediation Endpoints
+
+**Purpose**: Apply configuration changes.
+
+**Structure Example**:
 
 ```yaml
 ntp_remediation:
   - endpoint: "endpoint.updateNtp"
-    method: "PUT
+    method: "PUT"
     parameters:
       non_optional:
         - "required_parameter"
@@ -79,24 +112,17 @@ remediation_endpoints:
   - "ntp_remediation"
 ```
 
-**How to Add**:
+**Steps**:
 
-- Create a new section (e.g., snmp_remediation).
-- Specify endpoint, method, and parameters (non_optional and optional).
-  - endpoint: Either SDK callable object or API endpoint
-  - method: The HTTP method
-  - parameters: Any parameters the call must use
-    - In **non_optional**, just the name is added in the endpoint YAML definition
-    - In **optional** the values must come from the remediation config from the config plan
-- Add the new section name to the **remediation_endpoints** list.
+- Create a new section (e.g., `snmp_remediation`).
+- Define endpoint, method, and parameters.
+- **non_optional**: defined in YAML but values injected from `kwargs`.
+- **optional**: pulled from the remediation config plan.
+- Add section name to the `remediation_endpoints` list.
 
 ---
 
-## Example: Adding a New Backup Endpoint
-
-Suppose you want to back up VLAN settings:
-
-- Add to <platform_name>\_backup_endpoints.yml:
+## Example: Adding a VLAN Backup Endpoint
 
 ```yaml
 vlan_backup:
@@ -113,18 +139,41 @@ backup_endpoints:
   - "vlan_backup"
 ```
 
-- The dispatcher will now use this endpoint when performing backups.
+- Dispatcher will now include VLANs during backup collection.
 
 ---
 
-## Tests
+## File & Class Reference
 
-You can find the dispatcher tests in `netscaler_ext/tests/test_<platform_name>.py`
+- **Dispatcher File**: `<platform_name>.py`
+  - Implements platform-specific logic.
+- **YAML Files**:
+  - `<platform_name>_backup_endpoints.yml`
+  - `<platform_name>_remediation_endpoints.yml`
+- **Test File**: `test_<platform_name>.py`
+
+---
+
+## Usage Notes
+
+- **Endpoint Shape**: Ensure JMESPath returns consistent dicts/lists across endpoints.
+- **Non-optional Parameters**: Keep minimal; typically tied to device context (e.g., `deviceId`).
+- **Bulk Remediation**: Prefer list payloads to send changes per item.
+- **Error Handling**:
+  - Dispatcher logs errors if parameters are missing or responses invalid.
+  - Empty responses may raise exceptions depending on platform.
+- **TLS**: Most dispatchers default to `verify=False`. Always enable verification and configure CA bundles in production.
+- **Extensibility**: Adding new platforms involves creating a dispatcher file + endpoint YAMLs that follow this pattern.
+
+---
 
 ## Additional Information
 
-Platform specific documentation:
+Platform-specific dispatcher documentation:
 
 - [Custom Remediation](golden_config_docs/custom_remediation.md)
+- [Cisco NXOS](golden_config_docs/cisco_nxos.md)
 - [Cisco Meraki](golden_config_docs/cisco_meraki.md)
+- [Cisco vManage](golden_config_docs/cisco_vmanage.md)
 - [Cisco APIC](golden_config_docs/cisco_apic.md)
+- [WTI](golden_config_docs/wti.md)

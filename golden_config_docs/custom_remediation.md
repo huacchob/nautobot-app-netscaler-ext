@@ -1,44 +1,45 @@
 # Custom Remediation for Nautobot Golden Config
 
-## Introduction
+## Overview
 
-The **Custom Remediation** module extends Nautobot Golden Config by providing a way to automatically generate **remediation payloads** when a device’s configuration does not match its intended state.
+The **Custom Remediation** module extends Nautobot Golden Config by automatically generating **remediation payloads** when a device’s configuration deviates from its intended state.  
+It compares the **intended configuration** with the **actual configuration** and produces a **JSON payload** that can be sent to a controller API or SDK to remediate differences.
 
-This module works by comparing:
-
-- The **intended configuration**
-- The **actual configuration**
-
-It then produces a **JSON payload** that can be sent to the device through a controller API or SDK to remediate the differences.
+- Input: Intended vs. Actual configurations
+- Output: JSON remediation payload
+- Scope: Remediation only (no backup)
 
 ---
 
 ## How It Works
 
-The remediation process follows these steps:
+### 1) Parameter Filtering
 
-1. **Filter Parameters**  
-   The module first checks the device’s **ConfigContext** for valid parameters.
+- Reads the device’s **ConfigContext** for remediation parameters.
+- **Non-optional parameters** → always included.
+- **Optional parameters** → included only if present in the config.
+- Other keys → filtered out.
 
-   - **Non-optional parameters** are always required.
-   - **Optional parameters** are included only if present in the config.
-   - Any other keys are removed from the comparison.
+### 2) Diff Building
 
-2. **Build the Diff**  
-   The module walks through the intended and actual configurations:
+- Recursively compares intended vs. actual config:
+  - If missing → add to diff.
+  - If different → update in diff.
+  - Supports dicts, lists, and primitives.
 
-   - If a value is missing in the actual config, it is added to the diff.
-   - If a value is different, it is updated in the diff.
-   - Nested dictionaries and lists are handled recursively.
+### 3) Required Field Injection
 
-3. **Ensure Required Fields**  
-   Any **non-optional parameters** defined in the ConfigContext are added back into the diff, even if they were unchanged, to make sure remediation requests contain all required values.
+- Ensures all **non-optional parameters** from ConfigContext are re-added to the diff, even if unchanged.
+- Guarantees remediation payloads contain required values.
 
-4. **Clean the Diff**  
-   Empty structures (empty lists, dicts, or null values) are removed to keep the payload minimal and valid.
+### 4) Diff Cleanup
 
-5. **Output Remediation JSON**  
-   Finally, the cleaned diff is returned as a **pretty-printed JSON string**, ready to be used in API remediation calls.
+- Removes empty lists, dicts, or null values.
+- Produces a minimal, valid JSON payload.
+
+### 5) Payload Output
+
+- Returns the final diff as a **pretty-printed JSON string**, ready for remediation.
 
 ---
 
@@ -76,75 +77,56 @@ Suppose the intended configuration specifies an NTP server, but the actual devic
 }
 ```
 
-This payload can then be sent to the controller API to fix the device’s configuration.
+This payload can then be sent to the controller API for remediation.
 
 ---
 
-## Usage
+## File & Class Reference
 
-You typically won’t instantiate remediation classes directly. Instead, call the provided helper function:
+- **Helper Function**:
+
+  - `controller_remediation(compliance_obj)`
+    - Orchestrates remediation process:
+      - Filters params
+      - Builds diff
+      - Injects required fields
+      - Cleans diff
+      - Returns JSON string
+
+- **Classes**:
+  - `BaseControllerRemediation` → abstract base class
+  - `JsonControllerRemediation` → JSON implementation (default)
+
+---
+
+## Usage Notes
+
+- **Invocation**: Typically called through `controller_remediation()` rather than instantiating classes directly.
 
 ```python
 from nautobot_golden_config.models import ConfigCompliance
 from custom_remediation import controller_remediation
 
-# Retrieve an existing compliance object
 compliance_obj = ConfigCompliance.objects.get(id="1234-abcd")
-
-# Generate the remediation payload
-remediation_payload = controller_remediation(compliance_obj)
-
-print(remediation_payload)
+payload = controller_remediation(compliance_obj)
+print(payload)
 ```
 
-The function automatically selects the correct remediation class based on the compliance object’s configuration type.  
-Currently, only **JSON** remediation is supported.
-
----
-
-## Requirements
-
-- The 'ConfigCompliance' object must contain both **intended** and **actual** configurations.
-- A valid **ConfigContext** must exist for the device, containing:
-  - '<feature_name>\_remediation' with parameter definitions
-  - Keys split into 'non_optional' and 'optional'
-
-If these conditions are not met, a 'ValidationError' is raised.
-
----
-
-## Error Handling
-
-The remediation process will raise errors in the following cases:
-
-- **Missing ConfigContext** or no valid parameters defined.
-- **Feature not found** in the intended or actual configuration.
-- **Unsupported config type** (anything other than JSON).
-
----
-
-## Extending the Module
-
-If you need to support another config format (e.g., XML or YAML), you can extend the base class:
-
-1. Subclass 'BaseControllerRemediation'.
-2. Implement your own 'controller_remediation()' method.
-3. Update the factory function ('controller_remediation()') to handle the new type.
-
-Example:
-
-```python
-if config_type == "json":
-    remediation = JsonControllerRemediation(obj)
-else:
-    raise ValidationError("Unsupported config type")
-```
+- **Supported Formats**: Currently only **JSON** remediation is supported.
+- **ConfigContext Requirements**:
+  - Must contain `<feature_name>_remediation` section.
+  - Keys must be split into `non_optional` and `optional`.
+- **Error Handling**:
+  - Raises `ValidationError` if ConfigContext is missing, feature is not present, or unsupported config type is provided.
+- **Extensibility**:
+  - Add new remediation formats by subclassing `BaseControllerRemediation` and updating the factory method.
 
 ---
 
 ## Summary
 
-- The 'custom_remediation' module generates JSON payloads to bring devices back into compliance.
-- It uses the **ConfigContext** to validate parameters and ensures all required values are included.
-- Output is always a clean, ready-to-use remediation payload.
-- Errors are raised if input data is incomplete or unsupported.
+- Compares **intended vs. actual config** and outputs JSON remediation payloads.
+- Validates parameters using **ConfigContext**.
+- Guarantees required values are included.
+- Cleans output for compliance-friendly payloads.
+- Extensible for future config formats (e.g., XML, YAML).
