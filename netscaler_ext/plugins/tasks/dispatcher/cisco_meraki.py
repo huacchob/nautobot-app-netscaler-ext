@@ -6,7 +6,6 @@ from typing import Any, Callable, OrderedDict
 from meraki import DashboardAPI
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from remote_pdb import RemotePdb
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
 from netscaler_ext.utils.controller import add_api_path_to_url, resolve_controller_url, resolve_jmespath, resolve_params
@@ -211,7 +210,6 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             "networkId": network_id,
         }
         for endpoint in endpoint_context:
-            RemotePdb(host="127.0.0.1", port=5555).set_trace()
             method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
                 controller_obj=controller_obj,
                 method=endpoint["endpoint"],
