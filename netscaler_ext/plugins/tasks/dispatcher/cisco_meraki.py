@@ -172,6 +172,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             logger.error("Could not find the Meraki organization ID in API response")
             raise ValueError("Could not find the Meraki organization ID in API response")
         networkId = config_context.get("network_id")
+        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         return {
             "organizationId": org_id,
             "networkId": networkId,
