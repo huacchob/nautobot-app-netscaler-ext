@@ -72,7 +72,7 @@ def snmp_user_command_build(parsed_snmp_user: list[dict[str, str]]) -> str:
 class NetmikoCiscoNxos(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Cisco NXOS devices."""
 
-    config_commands: list[str] = ["show run all", "show snmp user"]
+    config_commands: list[str] = ["show run", "show snmp user"]
 
     @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments

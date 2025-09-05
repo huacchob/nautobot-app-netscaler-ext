@@ -213,6 +213,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                 logger=logger,
             )
             if not method_callable:
+                logger.warning(msg=f"The method {endpoint['endpoint']} could not be resolved")
                 continue
             params: dict[Any, Any] = resolve_params(
                 parameters=endpoint.get("parameters"),
@@ -224,6 +225,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                 payload=params,
             )
             if not response:
+                logger.warning(msg=f"The API call to {endpoint['endpoint']} returned no response")
                 continue
             jpath_fields: dict[str, Any] | list[dict[str, Any]] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
