@@ -198,6 +198,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             Any: Dictionary of responses.
         """
         logger.info(msg="Starting backup process for Cisco Meraki platform")
+        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         try:
             organization_id: str = kwargs["organizationId"]
             network_id: str = kwargs["networkId"]
@@ -224,7 +225,6 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                 parameters=endpoint.get("parameters"),
                 param_mapper=param_mapper,
             )
-            RemotePdb(host="127.0.0.1", port=5555).set_trace()
             response: Any | None = _send_call(
                 method_callable=method_callable,
                 logger=logger,
