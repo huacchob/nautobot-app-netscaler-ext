@@ -137,6 +137,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             base_url=url,
         )
         api_key: str = task.host.password
+        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         controller_obj: DashboardAPI = DashboardAPI(
             api_key=api_key,
             base_url=controller_url,
@@ -166,7 +167,6 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             dict[str, str]: Map for controller data.
         """
-        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         config_context: OrderedDict[Any, Any] = device_obj.get_config_context()
         org_id: str = config_context.get("organization_id")
         if not org_id:
