@@ -127,7 +127,6 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             Any: Controller object or None.
         """
-        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         url: str = resolve_controller_url(
             obj=obj,
             logger=logger,
@@ -198,6 +197,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             Any: Dictionary of responses.
         """
+        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         logger.info(msg="Starting backup process for Cisco Meraki platform")
         try:
             organization_id: str = kwargs["organizationId"]
