@@ -166,6 +166,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             dict[str, str]: Map for controller data.
         """
+        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         config_context: OrderedDict[Any, Any] = device_obj.get_config_context()
         org_id: str = config_context.get("organization_id")
         if not org_id:
@@ -197,7 +198,6 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             Any: Dictionary of responses.
         """
-        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         logger.info(msg="Starting backup process for Cisco Meraki platform")
         try:
             organization_id: str = kwargs["organizationId"]
