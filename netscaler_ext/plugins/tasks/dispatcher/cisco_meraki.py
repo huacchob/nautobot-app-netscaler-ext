@@ -142,6 +142,9 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             output_log=False,
             print_console=False,
         )
+        if not controller_obj:
+            logger.error("Could not authenticate to the Meraki controller")
+            raise ValueError("Could not authenticate to the Meraki controller")
         return controller_obj
 
     @classmethod
