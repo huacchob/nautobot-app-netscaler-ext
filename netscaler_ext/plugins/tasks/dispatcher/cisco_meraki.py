@@ -197,7 +197,6 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             Any: Dictionary of responses.
         """
-        RemotePdb(host="127.0.0.1", port=5555).set_trace()
         try:
             organization_id: str = kwargs["organizationId"]
             network_id: str = kwargs["networkId"]
@@ -212,6 +211,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             "networkId": network_id,
         }
         for endpoint in endpoint_context:
+            RemotePdb(host="127.0.0.1", port=5555).set_trace()
             method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
                 controller_obj=controller_obj,
                 method=endpoint["endpoint"],
@@ -249,6 +249,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             else:
                 if responses is None:
                     responses = jpath_fields
+                    continue
                 if not isinstance(responses, dict):
                     raise TypeError(f"All responses should be dict but got {type(responses)}")
                 responses.update(jpath_fields)
