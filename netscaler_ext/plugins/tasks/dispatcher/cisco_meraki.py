@@ -193,6 +193,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             Any: Dictionary of responses.
         """
+        logger.info(msg="Starting backup process for Cisco Meraki platform")
         try:
             organization_id: str = kwargs["organizationId"]
             network_id: str = kwargs["networkId"]
