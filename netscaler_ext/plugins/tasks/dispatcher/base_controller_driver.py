@@ -116,6 +116,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             None | Result: Nornir Result object with a dict as a result
                 containing the running configuration or None.
         """
+        logger.info(msg="Starting GC job")
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         logger.info(msg=f"Authenticating {obj.name} platform: {obj.platform.name}")
         controller_obj: Any = cls.authenticate(
