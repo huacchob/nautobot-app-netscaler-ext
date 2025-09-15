@@ -8,6 +8,7 @@ from typing import Any, OrderedDict
 from nautobot.dcim.models import Device
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 class BaseControllerDriver(NetmikoDefault, ABC):
@@ -116,6 +117,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             None | Result: Nornir Result object with a dict as a result
                 containing the running configuration or None.
         """
+        RemotePdb(host="localhost", port=4444).set_trace()
         logger.info(msg="Starting GC job")
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         logger.info(msg=f"Authenticating {obj.name} platform: {obj.platform.name}")
