@@ -6,6 +6,7 @@ from typing import Any
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
+from remote_pdb import RemotePdb
 from requests import Response, Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
@@ -56,6 +57,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         )
         # TODO: Change verify to true
         cls.session: Session = cls.configure_session()
+        RemotePdb(host="localhost", port=5555).set_trace()
         auth_resp: Response = cls.return_response_content(
             session=cls.session,
             method="POST",
