@@ -42,7 +42,6 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        logger.info(f"Authenticating to APIC controller {obj.name}")
         cls.controller_url = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
@@ -88,7 +87,6 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                 "Content-Type": "text/plain",
             }
         )
-        logger.info("Successfully authenticated to APIC controller")
 
     @classmethod
     def resolve_backup_endpoint(
@@ -109,7 +107,6 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Dictionary of responses.
         """
-        logger.info("Fetching backup from APIC controller")
         responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         for endpoint in endpoint_context:
             api_endpoint: str = format_base_url_with_endpoint(
@@ -150,5 +147,4 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                     raise TypeError(f"All responses should be dict but got {type(responses)}")
                 responses.update(jpath_fields)
 
-        logger.info("Successfully fetched backup from APIC controller")
         return responses
