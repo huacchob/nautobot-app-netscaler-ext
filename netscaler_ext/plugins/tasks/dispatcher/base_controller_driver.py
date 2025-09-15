@@ -118,15 +118,15 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 containing the running configuration or None.
         """
         RemotePdb(host="localhost", port=4444).set_trace()
-        logger.info(msg="Starting GC job")
+        logger.info("Starting GC job")
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        logger.info(msg=f"Authenticating {obj.name} platform: {obj.platform.name}")
+        logger.info(f"Authenticating {obj.name} platform: {obj.platform.name}")
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
             task=task,
         )
-        logger.info(msg=f"Authenticated to {obj.name} platform: {obj.platform.name}")
+        logger.info(f"Authenticated to {obj.name} platform: {obj.platform.name}")
         controller_dict: dict[str, str] = cls.controller_setup(
             device_obj=obj,
             controller_obj=controller_obj,
@@ -137,7 +137,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             logger.error("Could not find the controller endpoints")
             raise ValueError("Could not find controller endpoints")
         _running_config: dict[str, dict[Any, Any]] = {}
-        logger.info(msg=f"Executing feature endpoints for {obj.name}")
+        logger.info(f"Executing feature endpoints for {obj.name}")
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             feature_name: str = cls._cc_feature_name_parser(feature_name=feature)
@@ -158,7 +158,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 )
                 continue
             _running_config.update({feature_name: feature_response})
-        logger.info(msg=f"Finished executing feature endpoints for {obj.name}")
+        logger.info(f"Finished executing feature endpoints for {obj.name}")
         processed_config: str = cls._process_config(
             logger=logger,
             running_config=json.dumps(obj=_running_config, indent=4),
