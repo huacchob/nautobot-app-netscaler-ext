@@ -8,7 +8,6 @@ from typing import Any, OrderedDict
 from nautobot.dcim.models import Device
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 class BaseControllerDriver(NetmikoDefault, ABC):
@@ -118,7 +117,6 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 containing the running configuration or None.
         """
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        RemotePdb(host="localhost", port=5555).set_trace()
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
