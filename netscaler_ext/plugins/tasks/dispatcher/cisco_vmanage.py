@@ -5,6 +5,7 @@ from typing import Any
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
+from remote_pdb import RemotePdb
 from requests import Response, Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
@@ -41,6 +42,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
+        RemotePdb(host="localhost", port=5555).set_trace()
         cls.controller_url = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
