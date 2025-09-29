@@ -1,93 +1,127 @@
-"""default network_importer API-based driver for Citrix Netscaler."""
+"""Netmiko dispatcher for Citrix Netscaler controllers."""
 
 from logging import Logger
-from typing import Optional
+from typing import Any
 
 from nautobot.dcim.models import Device
-from nornir.core.exceptions import NornirSubTaskError
-from nornir.core.task import MultiResult, Result, Task
-from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from nornir_netmiko.tasks import netmiko_send_command
+from nornir.core.task import Task
+from requests import Session
 
-NETMIKO_DEVICE_TYPE = "netscaler"
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
+from netscaler_ext.utils.controller import (
+    ConnectionMixin,
+)
 
 
-class NetmikoCitrixNetscaler(NetmikoDefault):
-    """Simply override the config_command class attribute in the subclass."""
+class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
+    """Netscaler Controller Dispatcher class."""
 
-    config_command: str = "show runningConfig"
-    tcp_port: int = 22
+    get_headers: dict[str, str] = {}
+    post_headers: dict[str, str] = {}
+    controller_url: str = ""
+    session: Session
+    controller_type: str = "Netscaler"
 
     @classmethod
-    def get_config(  # pylint: disable=R0913,R0914
-        cls,
-        task: Task,
-        logger: Logger,
-        obj: Device,
-        backup_file: str,
-        remove_lines: list[str],
-        substitute_lines: list[str],
-    ) -> Optional[Result]:
-        """Get the latest configuration from Netscaler devices.
+    def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
+        """Authenticate to controller.
 
         Args:
-            task (Task): Nornir Task.
-            logger (Logger): Nautobot logger.
+            logger (Logger): Logger object.
             obj (Device): Device object.
-            backup_file (str): Backup file location.
-            remove_lines (list[str]): Lines to remove from the configuration.
-            substitute_lines (list[str]): Lines to replace in the configuration.
+            task (Task): Nornir Task object.
+
+        Raises:
+            ValueError: Could not find the controller API URL in config context.
 
         Returns:
-            None | Result: Nornir Result object with a dict as a result
-                containing the running configuration or None.
+            Any: Controller object or None.
         """
-        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        task.host.platform = NETMIKO_DEVICE_TYPE
-
-        command: str = cls.config_command
-        try:
-            task.run(
-                task=netmiko_send_command,
-                use_timing=True,
-                command_string="nscli",
-            )
-            task.run(
-                task=netmiko_send_command,
-                use_timing=True,
-                command_string="login",
-            )
-            task.run(
-                task=netmiko_send_command,
-                use_timing=True,
-                command_string=task.host.username,
-            )
-            task.run(
-                task=netmiko_send_command,
-                use_timing=True,
-                command_string=task.host.password,
-            )
-            result: MultiResult = task.run(
-                task=netmiko_send_command,
-                use_timing=True,
-                command_string=command,
-            )
-        except NornirSubTaskError as exc:
-            exc_result: Result = exc.result
-            error_msg: str = f"Failed with an unknown issue. `{exc_result.exception}`"
-            logger.error(msg=error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
-
-        if result[0].failed:
-            return result[0]
-
-        _running_config: str = result[0].result
-        processed_config: str = cls._process_config(
-            logger=logger,
-            running_config=_running_config,
-            remove_lines=remove_lines,
-            substitute_lines=substitute_lines,
-            backup_file=backup_file,
+        cls.device_url: str = f"https://{obj.name}"
+        cls.session: Session = cls.configure_session()
+        cls.username: str = task.host.username
+        cls.password: str = task.host.password
+        cls.get_headers.update(
+            {
+                "Content-Type": "application/json",
+            }
         )
-        return Result(host=task.host, result={"config": processed_config})
+        auth_payload: dict[str, dict[str, str]] = {
+            "login": {
+                "username": cls.username,
+                "password": cls.password,
+            }
+        }
+        auth_url: str = f"{cls.device_url}/nitro/v1/config/login"
+        cls.return_response_obj(
+            session=cls.session,
+            method="POST",
+            url=auth_url,
+            headers=cls.get_headers,
+            body=auth_payload,
+            verify=False,
+            logger=logger,
+        )
+        logger.info(f"Authenticated to {cls.device_url} successfully")
+        return cls.session
+
+    # @classmethod
+    # def resolve_backup_endpoint(
+    #     cls,
+    #     controller_obj: Any,
+    #     logger: Logger,
+    #     endpoint_context: list[dict[Any, Any]],
+    #     **kwargs: Any,
+    # ) -> dict[str, dict[Any, Any]]:
+    #     """Resolve endpoint with parameters if any.
+
+    #     Args:
+    #         controller_obj (Any): Controller object or None.
+    #         logger (Logger): Logger object.
+    #         endpoint_context (list[dict[Any, Any]]): controller endpoint context.
+    #         kwargs (Any): Keyword arguments.
+
+    #     Returns:
+    #         Any: Dictionary of responses.
+    #     """
+    #     responses: dict[str, dict[Any, Any]] | list[Any] | None = None
+    #     for endpoint in endpoint_context:
+    #         api_endpoint: str = format_base_url_with_endpoint(
+    #             base_url=cls.controller_url,
+    #             endpoint=endpoint["endpoint"],
+    #         )
+    #         if endpoint.get("query"):
+    #             api_endpoint = resolve_query(
+    #                 api_endpoint=api_endpoint,
+    #                 query=endpoint["query"],
+    #             )
+    #         response = cls.return_response_content(
+    #             session=cls.session,
+    #             method=endpoint["method"],
+    #             url=api_endpoint,
+    #             headers=cls.get_headers,
+    #             verify=False,
+    #             logger=logger,
+    #         )
+    #         jpath_fields: dict[str, Any] = resolve_jmespath(
+    #             jmespath_values=endpoint["jmespath"],
+    #             api_response=response,
+    #         )
+    #         if not jpath_fields:
+    #             logger.error(f"jmespath values not found in {response}")
+    #             continue
+    #         if isinstance(jpath_fields, list):
+    #             if responses is None:
+    #                 responses = jpath_fields
+    #                 continue
+    #             if not isinstance(responses, list):
+    #                 raise TypeError(f"All responses should be list but got {type(responses)}")
+    #             responses.extend(jpath_fields)
+    #         else:
+    #             if responses is None:
+    #                 responses = jpath_fields
+    #             if not isinstance(responses, dict):
+    #                 raise TypeError(f"All responses should be dict but got {type(responses)}")
+    #             responses.update(jpath_fields)
+
+    #     return responses
