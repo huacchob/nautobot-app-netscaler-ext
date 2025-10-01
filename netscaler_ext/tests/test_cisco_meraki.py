@@ -1,6 +1,6 @@
 import unittest
-from logging import Formatter, Logger, StreamHandler, getLogger
-from typing import Any, TextIO
+from logging import Logger, getLogger
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 from meraki import DashboardAPI
@@ -151,14 +151,3 @@ class TestCiscoMerakiDispatcher(unittest.TestCase):
 
         self.assertIsInstance(responses, list)
         self.assertTrue(any("result" in r for r in responses))
-
-
-if __name__ == "__main__":
-    unittest.main()
-    logger: Logger = getLogger(name="meraki_test")
-    if not logger.handlers:
-        handler: StreamHandler[TextIO] = StreamHandler()
-        formatter: Formatter = Formatter(fmt="%(asctime)s - %(levelname)s - %(message)s")
-        handler.setFormatter(fmt=formatter)
-        logger.addHandler(hdlr=handler)
-    logger.setLevel(level="DEBUG")

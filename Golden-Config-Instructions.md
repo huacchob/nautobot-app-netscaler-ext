@@ -10,7 +10,15 @@ They define **backup** and **remediation** workflows using YAML-driven endpoint 
 - **Remediation Endpoints**: `<platform_name>_remediation_endpoints.yml` — Defines API endpoints for remediation (`merge_config`).
 - **Tests**: `test_<platform_name>.py` — Unit tests validating dispatcher behavior.
 
-Scope: API-based platforms (e.g., Cisco Meraki, vManage, APIC, WTI). For CLI-based NXOS see [Cisco NXOS](golden_config_docs/cisco_nxos.md).
+Scope: API-based platforms (e.g., Cisco Meraki, vManage, APIC, Citrix Netscaler, WTI). For CLI-based NXOS see [Cisco NXOS](golden_config_docs/cisco_nxos.md).
+
+---
+
+## Nautobot Setup
+
+Reference this document to setup Nautobot to be compatible with the API dispatchers
+
+[Nautobot Setup](golden_config_docs/nautobot_setup.md)
 
 ---
 
@@ -120,6 +128,10 @@ remediation_endpoints:
 - **optional**: pulled from the remediation config plan.
 - Add section name to the `remediation_endpoints` list.
 
+**Custom remediation documentation**
+
+- [Custom Remediation](golden_config_docs/custom_remediation.md)
+
 ---
 
 ## Example: Adding a VLAN Backup Endpoint
@@ -171,9 +183,9 @@ backup_endpoints:
 
 Platform-specific dispatcher documentation:
 
-- [Custom Remediation](golden_config_docs/custom_remediation.md)
 - [Cisco NXOS](golden_config_docs/cisco_nxos.md)
 - [Cisco Meraki](golden_config_docs/cisco_meraki.md)
 - [Cisco vManage](golden_config_docs/cisco_vmanage.md)
 - [Cisco APIC](golden_config_docs/cisco_apic.md)
+- [Citrix Netscaler](golden_config_docs/citrix_netscaler.md)
 - [WTI](golden_config_docs/wti.md)

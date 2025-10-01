@@ -1,6 +1,6 @@
 import unittest
-from logging import Formatter, Logger, StreamHandler, getLogger
-from typing import Any, TextIO
+from logging import Logger, getLogger
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 from netscaler_ext.plugins.tasks.dispatcher.wti import NetmikoWti
@@ -12,16 +12,18 @@ class TestWtiDispatcher(unittest.TestCase):
 
     base_import_path: str = "netscaler_ext.plugins.tasks.dispatcher"
 
-    @patch(f"{base_import_path}.wti.NetmikoWti.return_response_content")
-    def test_resolve_backup_endpoint(self, mock_return_response_content) -> None:
+    @patch.object(target=NetmikoWti, attribute="device_url", new="https://wti.com")
+    @patch.object(target=NetmikoWti, attribute="session", new_callable=MagicMock)
+    @patch.object(target=NetmikoWti, attribute="configure_session", new=MagicMock())
+    @patch.object(target=NetmikoWti, attribute="return_response_obj")
+    def test_resolve_backup_endpoint(self, mock_return_response_obj, mock_session) -> None:
         """Test the authentication process for the WTI dispatcher."""
         # Setup mocks
-        NetmikoWti.session = MagicMock()
-        NetmikoWti.device_url = "https://wti.com"
-        mock_return_response_content.return_value = get_json_fixture(
+        mock_return_response_obj.return_value.json.return_value = get_json_fixture(
             folder="api_responses",
             file_name="wti_backup.json",
         )
+        mock_session.return_value = MagicMock()
         logger: Logger = getLogger(name="test")
         config_context: dict[Any, Any] = get_json_fixture(
             folder="config_context",
@@ -39,14 +41,3 @@ class TestWtiDispatcher(unittest.TestCase):
 
         # Assertions
         self.assertIsNotNone(obj=responses)
-
-
-if __name__ == "__main__":
-    unittest.main()
-    logger: Logger = getLogger(name="apic_test")
-    if not logger.handlers:
-        handler: StreamHandler[TextIO] = StreamHandler()
-        formatter: Formatter = Formatter(fmt="%(asctime)s - %(levelname)s - %(message)s")
-        handler.setFormatter(fmt=formatter)
-        logger.addHandler(hdlr=handler)
-    logger.setLevel(level="DEBUG")

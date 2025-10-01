@@ -2,7 +2,7 @@
 
 import json
 from logging import Logger
-from typing import Any
+from typing import Any, Optional
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
@@ -24,7 +24,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
     controller_url: str = ""
-    session: Session
+    session: Optional[Session] = None
     controller_type: str = "apic"
 
     @classmethod
@@ -118,7 +118,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response = cls.return_response_content(
+            response_obj: Response = cls.return_response_obj(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -126,6 +126,10 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response_obj.ok:
+                logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
+                continue
+            response: Any = response_obj.json()
             jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,

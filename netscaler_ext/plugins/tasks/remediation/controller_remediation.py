@@ -363,10 +363,16 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         Returns:
             str: Remediation config.
         """
+        config_context: dict[str, Any] = self.compliance_obj.device.get_config_context()
+        if config_context.get("remediate_full_intended", False):
+            return json.dumps(
+                self.intended_config.get(self.feature_name),
+                indent=4,
+            )
         intended: dict[str, Any] = self._filter_allowed_params(
             feature_name=self.feature_name,
             config=self.intended_config,
-            config_context=self.compliance_obj.device.get_config_context().get(
+            config_context=config_context.get(
                 f"{self.feature_name}_remediation",
                 "",
             ),
@@ -374,7 +380,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         actual: dict[str, Any] = self._filter_allowed_params(
             feature_name=self.feature_name,
             config=self.backup_config,
-            config_context=self.compliance_obj.device.get_config_context().get(
+            config_context=config_context.get(
                 f"{self.feature_name}_remediation",
                 "",
             ),

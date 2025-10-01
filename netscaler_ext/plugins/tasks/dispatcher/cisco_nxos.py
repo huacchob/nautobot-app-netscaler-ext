@@ -99,7 +99,6 @@ class NetmikoCiscoNxos(NetmikoDefault):
                 running configuration.
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        logger.info(obj.get_config_context())
         full_config: str = ""
         for command in cls.config_commands:
             getter_result = cls.get_command(task, logger, obj, command)
