@@ -77,7 +77,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             base_url=cls.controller_url,
             endpoint="dataservice/client/token",
         )
-        token_resp: str = cls.return_response_content(
+        token_obj: Response = cls.return_response_obj(
             session=cls.session,
             method="GET",
             url=token_url,
@@ -88,6 +88,10 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             verify=False,
             logger=logger,
         )
+        if not token_obj.ok:
+            logger.error(f"Error in getting token from {token_url}: {token_obj.status_code} - {token_obj.text}")
+            raise ValueError(f"Error in getting token from {token_url}: {token_obj.status_code} - {token_obj.text}")
+        token_resp: str = token_obj.text
         cls.get_headers.update(
             {
                 "Cookie": j_session_id,
