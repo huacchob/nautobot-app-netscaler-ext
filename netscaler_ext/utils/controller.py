@@ -228,7 +228,8 @@ class ConnectionMixin:
         session: Session = Session()
         retries = Retry(
             total=3,
-            backoff_factor=10,
+            backoff_factor=1.0,
+            backoff_max=10.0,
             status_forcelist=[502, 503, 504],
             allowed_methods=["GET", "POST"],
         )
