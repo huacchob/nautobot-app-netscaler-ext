@@ -5,7 +5,6 @@ from typing import Any, Optional
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from remote_pdb import RemotePdb
 from requests import Response, Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
@@ -85,7 +84,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             base_url=cls.controller_url,
             endpoint="dataservice/client/token",
         )
-        token_obj: Response = cls.return_response_obj(
+        token_resp: Response = cls.return_response_content(
             session=cls.session,
             method="GET",
             url=token_url,
@@ -96,11 +95,6 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             verify=False,
             logger=logger,
         )
-        if not token_obj.ok:
-            logger.error(f"Error in retrieving token from {token_url}: {token_obj.status_code} - {token_obj.text}")
-            raise ValueError(f"Error in retrieving token from {token_url}: {token_obj.status_code} - {token_obj.text}")
-        RemotePdb(host="localhost", port=4444).set_trace()
-        token_resp = token_obj.json()
         cls.get_headers.update(
             {
                 "Cookie": j_session_id,
