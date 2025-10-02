@@ -134,7 +134,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             logger.error("Could not find the controller endpoints")
             raise ValueError("Could not find controller endpoints")
         _running_config: dict[str, dict[Any, Any]] = {}
-        logger.info(f"Executing feature endpoints for {obj.name}")
+        logger.info(f"Collecting feature endpoint backups for {obj.name}")
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             feature_name: str = cls._cc_feature_name_parser(feature_name=feature)
@@ -155,7 +155,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 )
                 continue
             _running_config.update({feature_name: feature_response})
-        logger.info(f"Finished executing feature endpoints for {obj.name}")
+        logger.info(f"Finished collecting feature endpoint backups for {obj.name}")
         processed_config: str = cls._process_config(
             logger=logger,
             running_config=json.dumps(obj=_running_config, indent=4),
