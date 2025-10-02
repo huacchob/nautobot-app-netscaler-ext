@@ -65,13 +65,6 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             body=j_security_payload,
             verify=False,
         )
-        if not security_resp.ok:
-            logger.error(
-                f"Error in authentication to {security_url}: {security_resp.status_code} - {security_resp.text}"
-            )
-            raise ValueError(
-                f"Error in authentication to {security_url}: {security_resp.status_code} - {security_resp.text}"
-            )
         j_session_id: str = security_resp.headers.get("Set-Cookie", "")
         if not j_session_id:
             logger.error(
@@ -84,7 +77,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             base_url=cls.controller_url,
             endpoint="dataservice/client/token",
         )
-        token_resp: Response = cls.return_response_content(
+        token_resp: str = cls.return_response_content(
             session=cls.session,
             method="GET",
             url=token_url,
@@ -133,7 +126,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response_obj: Response = cls.return_response_obj(
+            response = cls.return_response_content(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -141,10 +134,6 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
-            if not response_obj.ok:
-                logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
-                continue
-            response: Any = response_obj.json()
             jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
