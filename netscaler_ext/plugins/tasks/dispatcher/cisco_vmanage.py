@@ -65,6 +65,14 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             body=j_security_payload,
             verify=False,
         )
+        if not security_resp.ok:
+            logger.error(
+                f"Error in authentication to {security_url}: {security_resp.status_code} - {security_resp.text}"
+            )
+            raise ValueError(
+                f"Error in authentication to {security_url}: {security_resp.status_code} - {security_resp.text}"
+            )
+        logger.info("Successfully generated vManage cookie.")
         j_session_id: str = security_resp.headers.get("Set-Cookie", "")
         if not j_session_id:
             logger.error(
