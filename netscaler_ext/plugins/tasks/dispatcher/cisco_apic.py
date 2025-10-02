@@ -55,7 +55,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         )
         # TODO: Change verify to true
         cls.session: Session = cls.configure_session()
-        auth_obj: Response = cls.return_response_content(
+        auth_obj: Response = cls.return_response_obj(
             session=cls.session,
             method="POST",
             url=auth_url,
