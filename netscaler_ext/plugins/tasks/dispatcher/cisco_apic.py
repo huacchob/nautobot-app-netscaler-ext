@@ -55,7 +55,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         )
         # TODO: Change verify to true
         cls.session: Session = cls.configure_session()
-        auth_resp: Response = cls.return_response_content(
+        auth_obj: Response = cls.return_response_content(
             session=cls.session,
             method="POST",
             url=auth_url,
@@ -66,6 +66,10 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             body=json.dumps(auth_payload),
             verify=False,
         )
+        if not auth_obj.ok:
+            logger.error(f"Error in authentication to {auth_url}: {auth_obj.status_code} - {auth_obj.text}")
+            raise ValueError(f"Error in authentication to {auth_url}: {auth_obj.status_code} - {auth_obj.text}")
+        auth_resp = auth_obj.json()
         if not auth_resp.get("imdata") or not auth_resp.get("imdata")[0]:
             logger.error(
                 "Could not find cookie from APIC controller",

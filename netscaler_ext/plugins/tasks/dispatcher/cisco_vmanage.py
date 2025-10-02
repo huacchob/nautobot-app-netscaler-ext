@@ -65,6 +65,13 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             body=j_security_payload,
             verify=False,
         )
+        if not security_resp.ok:
+            logger.error(
+                f"Error in authentication to {security_url}: {security_resp.status_code} - {security_resp.text}"
+            )
+            raise ValueError(
+                f"Error in authentication to {security_url}: {security_resp.status_code} - {security_resp.text}"
+            )
         j_session_id: str = security_resp.headers.get("Set-Cookie", "")
         if not j_session_id:
             logger.error(
@@ -77,7 +84,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             base_url=cls.controller_url,
             endpoint="dataservice/client/token",
         )
-        token_resp: str = cls.return_response_content(
+        token_obj: Response = cls.return_response_obj(
             session=cls.session,
             method="GET",
             url=token_url,
@@ -88,6 +95,10 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             verify=False,
             logger=logger,
         )
+        if not token_obj.ok:
+            logger.error(f"Error in retrieving token from {token_url}: {token_obj.status_code} - {token_obj.text}")
+            raise ValueError(f"Error in retrieving token from {token_url}: {token_obj.status_code} - {token_obj.text}")
+        token_resp = token_obj.json()
         cls.get_headers.update(
             {
                 "Cookie": j_session_id,
