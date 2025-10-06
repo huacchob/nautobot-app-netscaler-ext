@@ -4,7 +4,7 @@ from base64 import b64encode
 from logging import Logger
 from typing import Any
 
-import jmespath
+import jdiff
 from nautobot.apps.choices import SecretsGroupAccessTypeChoices, SecretsGroupSecretTypeChoices
 from nautobot.dcim.models import Controller, Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
@@ -175,8 +175,8 @@ def resolve_jmespath(
     data_fields: dict[str, Any] = {}
 
     for key, value in jmespath_values.items():
-        j_value: Any = jmespath.search(
-            expression=value,
+        j_value: Any = jdiff.extract_data_from_json(
+            path=value,
             data=api_response,
         )
         if j_value:

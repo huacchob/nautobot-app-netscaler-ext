@@ -30,9 +30,10 @@ nautobot = ">=2.4.10"
 nornir = "^3.5.0"
 nautobot-plugin-nornir = "^2.2.1"
 remote-pdb = "^2.1.0"
-nautobot-golden-config = "2.4.1"
+nautobot-golden-config = "*"
 meraki = "*"
 jmespath = "*"
+jdiff = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"

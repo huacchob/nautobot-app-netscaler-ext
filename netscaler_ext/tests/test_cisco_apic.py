@@ -52,11 +52,11 @@ class TestCiscoApicDispatcher(unittest.TestCase):
     @patch.object(target=NetmikoCiscoApic, attribute="return_response_obj")
     def test_resolve_backup_endpoint(self, mock_return_response_obj, mock_session) -> None:
         """Test the authentication process for the Cisco APIC dispatcher."""
+        mock_session.return_value = MagicMock()
         mock_return_response_obj.return_value.json.return_value = get_json_fixture(
             folder="api_responses",
             file_name="cisco_apic_backup.json",
         )
-        mock_session.return_value = MagicMock()
         logger: Logger = getLogger(name="test")
         config_context: dict[Any, Any] = get_json_fixture(
             folder="config_context",

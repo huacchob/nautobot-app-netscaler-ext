@@ -138,7 +138,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response = cls.return_response_content(
+            response_obj = cls.return_response_obj(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -146,6 +146,10 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response_obj.ok:
+                logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
+                continue
+            response: Any = response_obj.json()
             jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,

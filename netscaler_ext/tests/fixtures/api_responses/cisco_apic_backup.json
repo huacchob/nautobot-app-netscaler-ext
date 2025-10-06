@@ -4,7 +4,8 @@
       "fvTenant": {
         "attributes": {
           "name": "test_tenant",
-          "descr": "Test Tenant Description"
+          "descr": "Test Tenant Description",
+          "annotation": "Test Tenant Description"
         }
       }
     }

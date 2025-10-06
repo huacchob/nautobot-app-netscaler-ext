@@ -1,5 +1,5 @@
 ---
-dev_addr: "127.0.0.1:8001"
+dev_addr: "127.0.0.1:8002"
 edit_uri: "edit/main/docs"
 site_dir: "netscaler_ext/static/netscaler_ext/docs"
 site_name: "Netscaler Ext Documentation"

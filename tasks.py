@@ -675,7 +675,7 @@ def docs(context):
     command = "mkdocs serve -v"
 
     if is_truthy(context.netscaler_ext.local):
-        print(">>> Serving Documentation at http://localhost:8001")
+        print(">>> Serving Documentation at http://localhost:8002")
         run_command(context, command)
     else:
         start(context, service="docs")

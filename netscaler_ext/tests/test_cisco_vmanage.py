@@ -15,10 +15,8 @@ class TestCiscoVmanageDispatcher(unittest.TestCase):
     @patch(f"{base_import_path}.cisco_vmanage.resolve_controller_url")
     @patch(f"{base_import_path}.cisco_vmanage.NetmikoCiscoVmanage.configure_session")
     @patch(f"{base_import_path}.cisco_vmanage.NetmikoCiscoVmanage.return_response_obj")
-    @patch(f"{base_import_path}.cisco_vmanage.NetmikoCiscoVmanage.return_response_content")
     def test_authenticate(
         self,
-        mock_return_response_content,
         mock_return_response_obj,
         mock_configure_session,
         mock_resolve_url,
@@ -31,7 +29,6 @@ class TestCiscoVmanageDispatcher(unittest.TestCase):
         mock_return_response_obj.return_value.headers = {
             "Set-Cookie": "JSESSIONID=mock_session_id",
         }
-        mock_return_response_content.return_value = "mock_token_response"
         logger: Logger = getLogger(name="test")
         obj: MagicMock = MagicMock()
         task: MagicMock = MagicMock()
@@ -57,7 +54,6 @@ class TestCiscoVmanageDispatcher(unittest.TestCase):
         """Test the get_config process for the Cisco vManage dispatcher."""
         # Setup mocks
         mock_session.return_value = MagicMock()
-        mock_return_response_obj.return_value = MagicMock()
         mock_return_response_obj.return_value.json.return_value = get_json_fixture(
             folder="api_responses",
             file_name="cisco_vmanage_backup.json",
