@@ -6,6 +6,7 @@ from typing import Any, Callable, OrderedDict
 from meraki import DashboardAPI
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
+from remote_pdb import RemotePdb
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
 from netscaler_ext.utils.controller import add_api_path_to_url, resolve_controller_url, resolve_jmespath, resolve_params
@@ -27,6 +28,7 @@ def _resolve_method_callable(
     Returns:
         Callable[[Any], Any] | None: Method callable or None.
     """
+    RemotePdb(host="localhost", port=4444).set_trace()
     cotroller_class, controller_method = method.split(sep=".")
     try:
         class_callable: Callable[[Any], Any] = getattr(

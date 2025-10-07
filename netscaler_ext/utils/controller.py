@@ -98,7 +98,6 @@ def get_api_key(secrets_group: SecretsGroup) -> str:
             access_type=SecretsGroupAccessTypeChoices.TYPE_GENERIC,
             secret_type=SecretsGroupSecretTypeChoices.TYPE_PASSWORD,
         )
-        return api_key
     return api_key
 
 
@@ -183,14 +182,14 @@ def resolve_jmespath(
             data_fields.update({key: j_value})
     if not data_fields:
         return data_fields
-    lengths = [len(v) for v in data_fields.values() if isinstance(v, list)]
+    lengths: list[int] = [len(v) for v in data_fields.values() if isinstance(v, list)]
     if lengths == [1]:
         return data_fields
     if len(lengths) != len(data_fields.values()):
         return data_fields
     if len(set(lengths)) != 1:
         return data_fields
-    keys = list(data_fields.keys())
+    keys: list[str] = list(data_fields.keys())
     values = zip(*data_fields.values())
     return [dict(zip(keys, v)) for v in values]
 
