@@ -66,6 +66,13 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             body=json.dumps(auth_payload),
             verify=False,
         )
+        if not auth_resp:
+            logger.error(
+                "Could not find cookie from APIC controller",
+            )
+            raise ValueError(
+                "Could not find cookie from APIC controller",
+            )
         if not auth_resp.get("imdata") or not auth_resp.get("imdata")[0]:
             logger.error(
                 "Could not find cookie from APIC controller",
@@ -126,6 +133,9 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response:
+                logger.error(f"Error in API call to {api_endpoint}: No response")
+                continue
             jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,

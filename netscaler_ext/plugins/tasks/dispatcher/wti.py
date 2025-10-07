@@ -91,6 +91,9 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response:
+                logger.error(f"Error in API call to {api_endpoint}: No response")
+                continue
             jpath_fields: dict[Any, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,

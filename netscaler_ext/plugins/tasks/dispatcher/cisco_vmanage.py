@@ -65,15 +65,15 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             body=j_security_payload,
             verify=False,
         )
-        logger.info("Successfully generated vManage cookie.")
-        j_session_id: str = security_resp.headers.get("Set-Cookie", "")
-        if not j_session_id:
+        if not security_resp or not security_resp.headers.get("Set-Cookie"):
             logger.error(
-                "Could not find JSESSIONID from vManage controller",
+                "Could not generate vManage cookie. Please check the credentials and try again.",
             )
             raise ValueError(
-                "Could not find JSESSIONID from vManage controller",
+                "Could not generate vManage cookie. Please check the credentials and try again.",
             )
+        logger.info("Successfully generated vManage cookie.")
+        j_session_id: str = security_resp.headers.get("Set-Cookie", "")
         token_url: str = format_base_url_with_endpoint(
             base_url=cls.controller_url,
             endpoint="dataservice/client/token",
@@ -89,6 +89,9 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             verify=False,
             logger=logger,
         )
+        if not token_resp:
+            logger.error("Could not generate vManage XSRF token.")
+            raise ValueError("Could not generate vManage XSRF token.")
         cls.get_headers.update(
             {
                 "Cookie": j_session_id,
@@ -135,6 +138,9 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response:
+                logger.error(f"Error in API call to {api_endpoint}: No response")
+                continue
             jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
