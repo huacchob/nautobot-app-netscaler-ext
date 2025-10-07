@@ -270,6 +270,9 @@ class ConnectionMixin:
                 timeout=(50.0, 100.0),
                 verify=verify,
             )
+            import remote_pdb
+
+            remote_pdb.RemotePdb(host="localhost", port=4444).set_trace()
             response.raise_for_status()
             return response
 
