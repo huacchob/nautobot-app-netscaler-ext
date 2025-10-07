@@ -287,7 +287,7 @@ class ConnectionMixin:
             if not response.ok:
                 logger.error(f"Error in API call to {url}: {response.status_code} - {response.text}")
                 return None
-            return response
+        return response
 
     @classmethod
     def return_response_obj(
@@ -364,7 +364,7 @@ class ConnectionMixin:
                 verify=verify,
             )
             if not response:
-                return
+                return response
             json_response: dict[str, Any] = response.json()
             return json_response
         except JSONDecodeError:
