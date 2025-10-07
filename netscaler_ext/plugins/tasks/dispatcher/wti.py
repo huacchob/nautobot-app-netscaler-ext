@@ -59,6 +59,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
         controller_obj: Any,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
+        feature_name: str,
         **kwargs: Any,
     ) -> dict[str, dict[Any, Any]]:
         """Resolve endpoint with parameters if any.
@@ -67,6 +68,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
             controller_obj (Any): Controller object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
+            feature_name (str): Feature name being collected.
             kwargs (Any): Keyword arguments.
 
         Returns:
@@ -120,8 +122,8 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
         if responses:
             return responses
         else:
-            logger.error("No valid responses found")
-            raise ValueError("No valid responses found")
+            logger.error(f"No valid responses found for the {feature_name} endpoints")
+            return {}
 
     @classmethod
     def resolve_remediation_endpoint(

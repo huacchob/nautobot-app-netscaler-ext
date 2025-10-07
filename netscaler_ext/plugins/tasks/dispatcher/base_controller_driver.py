@@ -77,6 +77,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         controller_obj: Any,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
+        feature_name: str,
         **kwargs: Any,
     ) -> dict[str, dict[Any, Any]]:
         """Resolve endpoint with parameters if any.
@@ -85,6 +86,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             controller_obj (Any): Controller object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
+            feature_name (str): Feature name being collected.
             kwargs (Any): Keyword arguments.
 
         Returns:
@@ -147,6 +149,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 controller_obj=controller_obj,
                 logger=logger,
                 endpoint_context=endpoints,
+                feature_name=feature_name,
                 **controller_dict,
             )
             if not feature_response:

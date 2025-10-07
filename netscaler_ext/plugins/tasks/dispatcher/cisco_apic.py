@@ -101,6 +101,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         controller_obj: Any,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
+        feature_name: str,
         **kwargs: Any,
     ) -> dict[str, dict[Any, Any]]:
         """Resolve endpoint with parameters if any.
@@ -109,6 +110,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             controller_obj (Any): Controller object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
+            feature_name (str): Feature name being collected.
             kwargs (Any): Keyword arguments.
 
         Returns:
@@ -136,7 +138,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             if not response:
                 logger.error(f"Error in API call to {api_endpoint}: No response")
                 continue
-            jpath_fields: dict[str, Any] = resolve_jmespath(
+            jpath_fields: dict[Any, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
             )
@@ -150,11 +152,17 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                 if not isinstance(responses, list):
                     raise TypeError(f"All responses should be list but got {type(responses)}")
                 responses.extend(jpath_fields)
-            else:
+            elif isinstance(jpath_fields, dict):
                 if responses is None:
                     responses = jpath_fields
                 if not isinstance(responses, dict):
                     raise TypeError(f"All responses should be dict but got {type(responses)}")
                 responses.update(jpath_fields)
+            else:
+                logger.error(f"Unexpected jmespath response type: {type(jpath_fields)}")
 
-        return responses
+        if responses:
+            return responses
+        else:
+            logger.error(f"No valid responses found for the {feature_name} endpoints")
+            return {}
