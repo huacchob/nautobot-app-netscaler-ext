@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from requests import Response, Session
+from requests import Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
 from netscaler_ext.utils.controller import (
@@ -81,7 +81,7 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response_obj: Optional[Response] = cls.return_response_obj(
+            response: Any = cls.return_response_content(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -89,13 +89,6 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
-            if not response_obj:
-                logger.error(f"Error in API call to {api_endpoint}: No response")
-                continue
-            if not response_obj.ok:
-                logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
-                continue
-            response: Any = response_obj.json()
             jpath_fields: dict[Any, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,

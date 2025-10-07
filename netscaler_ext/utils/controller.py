@@ -261,11 +261,11 @@ class ConnectionMixin:
             verify (bool): Verify SSL certificate.
 
         Returns:
-            Response: API Response object.
+            Optional[Response]: API Response object.
         """
         with session as ses:
             try:
-                response: Response = ses.request(
+                response: Optional[Response] = ses.request(
                     method=method,
                     url=url,
                     headers=headers,
@@ -275,13 +275,18 @@ class ConnectionMixin:
                 )
             except ConnectionError as exc_conn:
                 logger.error(f"Connection error occurred: {exc_conn}")
-                return
+                response = None
             except Timeout as exc_timeout:
                 logger.error(f"Request timed out: {exc_timeout}")
-                return
+                response = None
             except Exception as exc:
                 logger.error(f"An error occurred: {exc}")
-                return
+                response = None
+            if not response:
+                return response
+            if not response.ok:
+                logger.error(f"Error in API call to {url}: {response.status_code} - {response.text}")
+                return None
             return response
 
     @classmethod
@@ -307,7 +312,7 @@ class ConnectionMixin:
             verify (bool): Verify SSL certificate.
 
         Returns:
-            Response: API Response object.
+            Optional[Response]: API Response object or None.
         """
         return cls._return_response(
             method=method,

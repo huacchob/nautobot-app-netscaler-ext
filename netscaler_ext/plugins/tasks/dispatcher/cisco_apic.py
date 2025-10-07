@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from requests import Response, Session
+from requests import Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
 from netscaler_ext.utils.controller import (
@@ -55,7 +55,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         )
         # TODO: Change verify to true
         cls.session: Session = cls.configure_session()
-        auth_obj: Optional[Response] = cls.return_response_obj(
+        auth_resp: Any = cls.return_response_content(
             session=cls.session,
             method="POST",
             url=auth_url,
@@ -66,13 +66,6 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             body=json.dumps(auth_payload),
             verify=False,
         )
-        if not auth_obj:
-            logger.error(f"Error in connecting to {auth_url}")
-            raise ValueError(f"Error in connecting to {auth_url}")
-        if not auth_obj.ok:
-            logger.error(f"Error in authentication to {auth_url}: {auth_obj.status_code} - {auth_obj.text}")
-            raise ValueError(f"Error in authentication to {auth_url}: {auth_obj.status_code} - {auth_obj.text}")
-        auth_resp = auth_obj.json()
         if not auth_resp.get("imdata") or not auth_resp.get("imdata")[0]:
             logger.error(
                 "Could not find cookie from APIC controller",
@@ -125,7 +118,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response_obj: Optional[Response] = cls.return_response_obj(
+            response: Any = cls.return_response_content(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -133,13 +126,6 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
-            if not response_obj:
-                logger.error(f"Error in API call to {api_endpoint}: No response")
-                continue
-            if not response_obj.ok:
-                logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
-                continue
-            response: Any = response_obj.json()
             jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
