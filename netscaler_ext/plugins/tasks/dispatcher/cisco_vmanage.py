@@ -54,7 +54,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         )
         # TODO: Change verify to true
         cls.session = cls.configure_session()
-        security_resp: Response = cls.return_response_obj(
+        security_resp: Optional[Response] = cls.return_response_obj(
             session=cls.session,
             method="POST",
             url=security_url,
@@ -65,12 +65,15 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             body=j_security_payload,
             verify=False,
         )
+        if not security_resp:
+            logger.error(f"Error in getting response from {security_url}")
+            raise ValueError(f"Error in getting response from {security_url}")
         if not security_resp.ok:
             logger.error(
-                f"Error in authentication to {security_url}: {security_resp.status_code} - {security_resp.text}"
+                f"Error in authenticating to {security_url}: {security_resp.status_code} - {security_resp.text}"
             )
             raise ValueError(
-                f"Error in authentication to {security_url}: {security_resp.status_code} - {security_resp.text}"
+                f"Error in authenticating to {security_url}: {security_resp.status_code} - {security_resp.text}"
             )
         logger.info("Successfully generated vManage cookie.")
         j_session_id: str = security_resp.headers.get("Set-Cookie", "")
@@ -85,7 +88,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             base_url=cls.controller_url,
             endpoint="dataservice/client/token",
         )
-        token_obj: Response = cls.return_response_obj(
+        token_obj: Optional[Response] = cls.return_response_obj(
             session=cls.session,
             method="GET",
             url=token_url,
@@ -96,6 +99,9 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             verify=False,
             logger=logger,
         )
+        if not token_obj:
+            logger.error(f"Error in getting token from {token_url}: No response")
+            raise ValueError(f"Error in getting token from {token_url}: No response")
         if not token_obj.ok:
             logger.error(f"Error in getting token from {token_url}: {token_obj.status_code} - {token_obj.text}")
             raise ValueError(f"Error in getting token from {token_url}: {token_obj.status_code} - {token_obj.text}")
@@ -138,7 +144,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response_obj = cls.return_response_obj(
+            response_obj: Optional[Response] = cls.return_response_obj(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -146,6 +152,9 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response_obj:
+                logger.error(f"Error in API call to {api_endpoint}: No response")
+                continue
             if not response_obj.ok:
                 logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
                 continue

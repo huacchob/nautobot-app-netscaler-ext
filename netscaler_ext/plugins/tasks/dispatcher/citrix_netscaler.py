@@ -81,7 +81,7 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response_obj: Response = cls.return_response_obj(
+            response_obj: Optional[Response] = cls.return_response_obj(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -89,6 +89,9 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response_obj:
+                logger.error(f"Error in API call to {api_endpoint}: No response")
+                continue
             if not response_obj.ok:
                 logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
                 continue

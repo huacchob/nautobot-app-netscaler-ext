@@ -83,7 +83,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response_obj: Response = cls.return_response_obj(
+            response_obj: Optional[Response] = cls.return_response_obj(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -91,6 +91,9 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response_obj:
+                logger.error(f"Error in API call to {api_endpoint}: No response")
+                continue
             if not response_obj.ok:
                 logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
                 continue
@@ -160,7 +163,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                                 f"resolve_endpoint method needs '{param}' in kwargs",
                             )
                         item.update({param: kwargs[param]})
-                response = cls.return_response_content(
+                response: Any = cls.return_response_content(
                     session=cls.session,
                     method=endpoint["method"],
                     url=api_endpoint,
@@ -169,6 +172,9 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                     logger=logger,
                     body=payload,
                 )
+                if not response:
+                    logger.error(f"Error in API call to {api_endpoint}: No response")
+                    continue
                 aggregated_results.append(response)
             if isinstance(payload, list):
                 for item in payload:
@@ -179,7 +185,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                                     f"resolve_endpoint method needs '{param}' in kwargs",
                                 )
                             item.update({param: kwargs[param]})
-                    response = cls.return_response_content(
+                    response: Any = cls.return_response_content(
                         session=cls.session,
                         method=endpoint["method"],
                         url=api_endpoint,
@@ -188,5 +194,8 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                         logger=logger,
                         body=item,
                     )
+                    if not response:
+                        logger.error(f"Error in API call to {api_endpoint}: No response")
+                        continue
                     aggregated_results.append(response)
         return aggregated_results

@@ -2,7 +2,7 @@
 
 from base64 import b64encode
 from logging import Logger
-from typing import Any
+from typing import Any, Optional
 
 import jdiff
 from nautobot.apps.choices import SecretsGroupAccessTypeChoices, SecretsGroupSecretTypeChoices
@@ -10,7 +10,7 @@ from nautobot.dcim.models import Controller, Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from requests import Response, Session
 from requests.adapters import HTTPAdapter
-from requests.exceptions import HTTPError, JSONDecodeError
+from requests.exceptions import ConnectionError, HTTPError, JSONDecodeError, Timeout
 from urllib3.util import Retry
 
 
@@ -245,9 +245,10 @@ class ConnectionMixin:
         url: str,
         headers: dict[str, str],
         session: Session,
+        logger: Logger,
         body: dict[str, str] | str | None = None,
         verify: bool = True,
-    ) -> Response:
+    ) -> Optional[Response]:
         """Create request for authentication and return response object.
 
         Args:
@@ -255,6 +256,7 @@ class ConnectionMixin:
             url (str): URL to send request to.
             headers (dict): Headers to use in request.
             session (Session): Session to use.
+            logger (Logger): The dispatcher's logger.
             body (dict[str, str] | str | None): Body of request.
             verify (bool): Verify SSL certificate.
 
@@ -262,18 +264,24 @@ class ConnectionMixin:
             Response: API Response object.
         """
         with session as ses:
-            response: Response = ses.request(
-                method=method,
-                url=url,
-                headers=headers,
-                data=body,
-                timeout=(50.0, 100.0),
-                verify=verify,
-            )
-            import remote_pdb
-
-            remote_pdb.RemotePdb(host="localhost", port=4444).set_trace()
-            response.raise_for_status()
+            try:
+                response: Response = ses.request(
+                    method=method,
+                    url=url,
+                    headers=headers,
+                    data=body,
+                    timeout=(50.0, 100.0),
+                    verify=verify,
+                )
+            except ConnectionError as exc_conn:
+                logger.error(f"Connection error occurred: {exc_conn}")
+                return
+            except Timeout as exc_timeout:
+                logger.error(f"Request timed out: {exc_timeout}")
+                return
+            except Exception as exc:
+                logger.error(f"An error occurred: {exc}")
+                return
             return response
 
     @classmethod
@@ -286,7 +294,7 @@ class ConnectionMixin:
         logger: Logger,
         body: dict[str, str] | str | None = None,
         verify: bool = True,
-    ) -> Response:
+    ) -> Optional[Response]:
         """Create request for authentication and return response object.
 
         Args:
@@ -306,6 +314,7 @@ class ConnectionMixin:
             url=url,
             headers=headers,
             session=session,
+            logger=logger,
             body=body,
             verify=verify,
         )
@@ -340,14 +349,17 @@ class ConnectionMixin:
                 If the HTTP request returns an unsuccessful status code.
         """
         try:
-            response: Response = cls._return_response(
+            response: Optional[Response] = cls._return_response(
                 method=method,
                 url=url,
                 headers=headers,
                 session=session,
+                logger=logger,
                 body=body,
                 verify=verify,
             )
+            if not response:
+                return
             json_response: dict[str, Any] = response.json()
             return json_response
         except JSONDecodeError:

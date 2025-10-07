@@ -55,7 +55,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         )
         # TODO: Change verify to true
         cls.session: Session = cls.configure_session()
-        auth_obj: Response = cls.return_response_obj(
+        auth_obj: Optional[Response] = cls.return_response_obj(
             session=cls.session,
             method="POST",
             url=auth_url,
@@ -66,6 +66,9 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             body=json.dumps(auth_payload),
             verify=False,
         )
+        if not auth_obj:
+            logger.error(f"Error in connecting to {auth_url}")
+            raise ValueError(f"Error in connecting to {auth_url}")
         if not auth_obj.ok:
             logger.error(f"Error in authentication to {auth_url}: {auth_obj.status_code} - {auth_obj.text}")
             raise ValueError(f"Error in authentication to {auth_url}: {auth_obj.status_code} - {auth_obj.text}")
@@ -122,7 +125,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                     api_endpoint=api_endpoint,
                     query=endpoint["query"],
                 )
-            response_obj: Response = cls.return_response_obj(
+            response_obj: Optional[Response] = cls.return_response_obj(
                 session=cls.session,
                 method=endpoint["method"],
                 url=api_endpoint,
@@ -130,6 +133,9 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
+            if not response_obj:
+                logger.error(f"Error in API call to {api_endpoint}: No response")
+                continue
             if not response_obj.ok:
                 logger.error(f"Error in API call to {api_endpoint}: {response_obj.status_code} - {response_obj.text}")
                 continue
