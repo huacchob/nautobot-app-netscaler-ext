@@ -1,24 +1,20 @@
-Value Required USERNAME (\S+)
-Value Required AUTH (\S+)
-Value Required PRIV (\S+)
-Value Required GROUP (\S+)
+Value USERNAME (\S+)
+Value ENGINE_ID (\S+)
+Value STORAGE_TYPE (\S+)
 Value ACL_FILTER (\S+)
+Value AUTH (\S+)
+Value PRIV (\S+)
+Value GROUP (\S+)
 
 Start
-  ^\s*SNMP USERS -> Header
+  ^User\s+name:\s+${USERNAME}\s*$$ -> User
+  ^\s*$$ -> Start
 
-Header
-  ^\s*User\s+Auth\s+Priv\(enforce\)\s+Groups\s+acl_filter -> Data
-  ^_{4,} -> Header
-  ^\s+ -> Header
-
-Data
-  ^_{4,} -> Data
-  ^\s+ -> Data
-  ^\s*User\s+Auth\s+Priv -> Data
-  ^\s*NOTIFICATION TARGET USERS.* -> Done
-  ^\s*${USERNAME}\s+${AUTH}\s+${PRIV}\s+${GROUP}\s+${ACL_FILTER} -> Record
-  ^\s*${USERNAME}\s+${AUTH}\s+${PRIV}\s+${GROUP} -> Record
-
-Done
-  ^.* -> Done
+User
+  ^Engine\s+ID:\s+${ENGINE_ID}\s*$$
+  ^storage-type:\s+${STORAGE_TYPE}\s+active(?:\s+access-list:\s+${ACL_FILTER})?\s*$$
+  ^Authentication\s+Protocol:\s+${AUTH}\s*$$
+  ^Privacy\s+Protocol:\s+${PRIV}\s*$$
+  ^Group-name:\s+${GROUP}\s*$$ -> Record Start
+  ^User\s+name:\s+${USERNAME}\s*$$ -> Record Start
+  ^\s*$$ -> Start

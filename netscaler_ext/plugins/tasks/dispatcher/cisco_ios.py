@@ -1,5 +1,6 @@
 """nornir dispatcher for cisco IOS."""
 
+import re
 from pathlib import Path
 
 import textfsm
@@ -16,10 +17,10 @@ def snmp_user_template(snmp_user_output: str) -> list[dict[str, str]]:
     Returns:
         list[dict[str, str]]: List of parsed SNMP users.
     """
-    file_path: Path = Path(__file__).parent
+    file_path: Path = Path(__file__).parent.parent
 
     template_path: Path = file_path.joinpath(
-        "textfsm_templates/cisco_nxos_show_snmp_user.textfsm",
+        "plugins/tasks/dispatcher/textfsm_templates/cisco_ios_show_snmp_user.textfsm",
     )
     with open(file=template_path, mode="r", encoding="utf-8") as template_file:
         fsm = textfsm.TextFSM(template=template_file)
@@ -45,26 +46,18 @@ def snmp_user_command_build(parsed_snmp_user: list[dict[str, str]]) -> str:
         return ""
     snmp_user_commands.append("! show snmp user")
     for snmp_user in parsed_snmp_user:
-        single_user: str = f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']}"
-        if snmp_user["AUTH"] and snmp_user["AUTH"] != "no":
-            if "(no)" in snmp_user["AUTH"]:
-                auth = snmp_user["AUTH"].replace("(no)", "")
-            else:
-                auth: str = snmp_user["AUTH"]
+        single_user: str = f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']} v3"
+        if snmp_user["AUTH"]:
+            auth: str = snmp_user["AUTH"].lower()
             single_user += f" auth {auth} <<<SNMP_USER_AUTH_KEY>>>"
-        if snmp_user["PRIV"] and snmp_user["PRIV"] != "no":
-            if "(no)" in snmp_user["PRIV"]:
-                priv = snmp_user["PRIV"].replace("(no)", "")
-            else:
-                priv: str = snmp_user["PRIV"]
-            single_user += f" priv {priv} <<<SNMP_USER_PRIV_KEY>>>"
-        single_user += " localizedkey"
-        snmp_user_commands.append(single_user)
+        if snmp_user["PRIV"]:
+            priv: str = snmp_user["PRIV"].lower()
+            priv_processed = re.sub(pattern=r"([a-zA-Z]+)(\d+)", repl=r"\1 \2", string=priv)
+            single_user += f" priv {priv_processed} <<<SNMP_USER_PRIV_KEY>>>"
         if snmp_user["ACL_FILTER"]:
-            acl: str = snmp_user["ACL_FILTER"].replace("ipv4:", "")
-            snmp_user_commands.append(
-                f"snmp-server user {snmp_user['USERNAME']} use-ipv4 acl {acl}",
-            )
+            acl: str = snmp_user["ACL_FILTER"]
+            single_user += f" access {acl}"
+        snmp_user_commands.append(single_user)
 
     return "\n".join(snmp_user_commands)
 
