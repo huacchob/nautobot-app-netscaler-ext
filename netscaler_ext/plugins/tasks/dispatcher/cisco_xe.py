@@ -87,16 +87,16 @@ class NetmikoCiscoXe(NetmikoDefault):
         full_config: str = ""
         for command in cls.config_commands:
             getter_result = cls.get_command(task, logger, obj, command)
-            if "show snmp user" in command:
-                snmp_user_result: list[dict[str, str]] = snmp_user_template(
-                    snmp_user_output=getter_result.result.get("output").get(
-                        command,
-                    ),
-                )
-                full_config += snmp_user_command_build(
-                    parsed_snmp_user=snmp_user_result,
-                )
-                continue
+            # if "show snmp user" in command:
+            #     snmp_user_result: list[dict[str, str]] = snmp_user_template(
+            #         snmp_user_output=getter_result.result.get("output").get(
+            #             command,
+            #         ),
+            #     )
+            #     full_config += snmp_user_command_build(
+            #         parsed_snmp_user=snmp_user_result,
+            #     )
+            #     continue
             full_config += getter_result.result.get("output").get(command)
         processed_config: str = cls._process_config(logger, full_config, remove_lines, substitute_lines, backup_file)
         return Result(host=task.host, result={"config": processed_config})
