@@ -5,7 +5,6 @@ from pathlib import Path
 import textfsm
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 def snmp_user_template(snmp_user_output: str) -> list[dict[str, str]]:
@@ -89,7 +88,6 @@ class NetmikoCiscoXe(NetmikoDefault):
         for command in cls.config_commands:
             getter_result = cls.get_command(task, logger, obj, command)
             if "show snmp user" in command:
-                RemotePdb(host="localhost", port=4444).set_trace()
                 snmp_user_result: list[dict[str, str]] = snmp_user_template(
                     snmp_user_output=getter_result.result.get("output").get(
                         command,
