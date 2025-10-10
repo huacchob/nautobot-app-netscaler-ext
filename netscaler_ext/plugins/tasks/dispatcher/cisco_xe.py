@@ -101,8 +101,8 @@ class NetmikoCiscoXe(NetmikoDefault):
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         full_config: str = ""
+        RemotePdb(host="localhost", port=4444).set_trace()
         for command in cls.config_commands:
-            RemotePdb(host="snmp_user_template", port=4444).set_trace()
             getter_result = cls.get_command(task, logger, obj, command)
             if "show snmp user" in command:
                 snmp_user_result: list[dict[str, str]] = snmp_user_template(
