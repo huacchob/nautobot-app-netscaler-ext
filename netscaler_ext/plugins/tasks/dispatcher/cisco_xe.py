@@ -6,6 +6,7 @@ from pathlib import Path
 import textfsm
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 def snmp_user_template(snmp_user_output: str) -> list[dict[str, str]]:
@@ -41,6 +42,7 @@ def snmp_user_command_build(parsed_snmp_user: list[dict[str, str]]) -> str:
     Returns:
         str: SNMP user commands.
     """
+    RemotePdb(host="localhost", port=4444).set_trace()
     snmp_user_commands: list[str] = []
     if not parsed_snmp_user:
         return ""
