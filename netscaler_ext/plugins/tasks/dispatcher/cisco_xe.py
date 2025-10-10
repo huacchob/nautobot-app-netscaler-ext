@@ -1,5 +1,6 @@
 """nornir dispatcher for cisco XE."""
 
+import re
 from pathlib import Path
 
 import textfsm
@@ -8,50 +9,57 @@ from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 
 
 def snmp_user_template(snmp_user_output: str) -> list[dict[str, str]]:
-    """Parse IOS-XE 'show snmp user' using TextFSM template."""
-    file_path: Path = Path(__file__).parent
-    template_path: Path = file_path.joinpath("textfsm_templates/cisco_xe_show_snmp_user.textfsm")
+    """SNMP user textfsm template.
 
-    with open(template_path, mode="r", encoding="utf-8") as template_file:
-        fsm = textfsm.TextFSM(template_file)
-        parsed_rows: list[list[str]] = fsm.ParseText(snmp_user_output)
+    Args:
+        snmp_user_output (str): SNMP user command output.
 
-    # Map rows to dicts using the template header
-    return [dict(zip(fsm.header, row)) for row in parsed_rows]
+    Returns:
+        list[dict[str, str]]: List of parsed SNMP users.
+    """
+    file_path: Path = Path(__file__).parent.parent
+
+    template_path: Path = file_path.joinpath(
+        "plugins/tasks/dispatcher/textfsm_templates/cisco_ios_show_snmp_user.textfsm",
+    )
+    with open(file=template_path, mode="r", encoding="utf-8") as template_file:
+        fsm = textfsm.TextFSM(template=template_file)
+        parsed_results: list[str] = fsm.ParseText(text=snmp_user_output)
+
+    parsed_users: list[dict[str, str]] = []
+    for row in parsed_results:
+        parsed_users.append(dict(zip(fsm.header, row)))
+    return parsed_users
 
 
 def snmp_user_command_build(parsed_snmp_user: list[dict[str, str]]) -> str:
-    """Build IOS-XE 'snmp-server user' commands from parsed records."""
+    """Builds a list of SNMP user commands.
+
+    Args:
+        parsed_snmp_user (list[dict[str, str]]): List of parsed SNMP users.
+
+    Returns:
+        str: SNMP user commands.
+    """
+    snmp_user_commands: list[str] = []
     if not parsed_snmp_user:
         return ""
+    snmp_user_commands.append("! show snmp user")
+    for snmp_user in parsed_snmp_user:
+        single_user: str = f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']} v3"
+        if snmp_user["AUTH"]:
+            auth: str = snmp_user["AUTH"].lower()
+            single_user += f" auth {auth} <<<SNMP_USER_AUTH_KEY>>>"
+        if snmp_user["PRIV"]:
+            priv: str = snmp_user["PRIV"].lower()
+            priv_processed = re.sub(pattern=r"([a-zA-Z]+)(\d+)", repl=r"\1 \2", string=priv)
+            single_user += f" priv {priv_processed} <<<SNMP_USER_PRIV_KEY>>>"
+        if snmp_user["ACL_FILTER"]:
+            acl: str = snmp_user["ACL_FILTER"]
+            single_user += f" access {acl}"
+        snmp_user_commands.append(single_user)
 
-    cmds: list[str] = ["! show snmp user"]
-    for u in parsed_snmp_user:
-        user = u["USER"]
-        group = u.get("GROUP", "")
-        auth = (u.get("AUTH") or "").lower()
-        priv_proto = (u.get("PRIV_PROTO") or "").lower()
-        priv_bits = (u.get("PRIV_BITS") or "").strip()
-        access = u.get("ACCESS") or ""
-
-        line = f"snmp-server user {user} {group} v3"
-
-        # auth
-        if auth and auth != "none":
-            line += f" auth {auth} <<<SNMP_V3_AUTH_PASSWORD>>>"
-
-        # priv
-        if priv_proto and priv_proto != "none":
-            priv = f"{priv_proto} {priv_bits}".strip()
-            line += f" priv {priv} <<<SNMP_V3_PRIV_PASSWORD>>>"
-
-        # access-list (optional on IOS-XE)
-        if access:
-            line += f" access {access}"
-
-        cmds.append(line)
-
-    return "\n".join(cmds)
+    return "\n".join(snmp_user_commands)
 
 
 class NetmikoCiscoXe(NetmikoDefault):
@@ -87,16 +95,16 @@ class NetmikoCiscoXe(NetmikoDefault):
         full_config: str = ""
         for command in cls.config_commands:
             getter_result = cls.get_command(task, logger, obj, command)
-            # if "show snmp user" in command:
-            #     snmp_user_result: list[dict[str, str]] = snmp_user_template(
-            #         snmp_user_output=getter_result.result.get("output").get(
-            #             command,
-            #         ),
-            #     )
-            #     full_config += snmp_user_command_build(
-            #         parsed_snmp_user=snmp_user_result,
-            #     )
-            #     continue
+            if "show snmp user" in command:
+                snmp_user_result: list[dict[str, str]] = snmp_user_template(
+                    snmp_user_output=getter_result.result.get("output").get(
+                        command,
+                    ),
+                )
+                full_config += snmp_user_command_build(
+                    parsed_snmp_user=snmp_user_result,
+                )
+                continue
             full_config += getter_result.result.get("output").get(command)
         processed_config: str = cls._process_config(logger, full_config, remove_lines, substitute_lines, backup_file)
         return Result(host=task.host, result={"config": processed_config})
