@@ -1,0 +1,23 @@
+Value Required USER        (\S+)
+Value GROUP                (\S+)
+Value AUTH                 (SHA|MD5|NONE|sha|md5|none)
+Value PRIV_PROTO           (AES|DES|NONE|aes|des|none)
+Value PRIV_BITS            (\d+)
+Value ACCESS               (\S+)
+Value ENGINE_ID            (\S+)
+Value STORAGE              (\S+)
+Value ACTIVE               (\S+)
+
+Start
+  ^User name:\s+${USER} -> User
+
+User
+  ^User name:\s+${USER} -> Record Start
+  ^Engine ID:\s+${ENGINE_ID}
+  ^storage-type:\s+${STORAGE}\s+${ACTIVE}
+  ^access-list:\s+${ACCESS}
+  ^Authentication Protocol:\s+${AUTH}
+  ^Privacy Protocol:\s+${PRIV_PROTO}${PRIV_BITS}?
+  ^Group-name:\s+${GROUP}
+  ^\s*$ -> Record
+  ^\Z -> Record

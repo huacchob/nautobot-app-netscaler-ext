@@ -1,0 +1,24 @@
+Value Required USERNAME (\S+)
+Value Required AUTH (\S+)
+Value Required PRIV (\S+)
+Value Required GROUP (\S+)
+Value ACL_FILTER (\S+)
+
+Start
+  ^\s*SNMP USERS -> Header
+
+Header
+  ^\s*User\s+Auth\s+Priv\(enforce\)\s+Groups\s+acl_filter -> Data
+  ^_{4,} -> Header
+  ^\s+ -> Header
+
+Data
+  ^_{4,} -> Data
+  ^\s+ -> Data
+  ^\s*User\s+Auth\s+Priv -> Data
+  ^\s*NOTIFICATION TARGET USERS.* -> Done
+  ^\s*${USERNAME}\s+${AUTH}\s+${PRIV}\s+${GROUP}\s+${ACL_FILTER} -> Record
+  ^\s*${USERNAME}\s+${AUTH}\s+${PRIV}\s+${GROUP} -> Record
+
+Done
+  ^.* -> Done
