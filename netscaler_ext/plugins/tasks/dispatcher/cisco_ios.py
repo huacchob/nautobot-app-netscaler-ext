@@ -20,7 +20,7 @@ def snmp_user_template(snmp_user_output: str) -> list[dict[str, str]]:
     file_path: Path = Path(__file__).parent.parent
 
     template_path: Path = file_path.joinpath(
-        "plugins/tasks/dispatcher/textfsm_templates/cisco_ios_show_snmp_user.textfsm",
+        "textfsm_templates/cisco_ios_show_snmp_user.textfsm",
     )
     with open(file=template_path, mode="r", encoding="utf-8") as template_file:
         fsm = textfsm.TextFSM(template=template_file)
