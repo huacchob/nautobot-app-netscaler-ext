@@ -17,7 +17,7 @@ def snmp_user_template(snmp_user_output: str) -> list[dict[str, str]]:
     Returns:
         list[dict[str, str]]: List of parsed SNMP users.
     """
-    file_path: Path = Path(__file__).parent.parent
+    file_path: Path = Path(__file__).parent
 
     template_path: Path = file_path.joinpath(
         "textfsm_templates/cisco_ios_show_snmp_user.textfsm",
