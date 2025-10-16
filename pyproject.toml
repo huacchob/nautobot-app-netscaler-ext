@@ -33,7 +33,7 @@ remote-pdb = "^2.1.0"
 nautobot-golden-config = "*"
 meraki = "*"
 jmespath = "*"
-jdiff = "^1.0.1"
+jdiff = "<2.0.0"
 pytest = "^8.4.2"
 
 [tool.poetry.group.dev.dependencies]
