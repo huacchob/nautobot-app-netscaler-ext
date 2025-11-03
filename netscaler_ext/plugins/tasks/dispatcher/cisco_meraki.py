@@ -6,9 +6,17 @@ from typing import Any, Callable, OrderedDict
 from meraki import DashboardAPI
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
+from remote_pdb import RemotePdb
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
-from netscaler_ext.utils.controller import add_api_path_to_url, resolve_controller_url, resolve_jmespath, resolve_params
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
+    BaseControllerDriver,
+)
+from netscaler_ext.utils.controller import (
+    add_api_path_to_url,
+    resolve_controller_url,
+    resolve_jmespath,
+    resolve_params,
+)
 
 
 # Resolving endpoint private functions
@@ -37,7 +45,7 @@ def _resolve_method_callable(
         logger.error(
             f"The class {cotroller_class} does not exist in the controller object",
         )
-        return
+        return None
     try:
         method_callable: Callable[[Any], Any] = getattr(
             class_callable,
@@ -47,7 +55,7 @@ def _resolve_method_callable(
         logger.error(
             f"The method {controller_method} does not exist in the {cotroller_class} class",
         )
-        return
+        return None
     return method_callable
 
 
@@ -65,10 +73,10 @@ def _send_call(
         logger.warning(
             e,
         )
-        return
+        return None
     except Exception as e:
         logger.error(e)
-        return
+        return None
 
 
 def _send_remediation_call(
@@ -168,8 +176,12 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         config_context: OrderedDict[Any, Any] = device_obj.get_config_context()
         org_id: str = config_context.get("organization_id")
         if not org_id:
-            logger.error("Could not find the Meraki organization ID in API response")
-            raise ValueError("Could not find the Meraki organization ID in API response")
+            logger.error(
+                "Could not find the Meraki organization ID in API response"
+            )
+            raise ValueError(
+                "Could not find the Meraki organization ID in API response"
+            )
         networkId = config_context.get("network_id")
         return {
             "organizationId": org_id,
@@ -212,13 +224,17 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             "networkId": network_id,
         }
         for endpoint in endpoint_context:
-            method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
-                controller_obj=controller_obj,
-                method=endpoint["endpoint"],
-                logger=logger,
+            method_callable: Callable[[Any], Any] | None = (
+                _resolve_method_callable(
+                    controller_obj=controller_obj,
+                    method=endpoint["endpoint"],
+                    logger=logger,
+                )
             )
             if not method_callable:
-                logger.warning(msg=f"The method {endpoint['endpoint']} could not be resolved")
+                logger.warning(
+                    msg=f"The method {endpoint['endpoint']} could not be resolved"
+                )
                 continue
             params: dict[Any, Any] = resolve_params(
                 parameters=endpoint.get("parameters"),
@@ -230,11 +246,16 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                 payload=params,
             )
             if not response:
-                logger.warning(msg=f"The API call to {endpoint['endpoint']} returned no response")
+                logger.warning(
+                    msg=f"The API call to {endpoint['endpoint']} returned no response"
+                )
                 continue
-            jpath_fields: dict[str, Any] | list[dict[str, Any]] = resolve_jmespath(
-                jmespath_values=endpoint["jmespath"],
-                api_response=response,
+            RemotePdb(host="localhost", port=4444).set_trace()
+            jpath_fields: dict[str, Any] | list[dict[str, Any]] = (
+                resolve_jmespath(
+                    jmespath_values=endpoint["jmespath"],
+                    api_response=response,
+                )
             )
             if not jpath_fields:
                 logger.error(f"jmespath values not found in {response}")
@@ -244,21 +265,26 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                     responses = jpath_fields
                     continue
                 if not isinstance(responses, list):
-                    raise TypeError(f"All responses should be list but got {type(responses)}")
+                    raise TypeError(
+                        f"All responses should be list but got {type(responses)}"
+                    )
                 responses.extend(jpath_fields)
             else:
                 if responses is None:
                     responses = jpath_fields
                     continue
                 if not isinstance(responses, dict):
-                    raise TypeError(f"All responses should be dict but got {type(responses)}")
+                    raise TypeError(
+                        f"All responses should be dict but got {type(responses)}"
+                    )
                 responses.update(jpath_fields)
 
         if responses:
             return responses
-        else:
-            logger.error(f"No valid responses found for the {feature_name} endpoints")
-            return {}
+        logger.error(
+            f"No valid responses found for the {feature_name} endpoints"
+        )
+        return {}
 
     @classmethod
     def resolve_remediation_endpoint(
@@ -284,10 +310,12 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         """
         aggregated_results: list[Any] = []
         for api_context in endpoint_context:
-            method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
-                controller_obj=controller_obj,
-                method=api_context["endpoint"],
-                logger=logger,
+            method_callable: Callable[[Any], Any] | None = (
+                _resolve_method_callable(
+                    controller_obj=controller_obj,
+                    method=api_context["endpoint"],
+                    logger=logger,
+                )
             )
             if not method_callable:
                 logger.error(
