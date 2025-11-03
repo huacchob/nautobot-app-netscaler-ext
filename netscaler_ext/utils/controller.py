@@ -191,8 +191,11 @@ def resolve_jmespath(
                 path=value,
                 data=api_response,
             )
-        except TypeError:
-            return {}
+        except TypeError as exc:
+            if "JMSPath returned 'None'." in str(exc):
+                j_value = None
+            else:
+                return {}
         except ValueError:
             return {}
         data_fields.update({key: j_value})
