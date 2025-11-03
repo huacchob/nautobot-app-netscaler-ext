@@ -6,7 +6,6 @@ from typing import Any, Callable, OrderedDict
 from meraki import DashboardAPI
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from remote_pdb import RemotePdb
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
@@ -177,10 +176,10 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         org_id: str = config_context.get("organization_id")
         if not org_id:
             logger.error(
-                "Could not find the Meraki organization ID in API response"
+                "Could not find the Meraki organization ID in API response",
             )
             raise ValueError(
-                "Could not find the Meraki organization ID in API response"
+                "Could not find the Meraki organization ID in API response",
             )
         networkId = config_context.get("network_id")
         return {
@@ -233,7 +232,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             )
             if not method_callable:
                 logger.warning(
-                    msg=f"The method {endpoint['endpoint']} could not be resolved"
+                    msg=f"The method {endpoint['endpoint']} could not be resolved",
                 )
                 continue
             params: dict[Any, Any] = resolve_params(
@@ -247,10 +246,9 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             )
             if not response:
                 logger.warning(
-                    msg=f"The API call to {endpoint['endpoint']} returned no response"
+                    msg=f"The API call to {endpoint['endpoint']} returned no response",
                 )
                 continue
-            RemotePdb(host="localhost", port=4444).set_trace()
             jpath_fields: dict[str, Any] | list[dict[str, Any]] = (
                 resolve_jmespath(
                     jmespath_values=endpoint["jmespath"],
@@ -266,7 +264,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                     continue
                 if not isinstance(responses, list):
                     raise TypeError(
-                        f"All responses should be list but got {type(responses)}"
+                        f"All responses should be list but got {type(responses)}",
                     )
                 responses.extend(jpath_fields)
             else:
@@ -275,14 +273,14 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                     continue
                 if not isinstance(responses, dict):
                     raise TypeError(
-                        f"All responses should be dict but got {type(responses)}"
+                        f"All responses should be dict but got {type(responses)}",
                     )
                 responses.update(jpath_fields)
 
         if responses:
             return responses
         logger.error(
-            f"No valid responses found for the {feature_name} endpoints"
+            f"No valid responses found for the {feature_name} endpoints",
         )
         return {}
 

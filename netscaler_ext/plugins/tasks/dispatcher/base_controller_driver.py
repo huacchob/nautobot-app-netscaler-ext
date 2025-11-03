@@ -8,6 +8,7 @@ from typing import Any, OrderedDict
 from nautobot.dcim.models import Device
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 class BaseControllerDriver(NetmikoDefault, ABC):
@@ -137,6 +138,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             raise ValueError("Could not find controller endpoints")
         _running_config: dict[str, dict[Any, Any]] = {}
         logger.info(f"Collecting feature endpoint backups for {obj.name}")
+        RemotePdb(host="localhost", port=4444).set_trace()
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             feature_name: str = cls._cc_feature_name_parser(
