@@ -8,6 +8,7 @@ from typing import Any, OrderedDict
 from nautobot.dcim.models import Device
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 
 class BaseControllerDriver(NetmikoDefault, ABC):
@@ -47,7 +48,6 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         Returns:
             Any: Controller object or None.
         """
-        pass
 
     @classmethod
     def controller_setup(
@@ -92,7 +92,6 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         Returns:
             Any: Dictionary of responses.
         """
-        pass
 
     @classmethod
     def get_config(  # pylint: disable=R0913,R0914
@@ -125,7 +124,9 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             obj=obj,
             task=task,
         )
-        logger.info(f"Authenticated to {obj.name} platform: {obj.platform.name}")
+        logger.info(
+            f"Authenticated to {obj.name} platform: {obj.platform.name}"
+        )
         controller_dict: dict[str, str] = cls.controller_setup(
             device_obj=obj,
             controller_obj=controller_obj,
@@ -137,20 +138,25 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             raise ValueError("Could not find controller endpoints")
         _running_config: dict[str, dict[Any, Any]] = {}
         logger.info(f"Collecting feature endpoint backups for {obj.name}")
+        RemotePdb(host="localhost", port=4444).set_trace()
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
-            feature_name: str = cls._cc_feature_name_parser(feature_name=feature)
+            feature_name: str = cls._cc_feature_name_parser(
+                feature_name=feature
+            )
             if not endpoints:
                 logger.error(
                     f"Could not find the endpoint context for {feature} in the config context",
                 )
                 continue
-            feature_response: dict[str, dict[Any, Any]] = cls.resolve_backup_endpoint(
-                controller_obj=controller_obj,
-                logger=logger,
-                endpoint_context=endpoints,
-                feature_name=feature_name,
-                **controller_dict,
+            feature_response: dict[str, dict[Any, Any]] = (
+                cls.resolve_backup_endpoint(
+                    controller_obj=controller_obj,
+                    logger=logger,
+                    endpoint_context=endpoints,
+                    feature_name=feature_name,
+                    **controller_dict,
+                )
             )
             if not feature_response:
                 logger.error(
@@ -158,7 +164,9 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 )
                 continue
             _running_config.update({feature_name: feature_response})
-        logger.info(f"Finished collecting feature endpoint backups for {obj.name}")
+        logger.info(
+            f"Finished collecting feature endpoint backups for {obj.name}"
+        )
         processed_config: str = cls._process_config(
             logger=logger,
             running_config=json.dumps(obj=_running_config, indent=4),
@@ -190,7 +198,9 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         Returns:
             list[dict[str, Any]]: List of API responses.
         """
-        raise NotImplementedError("Subclasses must implement this is merge_config is being used.")
+        raise NotImplementedError(
+            "Subclasses must implement this is merge_config is being used."
+        )
 
     @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
@@ -215,7 +225,10 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         """
         if isinstance(config, str):
             config: dict[Any, Any] = json.loads(config)
-        logger.info("Config merge via controller dispatcher starting", extra={"object": obj})
+        logger.info(
+            "Config merge via controller dispatcher starting",
+            extra={"object": obj},
+        )
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         # The above Python code snippet is performing the following actions:
         controller_obj: Any = cls.authenticate(
@@ -251,10 +264,12 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                     cls.resolve_remediation_endpoint(
                         controller_obj=controller_obj,
                         logger=logger,
-                        endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
+                        endpoint_context=cfg_cntx[
+                            f"{remediation_endpoint}_remediation"
+                        ],
                         payload=config[remediation_endpoint],
                         **controller_dict,
-                    )
+                    ),
                 )
             except NotImplementedError:
                 logger.error("resolve_remediation_endpoint was not overriden.")
