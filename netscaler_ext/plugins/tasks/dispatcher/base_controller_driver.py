@@ -8,7 +8,6 @@ from typing import Any, OrderedDict
 from nautobot.dcim.models import Device
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 
 class BaseControllerDriver(NetmikoDefault, ABC):
@@ -125,7 +124,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             task=task,
         )
         logger.info(
-            f"Authenticated to {obj.name} platform: {obj.platform.name}"
+            f"Authenticated to {obj.name} platform: {obj.platform.name}",
         )
         controller_dict: dict[str, str] = cls.controller_setup(
             device_obj=obj,
@@ -138,11 +137,10 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             raise ValueError("Could not find controller endpoints")
         _running_config: dict[str, dict[Any, Any]] = {}
         logger.info(f"Collecting feature endpoint backups for {obj.name}")
-        RemotePdb(host="localhost", port=4444).set_trace()
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             feature_name: str = cls._cc_feature_name_parser(
-                feature_name=feature
+                feature_name=feature,
             )
             if not endpoints:
                 logger.error(
@@ -165,7 +163,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 continue
             _running_config.update({feature_name: feature_response})
         logger.info(
-            f"Finished collecting feature endpoint backups for {obj.name}"
+            f"Finished collecting feature endpoint backups for {obj.name}",
         )
         processed_config: str = cls._process_config(
             logger=logger,
@@ -199,7 +197,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             list[dict[str, Any]]: List of API responses.
         """
         raise NotImplementedError(
-            "Subclasses must implement this is merge_config is being used."
+            "Subclasses must implement this is merge_config is being used.",
         )
 
     @classmethod

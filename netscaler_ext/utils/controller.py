@@ -5,12 +5,20 @@ from logging import Logger
 from typing import Any, Optional
 
 import jdiff
-from nautobot.apps.choices import SecretsGroupAccessTypeChoices, SecretsGroupSecretTypeChoices
+from nautobot.apps.choices import (
+    SecretsGroupAccessTypeChoices,
+    SecretsGroupSecretTypeChoices,
+)
 from nautobot.dcim.models import Controller, Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from requests import Response, Session
 from requests.adapters import HTTPAdapter
-from requests.exceptions import ConnectionError, HTTPError, JSONDecodeError, Timeout
+from requests.exceptions import (
+    ConnectionError,
+    HTTPError,
+    JSONDecodeError,
+    Timeout,
+)
 from urllib3.util import Retry
 
 
@@ -30,7 +38,7 @@ def base_64_encode_credentials(username: str, password: str) -> str:
     if not username or not password:
         raise ValueError("Username and/or password not passed, can't encode.")
 
-    credentials_str: bytes = f"{username}:{password}".encode(encoding="utf-8")
+    credentials_str: bytes = f"{username}:{password}".encode()
     return f"Basic {b64encode(s=credentials_str).decode(encoding='utf-8')}"
 
 
@@ -48,7 +56,9 @@ def format_base_url_with_endpoint(
         str: Formatted url.
     """
     if not base_url or not endpoint:
-        raise ValueError("Base or endpoint not passed, can not properly format url.")
+        raise ValueError(
+            "Base or endpoint not passed, can not properly format url.",
+        )
 
     if base_url.endswith("/"):
         base_url = base_url[:-1]
@@ -70,9 +80,11 @@ def add_api_path_to_url(api_path: str, base_url: str) -> str:
         str: Base url with API path.
     """
     if api_path not in base_url:
-        return format_base_url_with_endpoint(base_url=base_url, endpoint=api_path)
-    else:
-        return base_url
+        return format_base_url_with_endpoint(
+            base_url=base_url,
+            endpoint=api_path,
+        )
+    return base_url
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -174,15 +186,19 @@ def resolve_jmespath(
     data_fields: dict[str, Any] = {}
 
     for key, value in jmespath_values.items():
-        j_value: Any = jdiff.extract_data_from_json(
-            path=value,
-            data=api_response,
-        )
-        if j_value:
-            data_fields.update({key: j_value})
-    if not data_fields:
-        return data_fields
-    lengths: list[int] = [len(v) for v in data_fields.values() if isinstance(v, list)]
+        try:
+            j_value: Any = jdiff.extract_data_from_json(
+                path=value,
+                data=api_response,
+            )
+        except TypeError:
+            return {}
+        except ValueError:
+            return {}
+        data_fields.update({key: j_value})
+    lengths: list[int] = [
+        len(v) for v in data_fields.values() if isinstance(v, list)
+    ]
     if lengths == [1]:
         return data_fields
     if len(lengths) != len(data_fields.values()):
@@ -285,7 +301,9 @@ class ConnectionMixin:
             if not response:
                 return response
             if not response.ok:
-                logger.error(f"Error in API call to {url}: {response.status_code} - {response.text}")
+                logger.error(
+                    f"Error in API call to {url}: {response.status_code} - {response.text}",
+                )
                 return None
         return response
 
@@ -372,4 +390,4 @@ class ConnectionMixin:
             return text_response
         except HTTPError as http_err:
             logger.error(http_err)
-            return
+            return None
