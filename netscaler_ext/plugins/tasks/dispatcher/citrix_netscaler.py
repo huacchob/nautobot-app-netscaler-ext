@@ -18,6 +18,19 @@ from netscaler_ext.utils.helper import (
 )
 
 
+def use_snip_hostname(hostname: str) -> str:
+    """Use the SNIP hostname format for Citrix Netscaler.
+
+    Args:
+        hostname (str): The original hostname.
+
+    Returns:
+        str: The formatted SNIP hostname.
+    """
+    stripped_hostname: str = hostname.split(sep="_")[-1]
+    return stripped_hostname[:-2] + "snip.ipaper.com"
+
+
 class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
     """Netscaler Controller Dispatcher class."""
 
@@ -40,7 +53,8 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        cls.device_url: str = f"https://{obj.name}"
+        hostname: str = use_snip_hostname(hostname=obj.name)
+        cls.device_url: str = f"https://{hostname}"
         cls.session: Session = cls.configure_session()
         username: str = task.host.username
         password: str = task.host.password
@@ -51,7 +65,7 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                 "Content-Type": "application/json",
             },
         )
-        logger.info(f"Authenticated to {obj.name}")
+        logger.info(f"Authenticated to {hostname}")
 
     @classmethod
     def resolve_backup_endpoint(
