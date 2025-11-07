@@ -7,9 +7,11 @@ from nautobot.dcim.models import Device
 from nornir.core.task import Task
 from requests import Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
-from netscaler_ext.utils.controller import (
-    ConnectionMixin,
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
+    BaseControllerDriver,
+)
+from netscaler_ext.utils.base_connection import ConnectionMixin
+from netscaler_ext.utils.helper import (
     format_base_url_with_endpoint,
     resolve_jmespath,
     resolve_query,
@@ -47,7 +49,7 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                 "X-NITRO-USER": username,
                 "X-NITRO-PASS": password,
                 "Content-Type": "application/json",
-            }
+            },
         )
         logger.info(f"Authenticated to {obj.name}")
 
@@ -74,9 +76,14 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
         """
         responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         for endpoint in endpoint_context:
+            uri: str = cls._render_uri_template(
+                obj=controller_obj,
+                logger=logger,
+                template=endpoint["endpoint"],
+            )
             api_endpoint: str = format_base_url_with_endpoint(
                 base_url=cls.device_url,
-                endpoint=endpoint["endpoint"],
+                endpoint=uri,
             )
             if endpoint.get("query"):
                 api_endpoint = resolve_query(
@@ -92,7 +99,9 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                 logger=logger,
             )
             if not response:
-                logger.error(f"Error in API call to {api_endpoint}: No response")
+                logger.error(
+                    f"Error in API call to {api_endpoint}: No response",
+                )
                 continue
             jpath_fields: dict[Any, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
@@ -106,19 +115,26 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                     responses = jpath_fields
                     continue
                 if not isinstance(responses, list):
-                    raise TypeError(f"All responses should be list but got {type(responses)}")
+                    raise TypeError(
+                        f"All responses should be list but got {type(responses)}",
+                    )
                 responses.extend(jpath_fields)
             elif isinstance(jpath_fields, dict):
                 if responses is None:
                     responses = jpath_fields
                 if not isinstance(responses, dict):
-                    raise TypeError(f"All responses should be dict but got {type(responses)}")
+                    raise TypeError(
+                        f"All responses should be dict but got {type(responses)}",
+                    )
                 responses.update(jpath_fields)
             else:
-                logger.error(f"Unexpected jmespath response type: {type(jpath_fields)}")
+                logger.error(
+                    f"Unexpected jmespath response type: {type(jpath_fields)}",
+                )
 
         if responses:
             return responses
-        else:
-            logger.error(f"No valid responses found for the {feature_name} endpoints")
-            return {}
+        logger.error(
+            f"No valid responses found for the {feature_name} endpoints",
+        )
+        return {}

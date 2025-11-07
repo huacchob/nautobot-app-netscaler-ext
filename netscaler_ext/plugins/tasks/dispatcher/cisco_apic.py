@@ -8,9 +8,11 @@ from nautobot.dcim.models import Device
 from nornir.core.task import Task
 from requests import Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
-from netscaler_ext.utils.controller import (
-    ConnectionMixin,
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
+    BaseControllerDriver,
+)
+from netscaler_ext.utils.base_connection import ConnectionMixin
+from netscaler_ext.utils.helper import (
     format_base_url_with_endpoint,
     resolve_controller_url,
     resolve_jmespath,
@@ -48,7 +50,11 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             logger=logger,
         )
         username, password = task.host.username, task.host.password
-        auth_payload = {"aaaUser": {"attributes": {"name": f"{username}", "pwd": f"{password}"}}}
+        auth_payload = {
+            "aaaUser": {
+                "attributes": {"name": f"{username}", "pwd": f"{password}"},
+            },
+        }
         auth_url: str = format_base_url_with_endpoint(
             base_url=cls.controller_url,
             endpoint="api/aaaLogin.json",
@@ -80,7 +86,12 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             raise ValueError(
                 "Could not find cookie from APIC controller",
             )
-        cookie: str = auth_resp.get("imdata")[0].get("aaaLogin", {}).get("attributes", {}).get("token", "")
+        cookie: str = (
+            auth_resp.get("imdata")[0]
+            .get("aaaLogin", {})
+            .get("attributes", {})
+            .get("token", "")
+        )
         if not cookie:
             logger.error(
                 "Could not find cookie from APIC controller",
@@ -92,7 +103,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             {
                 "Cookie": f"APIC-cookie={cookie}",
                 "Content-Type": "text/plain",
-            }
+            },
         )
 
     @classmethod
@@ -118,9 +129,14 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         """
         responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         for endpoint in endpoint_context:
+            uri: str = cls._render_uri_template(
+                obj=controller_obj,
+                logger=logger,
+                template=endpoint["endpoint"],
+            )
             api_endpoint: str = format_base_url_with_endpoint(
                 base_url=cls.controller_url,
-                endpoint=endpoint["endpoint"],
+                endpoint=uri,
             )
             if endpoint.get("query"):
                 api_endpoint = resolve_query(
@@ -136,7 +152,9 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                 logger=logger,
             )
             if not response:
-                logger.error(f"Error in API call to {api_endpoint}: No response")
+                logger.error(
+                    f"Error in API call to {api_endpoint}: No response",
+                )
                 continue
             jpath_fields: dict[Any, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
@@ -150,19 +168,26 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                     responses = jpath_fields
                     continue
                 if not isinstance(responses, list):
-                    raise TypeError(f"All responses should be list but got {type(responses)}")
+                    raise TypeError(
+                        f"All responses should be list but got {type(responses)}",
+                    )
                 responses.extend(jpath_fields)
             elif isinstance(jpath_fields, dict):
                 if responses is None:
                     responses = jpath_fields
                 if not isinstance(responses, dict):
-                    raise TypeError(f"All responses should be dict but got {type(responses)}")
+                    raise TypeError(
+                        f"All responses should be dict but got {type(responses)}",
+                    )
                 responses.update(jpath_fields)
             else:
-                logger.error(f"Unexpected jmespath response type: {type(jpath_fields)}")
+                logger.error(
+                    f"Unexpected jmespath response type: {type(jpath_fields)}",
+                )
 
         if responses:
             return responses
-        else:
-            logger.error(f"No valid responses found for the {feature_name} endpoints")
-            return {}
+        logger.error(
+            f"No valid responses found for the {feature_name} endpoints",
+        )
+        return {}

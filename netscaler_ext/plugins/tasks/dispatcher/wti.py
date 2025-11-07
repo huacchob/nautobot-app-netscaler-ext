@@ -7,9 +7,11 @@ from nautobot.dcim.models import Device
 from nornir.core.task import Task
 from requests import Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import BaseControllerDriver
-from netscaler_ext.utils.controller import (
-    ConnectionMixin,
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
+    BaseControllerDriver,
+)
+from netscaler_ext.utils.base_connection import ConnectionMixin
+from netscaler_ext.utils.helper import (
     base_64_encode_credentials,
     format_base_url_with_endpoint,
     resolve_jmespath,
@@ -50,7 +52,7 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
             {
                 "Authorization": encoded_creds,
                 "Content-Type": "application/json",
-            }
+            },
         )
 
     @classmethod
@@ -76,9 +78,14 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
         """
         responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         for endpoint in endpoint_context:
+            uri: str = cls._render_uri_template(
+                obj=controller_obj,
+                logger=logger,
+                template=endpoint["endpoint"],
+            )
             api_endpoint: str = format_base_url_with_endpoint(
                 base_url=cls.device_url,
-                endpoint=endpoint["endpoint"],
+                endpoint=uri,
             )
             if endpoint.get("query"):
                 api_endpoint = resolve_query(
@@ -94,7 +101,9 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                 logger=logger,
             )
             if not response:
-                logger.error(f"Error in API call to {api_endpoint}: No response")
+                logger.error(
+                    f"Error in API call to {api_endpoint}: No response",
+                )
                 continue
             jpath_fields: dict[Any, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
@@ -108,22 +117,29 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                     responses = jpath_fields
                     continue
                 if not isinstance(responses, list):
-                    raise TypeError(f"All responses should be list but got {type(responses)}")
+                    raise TypeError(
+                        f"All responses should be list but got {type(responses)}",
+                    )
                 responses.extend(jpath_fields)
             elif isinstance(jpath_fields, dict):
                 if responses is None:
                     responses = jpath_fields
                 if not isinstance(responses, dict):
-                    raise TypeError(f"All responses should be dict but got {type(responses)}")
+                    raise TypeError(
+                        f"All responses should be dict but got {type(responses)}",
+                    )
                 responses.update(jpath_fields)
             else:
-                logger.error(f"Unexpected jmespath response type: {type(jpath_fields)}")
+                logger.error(
+                    f"Unexpected jmespath response type: {type(jpath_fields)}",
+                )
 
         if responses:
             return responses
-        else:
-            logger.error(f"No valid responses found for the {feature_name} endpoints")
-            return {}
+        logger.error(
+            f"No valid responses found for the {feature_name} endpoints",
+        )
+        return {}
 
     @classmethod
     def resolve_remediation_endpoint(
@@ -149,18 +165,31 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
         """
         aggregated_results: list[Any] = []
         for endpoint in endpoint_context:
+            uri: str = cls._render_uri_template(
+                obj=controller_obj,
+                logger=logger,
+                template=endpoint["endpoint"],
+            )
             api_endpoint: str = format_base_url_with_endpoint(
                 base_url=cls.device_url,
-                endpoint=endpoint["endpoint"],
+                endpoint=uri,
+            )
+            req_params: list[str] = (
+                endpoint["parameters"]["non_optional"]
+                if "parameters" in endpoint
+                and "non_optional" in endpoint["parameters"]
+                else []
             )
             if isinstance(payload, dict):
-                if req_params := endpoint["parameters"]["non_optional"]:
-                    for param in req_params:
-                        if not kwargs.get(param):
-                            logger.error(
-                                f"resolve_endpoint method needs '{param}' in kwargs",
-                            )
-                        item.update({param: kwargs[param]})
+                payload_copy = payload.copy()
+                for param in req_params:
+                    if not kwargs.get(param):
+                        logger.error(
+                            "resolve_endpoint method needs '%s' in kwargs",
+                            param,
+                        )
+                    else:
+                        payload_copy.update({param: kwargs[param]})
                 response: Any = cls.return_response_content(
                     session=cls.session,
                     method=endpoint["method"],
@@ -168,21 +197,28 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                     headers=cls.get_headers,
                     verify=False,
                     logger=logger,
-                    body=payload,
+                    body=payload_copy,
                 )
                 if not response:
-                    logger.error(f"Error in API call to {api_endpoint}: No response")
+                    logger.error(
+                        "Error in API call to %s: No response",
+                        api_endpoint,
+                    )
                     continue
                 aggregated_results.append(response)
-            if isinstance(payload, list):
+            elif isinstance(payload, list):
                 for item in payload:
-                    if req_params := endpoint["parameters"]["non_optional"]:
-                        for param in req_params:
-                            if not kwargs.get(param):
-                                logger.error(
-                                    f"resolve_endpoint method needs '{param}' in kwargs",
-                                )
-                            item.update({param: kwargs[param]})
+                    if not isinstance(item, dict):
+                        continue
+                    item_copy = item.copy()
+                    for param in req_params:
+                        if not kwargs.get(param):
+                            logger.error(
+                                "resolve_endpoint method needs '%s' in kwargs",
+                                param,
+                            )
+                        else:
+                            item_copy.update({param: kwargs[param]})
                     response: Any = cls.return_response_content(
                         session=cls.session,
                         method=endpoint["method"],
@@ -190,10 +226,13 @@ class NetmikoWti(BaseControllerDriver, ConnectionMixin):
                         headers=cls.get_headers,
                         verify=False,
                         logger=logger,
-                        body=item,
+                        body=item_copy,
                     )
                     if not response:
-                        logger.error(f"Error in API call to {api_endpoint}: No response")
+                        logger.error(
+                            "Error in API call to %s: No response",
+                            api_endpoint,
+                        )
                         continue
                     aggregated_results.append(response)
         return aggregated_results

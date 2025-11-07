@@ -2,24 +2,66 @@
 
 from base64 import b64encode
 from logging import Logger
-from typing import Any, Optional
+from typing import Any
 
 import jdiff
+from jinja2 import exceptions as jinja_errors
 from nautobot.apps.choices import (
     SecretsGroupAccessTypeChoices,
     SecretsGroupSecretTypeChoices,
 )
+from nautobot.core.utils.data import render_jinja2
 from nautobot.dcim.models import Controller, Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
-from requests import Response, Session
-from requests.adapters import HTTPAdapter
-from requests.exceptions import (
-    ConnectionError,
-    HTTPError,
-    JSONDecodeError,
-    Timeout,
-)
-from urllib3.util import Retry
+
+
+def render_jinja_template(obj: Device, logger: Logger, template: str) -> str:
+    """Helper function to render Jinja templates.
+
+    Args:
+        obj (Device): The Device object from Nautobot.
+        logger (Logger): Logger to log error messages to.
+        template (str): A Jinja2 template to be rendered.
+
+    Returns:
+        str: The ``template`` rendered.
+
+    Raises:
+        ValueError: When there is an error rendering the ``template``.
+    """
+    try:
+        return render_jinja2(template_code=template, context={"obj": obj})
+    except jinja_errors.UndefinedError as error:
+        error_msg = (
+            "`E3019:` Jinja encountered and UndefinedError`, check the template "
+            "for missing variable definitions.\n"
+            f"Template:\n{template}\n"
+            f"Original Error: {error}"
+        )
+        logger.error(error_msg, extra={"object": obj})
+        raise ValueError(error_msg) from error
+
+    except (
+        jinja_errors.TemplateSyntaxError
+    ) as error:  # Also catches subclass of TemplateAssertionError
+        error_msg = (
+            f"`E3020:` Jinja encountered a SyntaxError at line number {error.lineno},"
+            f"check the template for invalid Jinja syntax.\nTemplate:\n{template}\n"
+            f"Original Error: {error}"
+        )
+        logger.error(error_msg, extra={"object": obj})
+        raise ValueError(error_msg) from error
+    # Intentionally not catching TemplateNotFound errors since template is passes as a string and not a filename
+    except (
+        jinja_errors.TemplateError
+    ) as error:  # Catches all remaining Jinja errors
+        error_msg = (
+            "`E3021:` Jinja encountered an unexpected TemplateError; check the template for correctness\n"
+            f"Template:\n{template}\n"
+            f"Original Error: {error}"
+        )
+        logger.error(error_msg, extra={"object": obj})
+        raise ValueError(error_msg) from error
 
 
 def base_64_encode_credentials(username: str, password: str) -> str:
@@ -192,6 +234,8 @@ def resolve_jmespath(
                 data=api_response,
             )
         except TypeError as exc:
+            # JSON key returns a None value, and raising a TypeError when
+            # `null` is a valid value for that key
             if "JMSPath returned 'None'." in str(exc):
                 j_value = None
             else:
@@ -231,166 +275,3 @@ def resolve_query(api_endpoint: str, query: list[str]) -> str:
     for q in query:
         api_endpoint = f"{api_endpoint}&{q}"
     return api_endpoint
-
-
-class ConnectionMixin:
-    """Mixin to connect to a service."""
-
-    @classmethod
-    def configure_session(cls) -> Session:
-        """Configure a requests session.
-
-        Returns:
-            Session: Requests session.
-        """
-        session: Session = Session()
-        retries = Retry(
-            total=2,
-            backoff_factor=0.5,
-            backoff_max=5.0,
-            status_forcelist=[502, 503, 504],
-            allowed_methods=["GET", "POST"],
-        )
-        session.mount(
-            prefix="https://",
-            adapter=HTTPAdapter(max_retries=retries),
-        )
-        return session
-
-    @classmethod
-    def _return_response(
-        cls,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        session: Session,
-        logger: Logger,
-        body: dict[str, str] | str | None = None,
-        verify: bool = True,
-    ) -> Optional[Response]:
-        """Create request for authentication and return response object.
-
-        Args:
-            method (str): HTTP Method to use.
-            url (str): URL to send request to.
-            headers (dict): Headers to use in request.
-            session (Session): Session to use.
-            logger (Logger): The dispatcher's logger.
-            body (dict[str, str] | str | None): Body of request.
-            verify (bool): Verify SSL certificate.
-
-        Returns:
-            Optional[Response]: API Response object.
-        """
-        with session as ses:
-            try:
-                response: Optional[Response] = ses.request(
-                    method=method,
-                    url=url,
-                    headers=headers,
-                    data=body,
-                    timeout=(50.0, 100.0),
-                    verify=verify,
-                )
-            except ConnectionError as exc_conn:
-                logger.error(f"Connection error occurred: {exc_conn}")
-                response = None
-            except Timeout as exc_timeout:
-                logger.error(f"Request timed out: {exc_timeout}")
-                response = None
-            except Exception as exc:
-                logger.error(f"An error occurred: {exc}")
-                response = None
-            if not response:
-                return response
-            if not response.ok:
-                logger.error(
-                    f"Error in API call to {url}: {response.status_code} - {response.text}",
-                )
-                return None
-        return response
-
-    @classmethod
-    def return_response_obj(
-        cls,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        session: Session,
-        logger: Logger,
-        body: dict[str, str] | str | None = None,
-        verify: bool = True,
-    ) -> Optional[Response]:
-        """Create request for authentication and return response object.
-
-        Args:
-            method (str): HTTP Method to use.
-            url (str): URL to send request to.
-            headers (dict): Headers to use in request.
-            session (Session): Session to use.
-            logger (Logger): The dispatcher's logger.
-            body (dict[str, str] | str | None): Body of request.
-            verify (bool): Verify SSL certificate.
-
-        Returns:
-            Optional[Response]: API Response object or None.
-        """
-        return cls._return_response(
-            method=method,
-            url=url,
-            headers=headers,
-            session=session,
-            logger=logger,
-            body=body,
-            verify=verify,
-        )
-
-    @classmethod
-    def return_response_content(
-        cls,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        session: Session,
-        logger: Logger,
-        body: dict[str, str] | str | None = None,
-        verify: bool = True,
-    ) -> Any:
-        """Create request and return response payload.
-
-        Args:
-            method (str): HTTP Method to use.
-            url (str): URL to send request to.
-            headers (dict): Headers to use in request.
-            session (Session): Session to use.
-            logger (Logger): The dispatcher's logger.
-            body (dict[str, str] | str | None): Body of request.
-            verify (bool): Verify SSL certificate.
-
-        Returns:
-            Any: API Response.
-
-        Raises:
-            requests.exceptions.HTTPError:
-                If the HTTP request returns an unsuccessful status code.
-        """
-        try:
-            response: Optional[Response] = cls._return_response(
-                method=method,
-                url=url,
-                headers=headers,
-                session=session,
-                logger=logger,
-                body=body,
-                verify=verify,
-            )
-            if not response:
-                return response
-            json_response: dict[str, Any] = response.json()
-            return json_response
-        except JSONDecodeError:
-            text_response: str = response.text
-            return text_response
-        except HTTPError as http_err:
-            logger.error(http_err)
-            return None

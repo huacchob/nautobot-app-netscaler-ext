@@ -9,9 +9,30 @@ from nautobot.dcim.models import Device
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 
+from netscaler_ext.utils.helper import render_jinja_template
+
 
 class BaseControllerDriver(NetmikoDefault, ABC):
     """Base Controller Dispatcher class."""
+
+    @classmethod
+    def _render_uri_template(
+        cls,
+        obj: Device,
+        logger: Logger,
+        template: str,
+    ) -> str:
+        """Render URI template.
+
+        Args:
+            obj (Device): The Device object from Nautobot.
+            logger (Logger): Logger to log error messages to.
+            template (str): A URI template to be rendered.
+
+        Returns:
+            str: The ``template`` rendered.
+        """
+        return render_jinja_template(obj=obj, logger=logger, template=template)
 
     @classmethod
     def _cc_feature_name_parser(cls, feature_name: str) -> str:
@@ -30,6 +51,21 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         else:
             feat = feature_name.rsplit(sep=" ", maxsplit=1)[0]
         return feat.lower().strip().replace("-", "_").replace(" ", "_")
+
+    @classmethod
+    def make_fstring(cls, template: str, obj: Device) -> str:
+        """Make f-strings from a template string.
+
+        Args:
+            template (str): The template string to format.
+            obj (Device): The device object to use for formatting.
+
+        Returns:
+            str: The formatted string.
+        """
+        if "{" in template and "}" in template:
+            return template.format(obj=obj)
+        return template
 
     @classmethod
     @abstractmethod

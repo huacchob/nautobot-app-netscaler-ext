@@ -10,7 +10,7 @@ from nornir.core.task import Task
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
 )
-from netscaler_ext.utils.controller import (
+from netscaler_ext.utils.helper import (
     add_api_path_to_url,
     resolve_controller_url,
     resolve_jmespath,
