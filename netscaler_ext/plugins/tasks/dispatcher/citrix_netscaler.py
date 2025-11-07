@@ -65,7 +65,6 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                 "Content-Type": "application/json",
             },
         )
-        logger.info(f"Authenticated to {hostname}")
 
     @classmethod
     def resolve_backup_endpoint(
@@ -112,7 +111,7 @@ class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
-            if not response:
+            if response is None:
                 logger.error(
                     f"Error in API call to {api_endpoint}: No response",
                 )

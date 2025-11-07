@@ -80,13 +80,13 @@ class ConnectionMixin:
             except Exception as exc:
                 logger.error("An error occurred: %s", exc)
                 response = None
-            if not response:
-                return response
-            if not response.ok:
-                logger.error(
-                    f"Error in API call to {url}: {response.status_code} - {response.text}",
-                )
-                return None
+        if response is None:
+            return response
+        if not response.ok:
+            logger.error(
+                f"Error in API call to {url}: {response.status_code} - {response.text}",
+            )
+            return None
         return response
 
     @classmethod
@@ -167,9 +167,9 @@ class ConnectionMixin:
                 return response
             json_response: dict[str, Any] = response.json()
             return json_response
-        except JSONDecodeError:
+        except req_exceptions.JSONDecodeError:
             text_response: str = response.text
             return text_response
-        except HTTPError as http_err:
+        except req_exceptions.HTTPError as http_err:
             logger.error(http_err)
             return None
