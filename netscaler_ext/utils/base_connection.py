@@ -4,13 +4,8 @@ from logging import Logger
 from typing import Any, Optional
 
 from requests import Response, Session
+from requests import exceptions as req_exceptions
 from requests.adapters import HTTPAdapter
-from requests.exceptions import (
-    ConnectionError,
-    HTTPError,
-    JSONDecodeError,
-    Timeout,
-)
 from urllib3.util import Retry
 
 
@@ -73,11 +68,14 @@ class ConnectionMixin:
                     timeout=(50.0, 100.0),
                     verify=verify,
                 )
-            except ConnectionError as exc_conn:
-                logger.error("Connection error occurred: %s", exc_conn)
+            except req_exceptions.SSLError as exc_ssl:
+                logger.error("SSL error occurred: %s", exc_ssl)
                 response = None
-            except Timeout as exc_timeout:
+            except req_exceptions.Timeout as exc_timeout:
                 logger.error("Request timed out: %s", exc_timeout)
+                response = None
+            except req_exceptions.ConnectionError as exc_conn:
+                logger.error("Connection error occurred: %s", exc_conn)
                 response = None
             except Exception as exc:
                 logger.error("An error occurred: %s", exc)
