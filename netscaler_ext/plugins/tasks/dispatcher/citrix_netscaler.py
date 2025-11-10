@@ -21,8 +21,10 @@ def use_snip_hostname(hostname: str) -> str:
     Returns:
         str: The formatted SNIP hostname.
     """
-    stripped_hostname: str = hostname.split(sep="_")[-1]
-    return stripped_hostname[:-2] + "snip.ipaper.com"
+    if hostname[:-2].isdigit():
+        stripped_hostname: str = hostname.split(sep="_")[-1]
+        return stripped_hostname[:-2] + "snip.ipaper.com"
+    return hostname
 
 
 class NetmikoCitrixNetscaler(BaseAPIDispatcher):
