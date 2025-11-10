@@ -12,7 +12,7 @@ from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 from netscaler_ext.utils.helper import render_jinja_template
 
 
-class BaseControllerDriver(NetmikoDefault, ABC):
+class BaseControllerDispatcher(NetmikoDefault, ABC):
     """Base Controller Dispatcher class."""
 
     @classmethod

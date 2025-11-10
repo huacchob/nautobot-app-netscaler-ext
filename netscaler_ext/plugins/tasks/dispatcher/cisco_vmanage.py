@@ -7,8 +7,8 @@ from nautobot.dcim.models import Device
 from nornir.core.task import Task
 from requests import Response, Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
-    BaseControllerDriver,
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_dispatcher import (
+    BaseControllerDispatcher,
 )
 from netscaler_ext.utils.base_connection import ConnectionMixin
 from netscaler_ext.utils.helper import (
@@ -19,7 +19,7 @@ from netscaler_ext.utils.helper import (
 )
 
 
-class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
+class NetmikoCiscoVmanage(BaseControllerDispatcher, ConnectionMixin):
     """Vmanage Controller Dispatcher class."""
 
     get_headers: dict[str, str] = {}

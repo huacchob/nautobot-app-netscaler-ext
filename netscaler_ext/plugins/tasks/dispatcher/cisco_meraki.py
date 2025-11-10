@@ -7,8 +7,8 @@ from meraki import DashboardAPI
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
-    BaseControllerDriver,
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_dispatcher import (
+    BaseControllerDispatcher,
 )
 from netscaler_ext.utils.helper import (
     add_api_path_to_url,
@@ -113,7 +113,7 @@ def _send_remediation_call(
     aggregated_results.append(response)
 
 
-class NetmikoCiscoMeraki(BaseControllerDriver):
+class NetmikoCiscoMeraki(BaseControllerDispatcher):
     """Meraki Controller Dispatcher class."""
 
     controller_type = "meraki"

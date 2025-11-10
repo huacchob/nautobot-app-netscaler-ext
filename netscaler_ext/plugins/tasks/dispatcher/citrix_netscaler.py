@@ -7,8 +7,8 @@ from nautobot.dcim.models import Device
 from nornir.core.task import Task
 from requests import Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
-    BaseControllerDriver,
+from netscaler_ext.plugins.tasks.dispatcher.base_controller_dispatcher import (
+    BaseControllerDispatcher,
 )
 from netscaler_ext.utils.base_connection import ConnectionMixin
 from netscaler_ext.utils.helper import (
@@ -31,7 +31,7 @@ def use_snip_hostname(hostname: str) -> str:
     return stripped_hostname[:-2] + "snip.ipaper.com"
 
 
-class NetmikoCitrixNetscaler(BaseControllerDriver, ConnectionMixin):
+class NetmikoCitrixNetscaler(BaseControllerDispatcher, ConnectionMixin):
     """Netscaler Controller Dispatcher class."""
 
     get_headers: dict[str, str] = {}
