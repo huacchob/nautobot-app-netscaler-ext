@@ -19,6 +19,8 @@ from netscaler_ext.utils.helper import (
 class NetmikoCiscoVmanage(BaseAPIDispatcher):
     """Vmanage Controller Dispatcher class."""
 
+    controller_type: str = "vmanage"
+
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
         """Authenticate to controller.
