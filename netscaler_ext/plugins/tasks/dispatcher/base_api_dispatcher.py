@@ -70,7 +70,7 @@ class BaseAPIDispatcher(BaseControllerDispatcher, ConnectionMixin):
                 verify=False,
                 logger=logger,
             )
-            if not response:
+            if response is None:
                 logger.error(
                     f"Error in API call to {api_endpoint}: No response",
                 )
