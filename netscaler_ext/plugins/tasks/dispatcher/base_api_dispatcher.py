@@ -21,7 +21,7 @@ class BaseAPIDispatcher(BaseControllerDispatcher, ConnectionMixin):
 
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
-    device_url: str = ""
+    url: str = ""
     session: Optional[Session] = None
     controller_type: str = ""
 
@@ -54,7 +54,7 @@ class BaseAPIDispatcher(BaseControllerDispatcher, ConnectionMixin):
                 template=endpoint["endpoint"],
             )
             api_endpoint: str = format_base_url_with_endpoint(
-                base_url=cls.controller_url,
+                base_url=cls.url,
                 endpoint=uri,
             )
             if endpoint.get("query"):
@@ -141,7 +141,7 @@ class BaseAPIDispatcher(BaseControllerDispatcher, ConnectionMixin):
                 template=endpoint["endpoint"],
             )
             api_endpoint: str = format_base_url_with_endpoint(
-                base_url=cls.device_url,
+                base_url=cls.url,
                 endpoint=uri,
             )
             req_params: list[str] = (

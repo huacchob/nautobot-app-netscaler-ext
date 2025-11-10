@@ -25,7 +25,7 @@ class NetmikoCiscoApic(BaseControllerDispatcher, ConnectionMixin):
 
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
-    controller_url: str = ""
+    url: str = ""
     session: Optional[Session] = None
     controller_type: str = "apic"
 
@@ -44,7 +44,7 @@ class NetmikoCiscoApic(BaseControllerDispatcher, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        cls.controller_url = resolve_controller_url(
+        cls.url = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
             logger=logger,
@@ -56,7 +56,7 @@ class NetmikoCiscoApic(BaseControllerDispatcher, ConnectionMixin):
             },
         }
         auth_url: str = format_base_url_with_endpoint(
-            base_url=cls.controller_url,
+            base_url=cls.url,
             endpoint="api/aaaLogin.json",
         )
         # TODO: Change verify to true
@@ -135,7 +135,7 @@ class NetmikoCiscoApic(BaseControllerDispatcher, ConnectionMixin):
                 template=endpoint["endpoint"],
             )
             api_endpoint: str = format_base_url_with_endpoint(
-                base_url=cls.controller_url,
+                base_url=cls.url,
                 endpoint=uri,
             )
             if endpoint.get("query"):

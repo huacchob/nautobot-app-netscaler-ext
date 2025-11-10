@@ -24,7 +24,7 @@ class NetmikoCiscoVmanage(BaseControllerDispatcher, ConnectionMixin):
 
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
-    controller_url: str = ""
+    url: str = ""
     session: Optional[Session] = None
     controller_type: str = "vmanage"
 
@@ -43,7 +43,7 @@ class NetmikoCiscoVmanage(BaseControllerDispatcher, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        cls.controller_url = resolve_controller_url(
+        cls.url = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
             logger=logger,
@@ -51,7 +51,7 @@ class NetmikoCiscoVmanage(BaseControllerDispatcher, ConnectionMixin):
         username, password = task.host.username, task.host.password
         j_security_payload = f"j_username={username}&j_password={password}"
         security_url: str = format_base_url_with_endpoint(
-            base_url=cls.controller_url,
+            base_url=cls.url,
             endpoint="j_security_check",
         )
         # TODO: Change verify to true
@@ -77,7 +77,7 @@ class NetmikoCiscoVmanage(BaseControllerDispatcher, ConnectionMixin):
         logger.info("Successfully generated vManage cookie.")
         j_session_id: str = security_resp.headers.get("Set-Cookie", "")
         token_url: str = format_base_url_with_endpoint(
-            base_url=cls.controller_url,
+            base_url=cls.url,
             endpoint="dataservice/client/token",
         )
         token_resp: Any = cls.return_response_content(
@@ -131,7 +131,7 @@ class NetmikoCiscoVmanage(BaseControllerDispatcher, ConnectionMixin):
                 template=endpoint["endpoint"],
             )
             api_endpoint: str = format_base_url_with_endpoint(
-                base_url=cls.controller_url,
+                base_url=cls.url,
                 endpoint=uri,
             )
             if endpoint.get("query"):

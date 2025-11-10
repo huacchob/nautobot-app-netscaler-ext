@@ -35,7 +35,7 @@ class NetmikoCitrixNetscaler(BaseControllerDispatcher, ConnectionMixin):
     """Netscaler Controller Dispatcher class."""
 
     get_headers: dict[str, str] = {}
-    device_url: str = ""
+    url: str = ""
     session: Optional[Session] = None
 
     @classmethod
@@ -54,7 +54,7 @@ class NetmikoCitrixNetscaler(BaseControllerDispatcher, ConnectionMixin):
             Any: Controller object or None.
         """
         hostname: str = use_snip_hostname(hostname=obj.name)
-        cls.device_url: str = f"https://{hostname}"
+        cls.url: str = f"https://{hostname}"
         cls.session: Session = cls.configure_session()
         username: str = task.host.username
         password: str = task.host.password
@@ -95,7 +95,7 @@ class NetmikoCitrixNetscaler(BaseControllerDispatcher, ConnectionMixin):
                 template=endpoint["endpoint"],
             )
             api_endpoint: str = format_base_url_with_endpoint(
-                base_url=cls.device_url,
+                base_url=cls.url,
                 endpoint=uri,
             )
             if endpoint.get("query"):
