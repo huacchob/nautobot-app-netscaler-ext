@@ -210,6 +210,8 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
         Returns:
             Any: Dictionary of responses.
         """
+        if feature_name.lower() == "ssid":
+            RemotePdb(host="127.0.0.1", port=4444).set_trace()
         try:
             organization_id: str = kwargs["organizationId"]
             network_id: str = kwargs["networkId"]
@@ -245,7 +247,6 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
                 logger=logger,
                 payload=params,
             )
-            RemotePdb(host="127.0.0.1", port=4444).set_trace()
             if not response:
                 logger.warning(
                     msg=f"The API call to {endpoint['endpoint']} returned no response",
