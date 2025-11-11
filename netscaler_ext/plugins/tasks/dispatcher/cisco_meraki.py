@@ -210,7 +210,7 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
         Returns:
             Any: Dictionary of responses.
         """
-        if feature_name.lower() == "ssid":
+        if "ssid" in feature_name.lower():
             RemotePdb(host="127.0.0.1", port=4444).set_trace()
         try:
             organization_id: str = kwargs["organizationId"]
