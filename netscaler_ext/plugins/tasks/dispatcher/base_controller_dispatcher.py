@@ -53,21 +53,6 @@ class BaseControllerDispatcher(NetmikoDefault, ABC):
         return feat.lower().strip().replace("-", "_").replace(" ", "_")
 
     @classmethod
-    def make_fstring(cls, template: str, obj: Device) -> str:
-        """Make f-strings from a template string.
-
-        Args:
-            template (str): The template string to format.
-            obj (Device): The device object to use for formatting.
-
-        Returns:
-            str: The formatted string.
-        """
-        if "{" in template and "}" in template:
-            return template.format(obj=obj)
-        return template
-
-    @classmethod
     @abstractmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
         """Authenticate to controller.
