@@ -55,7 +55,6 @@ class BaseControllerRemediation(ABC):  # pylint: disable=too-few-public-methods
         Returns:
             str: Remediation config.
         """
-        pass
 
 
 class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=too-few-public-methods
@@ -181,8 +180,8 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                     (
                         path + (DictKey(key=key),),
                         actual[key],
-                        intended[key],
-                    )
+                        value,
+                    ),
                 )
                 self._dict_config(
                     intended=value,
@@ -196,8 +195,8 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                     (
                         path + (DictKey(key=key),),
                         actual[key],
-                        intended[key],
-                    )
+                        value,
+                    ),
                 )
                 self._list_config(
                     intended=value,
@@ -211,11 +210,11 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                     self._process_diff(
                         diff=diff,
                         path=path + (DictKey(key=key),),
-                        value=intended[key],
+                        value=value,
                     )
                 else:
                     self._str_int_float_config(
-                        intended=intended[key],
+                        intended=value,
                         actual=actual[key],
                         diff=diff,
                         path=path + (DictKey(key=key),),
@@ -250,7 +249,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
             actual_item = actual[index]
 
             if isinstance(intended_item, dict):
-                stack.append((path + (index,), actual_item, intended[index]))
+                stack.append((path + (index,), actual_item, intended_item))
                 self._dict_config(
                     intended=intended_item,
                     actual=actual_item,
@@ -259,7 +258,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                     stack=stack,
                 )
             elif isinstance(intended_item, list):
-                stack.append((path + (index,), actual_item, intended[index]))
+                stack.append((path + (index,), actual_item, intended_item))
                 self._list_config(
                     intended=intended_item,
                     actual=actual_item,
@@ -350,7 +349,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         if isinstance(diff, list):
             cleaned = [self._clean_diff(item) for item in diff]
             cleaned = [item for item in cleaned if item not in ({}, [], None)]
-            return cleaned if cleaned else []
+            return cleaned or []
 
         return diff
 
@@ -366,7 +365,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         config_context: dict[str, Any] = self.compliance_obj.device.get_config_context()
         if config_context.get("remediate_full_intended", False):
             return json.dumps(
-                self.intended_config.get(self.feature_name),
+                obj=self.intended_config,
                 indent=4,
             )
         intended: dict[str, Any] = self._filter_allowed_params(
@@ -387,7 +386,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         )
         if not actual or not intended:
             raise ValidationError(
-                "There was no config context passed or the config context does not have optional parameters."
+                "There was no config context passed or the config context does not have optional parameters.",
             )
         diff: dict[str, Any] = {}
         stack: deque[tuple[tuple[str, ...], Any, Any]] = deque()
@@ -436,7 +435,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         return json.dumps(cleaned_diff, indent=4)
 
 
-def controller_remediation(obj: "ConfigCompliance") -> str:
+def controller_remediation(obj: ConfigCompliance) -> str:
     """Controller remediation.
 
     Args:
