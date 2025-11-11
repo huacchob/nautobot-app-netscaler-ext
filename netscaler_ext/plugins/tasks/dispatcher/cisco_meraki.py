@@ -6,7 +6,6 @@ from typing import Any, Callable, OrderedDict
 from meraki import DashboardAPI
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from remote_pdb import RemotePdb
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_dispatcher import (
     BaseControllerDispatcher,
@@ -250,8 +249,6 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
                     msg=f"The API call to {endpoint['endpoint']} returned no response",
                 )
                 continue
-            if "ssid" in feature_name.lower():
-                RemotePdb(host="127.0.0.1", port=4444).set_trace()
             jpath_fields: dict[str, Any] | list[dict[str, Any]] = (
                 resolve_jmespath(
                     jmespath_values=endpoint["jmespath"],
