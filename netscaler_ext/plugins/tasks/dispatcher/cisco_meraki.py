@@ -253,6 +253,7 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
                 resolve_jmespath(
                     jmespath_values=endpoint["jmespath"],
                     api_response=response,
+                    logger=logger,
                 )
             )
             if not jpath_fields:

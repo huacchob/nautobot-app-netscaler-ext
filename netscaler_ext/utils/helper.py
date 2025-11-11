@@ -215,6 +215,7 @@ def resolve_params(
 def resolve_jmespath(
     jmespath_values: dict[str, str],
     api_response: Any,
+    logger: Logger,
 ) -> dict[Any, Any] | list[dict[str, Any]]:
     """Resolve jmespath.
 
@@ -239,8 +240,10 @@ def resolve_jmespath(
             if "JMSPath returned 'None'." in str(exc):
                 j_value = None
             else:
+                logger.error(f"Error resolving jmespath for key {key}: {exc}")
                 return {}
         except ValueError:
+            logger.error(f"ValueError resolving jmespath for key {key}")
             return {}
         data_fields.update({key: j_value})
     lengths: list[int] = [

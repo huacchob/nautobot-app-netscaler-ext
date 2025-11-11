@@ -78,6 +78,7 @@ class BaseAPIDispatcher(BaseControllerDispatcher, ConnectionMixin):
             jpath_fields: dict[Any, Any] | list[Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
+                logger=logger,
             )
             if not jpath_fields:
                 logger.error(f"jmespath values not found in {response}")
