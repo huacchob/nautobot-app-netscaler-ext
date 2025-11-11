@@ -13,7 +13,6 @@ from nautobot.apps.choices import (
 from nautobot.core.utils.data import render_jinja2
 from nautobot.dcim.models import Controller, Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
-from remote_pdb import RemotePdb
 
 
 def render_jinja_template(obj: Device, logger: Logger, template: str) -> str:
@@ -226,7 +225,6 @@ def resolve_jmespath(
     Returns:
         dict[Any, Any] | list[dict[str, Any]]: Resolved jmespath data fields.
     """
-    RemotePdb(host="127.0.0.1", port=4444).set_trace()
     data_fields: dict[str, Any] = {}
 
     for key, value in jmespath_values.items():

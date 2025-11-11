@@ -6,6 +6,7 @@ from typing import Any, Callable, OrderedDict
 from meraki import DashboardAPI
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
+from remote_pdb import RemotePdb
 
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_dispatcher import (
     BaseControllerDispatcher,
@@ -244,6 +245,7 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
                 logger=logger,
                 payload=params,
             )
+            RemotePdb(host="127.0.0.1", port=4444).set_trace()
             if not response:
                 logger.warning(
                     msg=f"The API call to {endpoint['endpoint']} returned no response",
