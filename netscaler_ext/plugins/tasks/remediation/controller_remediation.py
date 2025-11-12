@@ -205,7 +205,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                     path=path + (DictKey(key=key),),
                     stack=stack,
                 )
-            elif isinstance(value, (str, int, float)):
+            elif isinstance(value, (str, int, float, bool)):
                 if key not in actual:
                     self._process_diff(
                         diff=diff,
