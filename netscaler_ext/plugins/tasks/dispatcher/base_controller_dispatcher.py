@@ -138,7 +138,6 @@ class BaseControllerDispatcher(NetmikoDefault, ABC):
                 containing the running configuration or None.
         """
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        logger.info(f"Authenticating {obj.name} platform: {obj.platform.name}")
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
@@ -168,14 +167,12 @@ class BaseControllerDispatcher(NetmikoDefault, ABC):
                     f"Could not find the endpoint context for {feature} in the config context",
                 )
                 continue
-            feature_response: dict[str, dict[Any, Any]] = (
-                cls.resolve_backup_endpoint(
-                    controller_obj=controller_obj,
-                    logger=logger,
-                    endpoint_context=endpoints,
-                    feature_name=feature_name,
-                    **controller_dict,
-                )
+            feature_response: dict[str, dict[Any, Any]] = cls.resolve_backup_endpoint(
+                controller_obj=controller_obj,
+                logger=logger,
+                endpoint_context=endpoints,
+                feature_name=feature_name,
+                **controller_dict,
             )
             if not feature_response:
                 logger.error(
@@ -283,9 +280,7 @@ class BaseControllerDispatcher(NetmikoDefault, ABC):
                     cls.resolve_remediation_endpoint(
                         controller_obj=controller_obj,
                         logger=logger,
-                        endpoint_context=cfg_cntx[
-                            f"{remediation_endpoint}_remediation"
-                        ],
+                        endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
                         payload=config[remediation_endpoint],
                         **controller_dict,
                     ),

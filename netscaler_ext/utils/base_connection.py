@@ -77,6 +77,9 @@ class ConnectionMixin:
             except req_exceptions.ConnectionError as exc_conn:
                 logger.error("Connection error occurred: %s", exc_conn)
                 response = None
+            except req_exceptions.RequestException as exc_req:
+                logger.error("Request exception occurred: %s", exc_req)
+                response = None
             except Exception as exc:
                 logger.error("An error occurred: %s", exc)
                 response = None
@@ -84,7 +87,7 @@ class ConnectionMixin:
             return response
         if not response.ok:
             logger.error(
-                f"Error in API call to {url}: {response.status_code} - {response.text}",
+                f"Endpoint {url} returned {response.status_code}: {response.text}",
             )
             return None
         return response
