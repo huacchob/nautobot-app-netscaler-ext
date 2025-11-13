@@ -7,8 +7,8 @@ from meraki import DashboardAPI
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_dispatcher import (
-    BaseControllerDispatcher,
+from netscaler_ext.plugins.tasks.dispatcher.base_dispatcher import (
+    BaseDispatcher,
 )
 from netscaler_ext.utils.helper import (
     add_api_path_to_url,
@@ -113,7 +113,7 @@ def _send_remediation_call(
     aggregated_results.append(response)
 
 
-class NetmikoCiscoMeraki(BaseControllerDispatcher):
+class NetmikoCiscoMeraki(BaseDispatcher):
     """Meraki Controller Dispatcher class."""
 
     controller_type = "meraki"
@@ -223,12 +223,10 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
             "networkId": network_id,
         }
         for endpoint in endpoint_context:
-            method_callable: Callable[[Any], Any] | None = (
-                _resolve_method_callable(
-                    controller_obj=controller_obj,
-                    method=endpoint["endpoint"],
-                    logger=logger,
-                )
+            method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
+                controller_obj=controller_obj,
+                method=endpoint["endpoint"],
+                logger=logger,
             )
             if not method_callable:
                 logger.warning(
@@ -249,12 +247,10 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
                     msg=f"The API call to {endpoint['endpoint']} returned no response",
                 )
                 continue
-            jpath_fields: dict[str, Any] | list[dict[str, Any]] = (
-                resolve_jmespath(
-                    jmespath_values=endpoint["jmespath"],
-                    api_response=response,
-                    logger=logger,
-                )
+            jpath_fields: dict[str, Any] | list[dict[str, Any]] = resolve_jmespath(
+                jmespath_values=endpoint["jmespath"],
+                api_response=response,
+                logger=logger,
             )
             if not jpath_fields:
                 logger.error(f"jmespath values not found in {response}")
@@ -309,12 +305,10 @@ class NetmikoCiscoMeraki(BaseControllerDispatcher):
         """
         aggregated_results: list[Any] = []
         for api_context in endpoint_context:
-            method_callable: Callable[[Any], Any] | None = (
-                _resolve_method_callable(
-                    controller_obj=controller_obj,
-                    method=api_context["endpoint"],
-                    logger=logger,
-                )
+            method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
+                controller_obj=controller_obj,
+                method=api_context["endpoint"],
+                logger=logger,
             )
             if not method_callable:
                 logger.error(

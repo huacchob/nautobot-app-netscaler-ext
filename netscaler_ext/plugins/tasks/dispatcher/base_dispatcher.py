@@ -8,12 +8,13 @@ from typing import Any, OrderedDict
 from nautobot.dcim.models import Device
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from remote_pdb import RemotePdb
 
 from netscaler_ext.utils.helper import render_jinja_template
 
 
-class BaseControllerDispatcher(NetmikoDefault, ABC):
-    """Base Controller Dispatcher class."""
+class BaseDispatcher(NetmikoDefault, ABC):
+    """Base Dispatcher class."""
 
     @classmethod
     def _render_uri_template(
@@ -137,6 +138,7 @@ class BaseControllerDispatcher(NetmikoDefault, ABC):
             None | Result: Nornir Result object with a dict as a result
                 containing the running configuration or None.
         """
+        RemotePdb(host="localhost", port=4444).set_trace()
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         controller_obj: Any = cls.authenticate(
             logger=logger,

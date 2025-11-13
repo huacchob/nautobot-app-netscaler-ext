@@ -5,8 +5,8 @@ from typing import Any, Optional
 
 from requests import Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_dispatcher import (
-    BaseControllerDispatcher,
+from netscaler_ext.plugins.tasks.dispatcher.base_dispatcher import (
+    BaseDispatcher,
 )
 from netscaler_ext.utils.base_connection import ConnectionMixin
 from netscaler_ext.utils.helper import (
@@ -16,7 +16,7 @@ from netscaler_ext.utils.helper import (
 )
 
 
-class BaseAPIDispatcher(BaseControllerDispatcher, ConnectionMixin):
+class BaseAPIDispatcher(BaseDispatcher, ConnectionMixin):
     """Base API Dispatcher class."""
 
     get_headers: dict[str, str] = {}
@@ -147,8 +147,7 @@ class BaseAPIDispatcher(BaseControllerDispatcher, ConnectionMixin):
             )
             req_params: list[str] = (
                 endpoint["parameters"]["non_optional"]
-                if "parameters" in endpoint
-                and "non_optional" in endpoint["parameters"]
+                if "parameters" in endpoint and "non_optional" in endpoint["parameters"]
                 else []
             )
             if isinstance(payload, dict):
