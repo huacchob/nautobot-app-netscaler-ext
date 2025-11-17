@@ -1,131 +1,118 @@
-# Nautobot Setup
+# Nautobot Setup for Golden Config Dispatchers
 
-## Nautobot Setup (ALL PLATFORMS)
+This document outlines the necessary steps to configure your Nautobot environment to effectively utilize the Golden Config Dispatchers, particularly for API-driven controller integrations.
 
-### Platform to framework mapping
+## 1. Platform to Framework Mapping
 
-Once you are in the Nautobot UI, on the vertical menu bar scroll down to `Admin`. From the dropdown select `Admin`
+To ensure Nautobot Golden Config uses the correct dispatcher for each platform, you need to configure the framework mappings.
 
-![Admin Vertical Menu Item](images/admin_vertical_menu_item.png)
+1. **Navigate to Configuration**:
 
-From the `Site administration` page, click on the config menu item
+   - In the Nautobot UI, scroll down the vertical menu bar and click on **Admin**.
+   - From the dropdown, select **Admin** again.
+   - On the `Site administration` page, click on the **Config** menu item.
+     ![Config Site Admin](images/config_site_admin.png)
 
-![Config Site Admin](images/config_site_admin.png)
+2. **Configure Golden Configuration Settings**:
+   - On the `Configuration` page, scroll down to the **Golden Configuration** section.
+   - You can either set a `DEFAULT FRAMEWORK` for all platforms or individually configure the `GET CONFIG FRAMEWORK` (for backup) and `MERGE CONFIG FRAMEWORK` (for remediation) for specific platforms.
+   - For API dispatchers, you will typically map the platform (e.g., `cisco_meraki`) to its corresponding dispatcher framework (e.g., `cisco_meraki`).
+   - _Note_: You do not need to update both `DEFAULT FRAMEWORK` and the individual GET/MERGE frameworks simultaneously.
+     ![Golden Config Framework Mappings](images/golden_config_framework_mappings.png)
 
-Once in the `Configuration` page, scroll down to the `Golden Configuration` section
-You can change all the frameworks for all platforms using the `DEFAULT FRAMEWORK` box or
-individually change the `GET CONFIG FRAMEWORK` and `MERGE CONFIG FRAMEWORK` in their boxes.
-We are using the `cisco_meraki` platform as an example, you would add all of the platforms
-requiring API dispatcher if you are using `GET CONFIG FRAMEWORK` and `MERGE CONFIG FRAMEWORK`.
-You don't need to update both `DEFAULT FRAMEWORK` and the individual GET and MERGE frameworks.
+## 2. Creating a Secrets Group
 
-![Golden Config Framework Mappings](images/golden_config_framework_mappings.png)
+A `Secrets Group` is essential for securely storing credentials that the dispatchers will use to authenticate with external controllers.
 
-### Creating a Secrets Group
+- The created `Secrets Group` must be compatible with Golden Config. This means it requires at least two `Secrets` associated with it:
+  - One with `Access Type: Generic` and `Secret Type: Username`.
+  - One with `Access Type: Generic` and `Secret Type: Password`.
+  - Optionally, a third `Secret` with `Access Type: Generic` and `Secret Type: Secret` can be added.
+- Refer to the [Nautobot: Create Secrets/Secrets Group](https://docs.nautobot.com/projects/core/en/stable/user-guide/platform-functionality/secret/) documentation for detailed instructions on creating secrets.
 
-The created `Secrets Group` must be compatible with Golden Config. This means that the
-we would require at least two `Secrets` associated to our `Secrets Group`. The `Access Type`
-must be `Generic` for all secrets, and for `Secret Type` we need `Password` and `Username`.
-You could optionally add a third `Secrets` object, same Access Type, but the Secret Type would be `Secret`
+## 3. Controller Platforms Specific Setup
 
-[Nautobot: Create Secrets/Secrets Group](https://docs.nautobot.com/projects/core/en/stable/user-guide/platform-functionality/secret/)
+For dispatchers that interact with external controller platforms (e.g., Cisco Meraki, vManage, APIC), additional setup is required to properly define and manage these controllers within Nautobot.
 
----
+### 3.1. Location Type for Storing Controllers
 
-## Nautobot Setup (CONTROLLER PLATFORMS)
+The `Location Type` you use for locations that will house your controller objects needs to be configured to accept `Controller` objects.
 
-### Location Type Storing Controllers
+1. **Navigate to Location Types**:
 
-The location you use to store controllers need to have a location type that accepts
-`Controller` objects. In the Nautobot UI, on the vertical menu bar scroll down to the `ORGANIZATION` dropdown.
-Under the `LOCATIONS` section, click on the `Location Types` menu item.
+   - In the Nautobot UI, scroll down the vertical menu bar to the **ORGANIZATION** dropdown.
+   - Under the **LOCATIONS** section, click on the **Location Types** menu item.
+     ![Location Types Menu Item](images/location_types_menu_item.png)
 
-![Location Types Menu Item](images/location_types_menu_item.png)
+2. **Edit Location Type**:
 
-In the `Location Types` page, click on the location type's orange edit pencil on the right
-that would store the controllers.
+   - On the `Location Types` page, click the orange edit pencil icon next to the `Location Type` that will store your controllers.
+     ![Location Type Quick Edit](images/object_quick_edit_option.png)
 
-![Location Type Quick Edit](images/object_quick_edit_option.png)
+3. **Add Controller Content Type**:
+   - On the `Location Type` object's edit page, add `dcim | controller` to the `Content types` field.
+   - Click the blue **Update** button to save your changes.
+     ![Add Controller To Content Type](images/add_controller_to_content_type.png)
 
-Once in the Location Type object's edit page, add `dcim | controller` to the `Content types` field, and click the blue `Update` button.
+### 3.2. Controller Device Placeholder
 
-![Add Controller To Content Type](images/add_controller_to_content_type.png)
+It is best practice to create a "controller device placeholder" in Nautobot. This device represents the controller itself (e.g., a Meraki Dashboard, a vManage instance) and is used for system-level API calls, rather than API calls to devices managed by the controller.
 
-### Controller Device Placeholder
+- For example, for the Meraki platform, you might have two separate platforms: `cisco_meraki` for the controller placeholder device and `meraki_managed` for devices managed by Meraki (like APs).
+- Refer to the [Nautobot: Create A Device](https://docs.nautobot.com/projects/core/en/stable/user-guide/feature-guides/getting-started/creating-devices/) documentation for creating devices.
 
-It is best to have a controller device placeholder, to make controller system level API calls
-and not controller managed device API calls. For example, we want to grab system information from
-Meraki controller, but not from a Meraki AP device.
+### 3.3. External Integration
 
-For Meraki platform, we have two separate platforms, `cisco_meraki` and `meraki_managed`. Devices
-managed by Meraki will use the `meraki_managed` platform, and Meraki devices, such as APs will
-use the `meraki_managed` devices. In this scenario, we would use the `cisco_meraki` platform for our
-controller placeholder device.
+`External Integrations` are used to define the connectivity details for your controller objects, including their remote URL and associated `Secrets Group`.
 
-We will not go over how to create a device, as that is covered in other documentation. Here is a link
-to it for reference
+1. **Navigate to External Integrations**:
 
-[Nautobot: Create A Device](https://docs.nautobot.com/projects/core/en/stable/user-guide/feature-guides/getting-started/creating-devices/)
+   - In the Nautobot UI, scroll down the vertical menu bar to the **EXTENSIBILITY** dropdown.
+   - Under the **AUTOMATION** section, click on the **External Integrations** menu item.
+     ![Extensibility Menu Item](images/extensibility_menu_item.png)
+     ![External Integrations Menu Item](images/external_integrations_menu_item.png)
 
-### External Integration
+2. **Create External Integration**:
+   - Create a new `External Integration` and configure it with the controller's remote URL and the `Secrets Group` created earlier.
 
-Adding controller connectivity to a controller object is done by creating an `External Integration`.
-This will contain the remote URL and secrets group for example.
+- Refer to the [Nautobot: Create External Integrations](https://docs.nautobot.com/projects/core/en/stable/user-guide/platform-functionality/externalintegration/) documentation for more information.
 
-In the Nautobot UI, on the vertical menu bar scroll down to the `EXTENSIBILITY` dropdown. From the dropdown find the
-`AUTOMATION` section and click on the `External Integrations` menu item.
+### 3.4. Controller Creation
 
-![Extensibility Menu Item](images/extensibility_menu_item.png)
+Create `Controller` objects in Nautobot to represent your external network controllers.
 
-![External Integrations Menu Item](images/external_integrations_menu_item.png)
+1. **Navigate to Controllers**:
 
-Here is more information on External Integrations
+   - In the Nautobot UI, scroll down the vertical menu bar to the **DEVICES** dropdown.
+   - Under the **CONTROLLERS** section, click on the **Controllers** menu item.
+     ![Devices Menu Item](images/devices_menu_item.png)
+     ![Controllers Menu Item](images/controllers_menu_item.png)
 
-[Nautobot: Create External Integrations](https://docs.nautobot.com/projects/core/en/stable/user-guide/platform-functionality/externalintegration/)
+2. **Configure Controller**:
+   - When creating a controller, ensure you associate it with the correct `External Integration`, `Platform`, and the `Controller Device Placeholder` created previously.
+     ![Create Controller](images/create_controller.png)
 
-### Controller Creation
+- Refer to the [Nautobot: Create Controller](https://docs.nautobot.com/projects/core/en/stable/user-guide/feature-guides/wireless-networks-and-controllers/#controllers) documentation for detailed instructions.
 
-In the Nautobot UI, on the vertical menu bar scroll down to the `DEVICES` dropdown. From the dropdown find the
-`CONTROLLERS` section and click on the `Controllers` menu item.
+### 3.5. Update Golden Config Settings to Disable Ping Tests
 
-![Devices Menu Item](images/devices_menu_item.png)
+For controller-based dispatchers, especially with cloud-managed controllers or placeholder devices without direct IP connectivity, it's often necessary to disable Golden Config's default ping test.
 
-![Controllers Menu Item](images/controllers_menu_item.png)
+1. **Navigate to Golden Config Settings**:
 
-The most important things to have in the controller are external integrations, platform, and controller device.
+   - In the Nautobot UI, scroll down the vertical menu bar to the **GOLDEN CONFIG** dropdown.
+   - Under the **SETUP** section, click on the **Golden Config Settings** menu item.
+     ![Golden Config Settings Menu Item](images/golden_config_settings_menu_item.png)
 
-![Create Controller](images/create_controller.png)
+2. **Configure Controller-Specific Settings**:
 
-Here is the documentation to create Controller objects
+   - Create a separate `Golden Config Settings` object specifically for your controller-based dispatchers.
+   - Use a `Dynamic Group` to ensure these settings apply only to your controller placeholder devices.
+   - Adjust the `Weight` of this setting to give it higher precedence for controller devices.
+     ![Golden Config Settings Weight](images/gc_settings_weight.png)
 
-[Nautobot: Create Controller](https://docs.nautobot.com/projects/core/en/stable/user-guide/feature-guides/wireless-networks-and-controllers/#controllers)
-
-### Update Golden Config Settings to not execute a ping test to controllers
-
-It is best to have a separate set of Golden Config Settings for controller based dispatchers. This is because
-placeholder controller devices typically do not have an IP, like if the controller is managed by the vendor, like
-Meraki which is managed by Cisco in the cloud.
-
-Golden Config tries to perform a connectivity test via ping using the device's IP to TCP ports 22 or 443. If the device does not have an IP,
-the job will fail. To disable this, we need to configure it in the Golden Config Settings object. You can have multiple
-Golden Config Settings, and each have their own weight, and the heavier the weight, the more preferene Golden Config would
-have to use that set of settings.
-
-To limit the devices to use the controller Golden Config Settings, you would use Dynamic Group. This Dynamic Group
-should only include the platforms that would not have an IP you could ping.
-
-In the Nautobot UI, on the vertical menu bar scroll down to the `GOLDEN CONFIG` dropdown. From the dropdown find the
-`SETUP` section and click on the `Golden Config Settings` menu item.
-
-![Golden Config Settings Menu Item](images/golden_config_settings_menu_item.png)
-
-Adjust the weight of the controller specific dispatcher Golden Config Setting
-
-![Golden Config Settings Weight](images/gc_settings_weight.png)
-
-Lastly, you would disable the ping test. You can do this by editing the Golden Config Settings and unchecking
-the `Backup Test` box.
-
-![Golden Config Ping Unchecked Box](images/gc_setting_uncheck_ping.png)
-
-![Golden Config Ping Test](images/gc_ping_test.png)
+3. **Disable Backup Test**:
+   - Edit the controller-specific `Golden Config Settings` object.
+   - **Uncheck** the `Backup Test` box to disable the ping test for devices covered by these settings.
+     ![Golden Config Ping Unchecked Box](images/gc_setting_uncheck_ping.png)
+     ![Golden Config Ping Test](images/gc_ping_test.png)

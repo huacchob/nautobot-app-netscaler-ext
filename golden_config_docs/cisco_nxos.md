@@ -2,92 +2,42 @@
 
 ## Overview
 
-The **Cisco NXOS Golden Config Dispatcher** extends the default **Netmiko dispatcher** to support NXOS-specific backup workflows.  
-In addition to collecting the full running configuration, it parses and normalizes **SNMP user configuration** using a **TextFSM template**, ensuring that SNMP secrets are not exposed but are still represented consistently for compliance and remediation.
+The **Cisco NXOS Golden Config Dispatcher** extends the default Netmiko dispatcher to support NXOS-specific backup workflows. In addition to collecting the full running configuration, it parses and normalizes **SNMP user configuration** using a **TextFSM template**. This ensures that sensitive SNMP secrets are not exposed in the backup but are still represented consistently for compliance and remediation purposes.
 
-- Transport: SSH (Netmiko via Nornir)
-- Auth: Device credentials (username/password)
-- Scope: Backup only (with SNMP user normalization)
+- **Transport**: SSH (Netmiko via Nornir)
+- **Authentication**: Standard device credentials (username/password)
+- **Scope**: Backup and Remediation
 
----
+## Authentication Details
 
-## How It Works
+Authentication is handled by Netmiko, leveraging standard SSH username and password credentials configured for the device in Nautobot.
 
-### 1) Extended `get_config`
+## Key Features/Differences
 
-- Inherits from `NetmikoDefault`.
-- Overrides `get_config()` to:
-  1. Run `show run all` (full config).
-  2. Run `show snmp user` (SNMP user details).
-  3. Parse SNMP output with TextFSM → structured dictionaries.
-  4. Rebuild SNMP user config into normalized CLI commands with **placeholders** for secrets.
-  5. Combine both configs and pass them through `_process_config()` (line removals, substitutions, file save).
+- **Extended `get_config`**: Overrides the default `get_config()` method to perform multiple CLI commands.
+- **SNMP User Normalization**:
+  - Executes `show snmp user` to retrieve SNMP user details.
+  - Parses the output using a platform-specific TextFSM template (`cisco_nxos_show_snmp_user.textfsm`).
+  - Rebuilds the SNMP user configuration into normalized CLI commands, replacing sensitive authentication and privacy keys with placeholders (e.g., `<<<SNMP_USER_AUTH_KEY>>>`, `<<<SNMP_USER_PRIV_KEY>>>`).
+  - This process protects sensitive data while maintaining a consistent format for configuration diffs.
+- **Full Configuration Capture**: Collects the full running configuration using `show run all`.
 
----
+## Usage Notes
 
-## Backup Flow
-
-### Processing Steps
-
-1. Execute command list:
-   - `show run all` → append raw running config.
-   - `show snmp user` → parse and normalize SNMP users.
-2. Parse SNMP output with TextFSM (`cisco_nxos_show_snmp_user.textfsm`).
-3. Rebuild structured SNMP config lines:
-
-   ```text
-   ! show snmp user
-   snmp-server user snmpUser1 network-admin auth sha <<<SNMP_USER_AUTH_KEY>>> priv aes128 <<<SNMP_USER_PRIV_KEY>>> localizedkey
-   snmp-server user snmpUser1 use-ipv4 acl ACL1
-   ```
-
-4. Merge into a single configuration string.
-5. Process final config through `_process_config()`.
-6. Return structured configuration for Golden Config backup.
-
----
-
-## Special Handling: SNMP Users
-
-- **Parsing**:
-
-  - SNMP users parsed into dicts:
-
-    ```python
-    {"USERNAME": "snmpUser1", "GROUP": "network-admin", "AUTH": "sha", "PRIV": "aes128", "ACL_FILTER": "ipv4:ACL1"}
-    ```
-
-- **Rebuilding**:
-
-  - Converted back to config lines with placeholders for auth/priv keys.
-  - Protects secrets while preserving reproducible format for diffs.
-
-- **Template**:
-  - Located in `textfsm_templates/cisco_nxos_show_snmp_user.textfsm`.
-  - Defines how `show snmp user` output is parsed.
-
----
+- **TextFSM Template**: Ensure that the `textfsm_templates/cisco_nxos_show_snmp_user.textfsm` file is present and correctly defines how `show snmp user` output should be parsed.
+- **Secrets Handling**: The dispatcher intentionally replaces actual SNMP user secrets with placeholders in the backup configuration. During remediation, these placeholders would need to be replaced with actual values if the configuration is to be applied.
+- **Compliance**: The normalized SNMP output is crucial for maintaining consistent configuration diffs across backups and preventing the exposure of sensitive data in version control.
+- **Scope**: This dispatcher is specifically designed for **Cisco NXOS platforms** that require special handling for SNMP user configurations. For other platforms, the generic `NetmikoDefault` dispatcher may be more appropriate.
 
 ## File & Class Reference
 
 - **Class**: `NetmikoCiscoNxos`
-
-  - Inherits: `NetmikoDefault`
-  - Attributes:
-    - `config_commands = ["show run all", "show snmp user"]`
-  - Methods:
-    - `get_config(task, logger, obj, backup_file, remove_lines, substitute_lines)`
-      - Runs commands, parses SNMP, rebuilds config, processes final output.
-
+  - Inherits from `NetmikoDefault`.
+  - `config_commands`: Defines the list of CLI commands to execute for configuration collection (e.g., `["show run all", "show snmp user"]`).
+  - Key Methods:
+    - `get_config(task, logger, obj, backup_file, remove_lines, substitute_lines)`: Executes CLI commands, parses SNMP output, rebuilds SNMP configuration, and processes the final output.
 - **Helper Functions**:
-  - `snmp_user_template(output)` → parses SNMP output with TextFSM.
-  - `snmp_user_command_build(parsed)` → rebuilds SNMP user CLI commands with placeholders.
-
----
-
-## Usage Notes
-
-- **TextFSM Template**: Ensure the template exists at `textfsm_templates/cisco_nxos_show_snmp_user.textfsm`.
-- **Secrets**: Placeholders (`<<<SNMP_USER_AUTH_KEY>>>`, `<<<SNMP_USER_PRIV_KEY>>>`) must be replaced with real keys at remediation time.
-- **Compliance**: Normalized SNMP output ensures consistent diffs across backups and avoids sensitive data exposure.
-- **Scope**: This dispatcher is for **Cisco NXOS platforms** requiring SNMP normalization. Use `NetmikoDefault` for platforms without this requirement.
+  - `snmp_user_template(output)`: Parses SNMP output using the TextFSM template.
+  - `snmp_user_command_build(parsed)`: Rebuilds SNMP user CLI commands with placeholders.
+- **TextFSM Template**:
+  - `textfsm_templates/cisco_nxos_show_snmp_user.textfsm`: Defines the parsing rules for `show snmp user` output.

@@ -90,7 +90,7 @@ class BaseAPIDispatcher(BaseDispatcher, ConnectionMixin):
                 api_response=response,
                 logger=logger,
             )
-            if not jpath_fields:
+            if not jpath_fields or (isinstance(jpath_fields, dict) and all(v is None for v in jpath_fields.values())):
                 logger.error(f"jmespath values not found in {response}")
                 continue
             if isinstance(jpath_fields, list):
