@@ -1,7 +1,15 @@
 """nornir dispatcher for cisco IOS."""
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Device
 
 import textfsm
 from nornir.core.task import Result, Task
@@ -46,17 +54,13 @@ def snmp_user_command_build(parsed_snmp_user: list[dict[str, str]]) -> str:
         return ""
     snmp_user_commands.append("! show snmp user")
     for snmp_user in parsed_snmp_user:
-        single_user: str = (
-            f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']} v3"
-        )
+        single_user: str = f"snmp-server user {snmp_user['USERNAME']} {snmp_user['GROUP']} v3"
         if snmp_user["AUTH"]:
             auth: str = snmp_user["AUTH"].lower()
             single_user += f" auth {auth} <<<SNMP_USER_AUTH_KEY>>>"
         if snmp_user["PRIV"]:
             priv: str = snmp_user["PRIV"].lower()
-            priv_processed = re.sub(
-                pattern=r"([a-zA-Z]+)(\d+)", repl=r"\1 \2", string=priv
-            )
+            priv_processed = re.sub(pattern=r"([a-zA-Z]+)(\d+)", repl=r"\1 \2", string=priv)
             single_user += f" priv {priv_processed} <<<SNMP_USER_PRIV_KEY>>>"
         if snmp_user["ACL_FILTER"]:
             acl: str = snmp_user["ACL_FILTER"]
@@ -75,11 +79,11 @@ class NetmikoCiscoIos(NetmikoDefault):
     def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
-        logger,
-        obj,
+        logger: Logger,
+        obj: Device,
         backup_file: str,
-        remove_lines: list,
-        substitute_lines: list,
+        remove_lines: list[str],
+        substitute_lines: list[str],
     ) -> Result:
         """Get the latest configuration from IOS devices.
 
@@ -95,12 +99,10 @@ class NetmikoCiscoIos(NetmikoDefault):
             Result: Nornir Result object with a dict as a result containing the
                 running configuration.
         """
-        logger.debug(
-            f"Executing get_config for {task.host.name} on {task.host.platform}"
-        )
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         full_config: str = ""
         for command in cls.config_commands:
-            getter_result = cls.get_command(task, logger, obj, command)
+            getter_result: Result = cls.get_command(task=task, logger=logger, obj=obj, command=command)
             if "show snmp user" in command:
                 snmp_user_result: list[dict[str, str]] = snmp_user_template(
                     snmp_user_output=getter_result.result.get("output").get(
@@ -113,6 +115,10 @@ class NetmikoCiscoIos(NetmikoDefault):
                 continue
             full_config += getter_result.result.get("output").get(command)
         processed_config: str = cls._process_config(
-            logger, full_config, remove_lines, substitute_lines, backup_file
+            logger=logger,
+            running_config=full_config,
+            remove_lines=remove_lines,
+            substitute_lines=substitute_lines,
+            backup_file=backup_file,
         )
         return Result(host=task.host, result={"config": processed_config})

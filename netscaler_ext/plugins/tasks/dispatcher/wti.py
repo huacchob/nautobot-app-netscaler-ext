@@ -1,11 +1,14 @@
 """Netmiko dispatcher for cisco vManage controllers."""
 
-from logging import Logger
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from nautobot.dcim.models import Device
-from nornir.core.task import Task
-from requests import Session
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Device
+    from nornir.core.task import Task
+    from requests import Session
+
 
 from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
     BaseAPIDispatcher,
@@ -26,9 +29,6 @@ class NetmikoWti(BaseAPIDispatcher):
             logger (Logger): Logger object.
             obj (Device): Device object.
             task (Task): Nornir Task object.
-
-        Raises:
-            ValueError: Could not find the controller API URL in config context.
 
         Returns:
             Any: Controller object or None.

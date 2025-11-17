@@ -1,11 +1,16 @@
 """Netmiko dispatcher for cisco Meraki controllers."""
 
-from logging import Logger
-from typing import Any, Callable, OrderedDict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Callable, OrderedDict
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Device
+    from nornir.core.task import Task
 
 from meraki import DashboardAPI
-from nautobot.dcim.models import Device
-from nornir.core.task import Task
 
 from netscaler_ext.plugins.tasks.dispatcher.base_dispatcher import (
     BaseDispatcher,
@@ -41,9 +46,8 @@ def _resolve_method_callable(
             cotroller_class,
         )
     except AttributeError:
-        logger.error(
-            f"The class {cotroller_class} does not exist in the controller object",
-        )
+        exc_msg: str = f"The class {cotroller_class} does not exist in the controller object"
+        logger.error(exc_msg)
         return None
     try:
         method_callable: Callable[[Any], Any] = getattr(
@@ -51,9 +55,8 @@ def _resolve_method_callable(
             controller_method,
         )
     except AttributeError:
-        logger.error(
-            f"The method {controller_method} does not exist in the {cotroller_class} class",
-        )
+        exc_msg: str = f"The method {controller_method} does not exist in the {cotroller_class} class"
+        logger.error(exc_msg)
         return None
     return method_callable
 
@@ -66,9 +69,8 @@ def _send_call(
     try:
         return method_callable(**payload)
     except TypeError as e:
-        logger.error(
-            f"The payload {payload} are not valid/sufficient for the {method_callable} method",
-        )
+        exc_msg: str = f"The payload {payload} are not valid/sufficient for the {method_callable} method"
+        logger.error(exc_msg)
         logger.warning(
             e,
         )
@@ -150,37 +152,38 @@ class NetmikoCiscoMeraki(BaseDispatcher):
             print_console=False,
         )
         if not controller_obj:
-            logger.error("Could not authenticate to the Meraki controller")
-            raise ValueError("Could not authenticate to the Meraki controller")
+            exc_msg: str = "Could not authenticate to the Meraki controller"
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
         return controller_obj
 
     @classmethod
     def controller_setup(
         cls,
         device_obj: Device,
-        controller_obj: Any,
+        authenticated_obj: Any,
         logger: Logger,
     ) -> dict[str, str]:
         """Setup for controller.
 
         Args:
             device_obj (Device): Nautobot Device object.
-            controller_obj (Any): The controller object, i.e DashboardAPI for
+            authenticated_obj (Any): The controller object, i.e DashboardAPI for
                 controller or None is not SDK.
             logger (Logger): Logger object.
 
         Returns:
             dict[str, str]: Map for controller data.
+
+        Raises:
+            ValueError: If the Meraki organization ID is not found in API response.
         """
         config_context: OrderedDict[Any, Any] = device_obj.get_config_context()
         org_id: str = config_context.get("organization_id")
         if not org_id:
-            logger.error(
-                "Could not find the Meraki organization ID in API response",
-            )
-            raise ValueError(
-                "Could not find the Meraki organization ID in API response",
-            )
+            exc_msg: str = "Could not find the Meraki organization ID in API response"
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
         networkId = config_context.get("network_id")
         return {
             "organizationId": org_id,
@@ -191,7 +194,8 @@ class NetmikoCiscoMeraki(BaseDispatcher):
     @classmethod
     def resolve_backup_endpoint(
         cls,
-        controller_obj: Any,
+        authenticated_obj: Any,
+        device_obj: Device,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
         feature_name: str,
@@ -200,7 +204,8 @@ class NetmikoCiscoMeraki(BaseDispatcher):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object or None.
+            authenticated_obj (Any): Controller object or None.
+            device_obj (Device): Nautobot Device object.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
             feature_name (str): Feature name being collected.
@@ -208,15 +213,18 @@ class NetmikoCiscoMeraki(BaseDispatcher):
 
         Returns:
             Any: Dictionary of responses.
+
+        Raises:
+            ValueError: If required parameters are missing in kwargs.
+            TypeError: If response types are inconsistent (not all list or all dict).
         """
         try:
             organization_id: str = kwargs["organizationId"]
             network_id: str = kwargs["networkId"]
         except KeyError as exc:
             missing: str = exc.args[0]
-            raise ValueError(
-                f"resolve_endpoint() needs '{missing}' in kwargs",
-            ) from exc
+            exc_msg: str = f"resolve_endpoint() needs '{missing}' in kwargs"
+            raise ValueError(exc_msg) from exc
         responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         param_mapper: dict[str, str] = {
             "organizationId": organization_id,
@@ -224,7 +232,7 @@ class NetmikoCiscoMeraki(BaseDispatcher):
         }
         for endpoint in endpoint_context:
             method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
-                controller_obj=controller_obj,
+                controller_obj=authenticated_obj,
                 method=endpoint["endpoint"],
                 logger=logger,
             )
@@ -260,18 +268,16 @@ class NetmikoCiscoMeraki(BaseDispatcher):
                     responses = jpath_fields
                     continue
                 if not isinstance(responses, list):
-                    raise TypeError(
-                        f"All responses should be list but got {type(responses)}",
-                    )
+                    exc_msg: str = f"All responses should be list but got {type(responses)}"
+                    raise TypeError(exc_msg)
                 responses.extend(jpath_fields)
             else:
                 if responses is None:
                     responses = jpath_fields
                     continue
                 if not isinstance(responses, dict):
-                    raise TypeError(
-                        f"All responses should be dict but got {type(responses)}",
-                    )
+                    exc_msg: str = f"All responses should be dict but got {type(responses)}"
+                    raise TypeError(exc_msg)
                 responses.update(jpath_fields)
 
         if responses:
@@ -284,7 +290,8 @@ class NetmikoCiscoMeraki(BaseDispatcher):
     @classmethod
     def resolve_remediation_endpoint(
         cls,
-        controller_obj: Any,
+        authenticated_obj: Any,
+        device_obj: Device,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
         payload: dict[Any, Any] | list[dict[str, Any]],
@@ -293,8 +300,8 @@ class NetmikoCiscoMeraki(BaseDispatcher):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object, i.e. Meraki Dashboard
-                object or None.
+            authenticated_obj (Any): Controller object, i.e. Meraki Dashboard object or None.
+            device_obj (Device): Nautobot Device object.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
             payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
@@ -306,7 +313,7 @@ class NetmikoCiscoMeraki(BaseDispatcher):
         aggregated_results: list[Any] = []
         for api_context in endpoint_context:
             method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
-                controller_obj=controller_obj,
+                controller_obj=authenticated_obj,
                 method=api_context["endpoint"],
                 logger=logger,
             )

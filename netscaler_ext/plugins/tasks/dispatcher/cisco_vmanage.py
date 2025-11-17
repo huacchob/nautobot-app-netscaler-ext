@@ -61,12 +61,9 @@ class NetmikoCiscoVmanage(BaseAPIDispatcher):
             verify=False,
         )
         if not security_resp or not security_resp.headers.get("Set-Cookie"):
-            logger.error(
-                "Could not generate vManage cookie. Please check the credentials and try again.",
-            )
-            raise ValueError(
-                "Could not generate vManage cookie. Please check the credentials and try again.",
-            )
+            exc_msg: str = "Could not generate vManage cookie. Please check the credentials and try again."
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
         logger.info("Successfully generated vManage cookie.")
         j_session_id: str = security_resp.headers.get("Set-Cookie", "")
         token_url: str = format_base_url_with_endpoint(
@@ -85,8 +82,9 @@ class NetmikoCiscoVmanage(BaseAPIDispatcher):
             logger=logger,
         )
         if not token_resp:
-            logger.error("Could not generate vManage XSRF token.")
-            raise ValueError("Could not generate vManage XSRF token.")
+            exc_msg: str = "Could not generate vManage XSRF token."
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
         cls.get_headers.update(
             {
                 "Cookie": j_session_id,

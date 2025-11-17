@@ -1,9 +1,14 @@
 """Base API dispatcher."""
 
-from logging import Logger
-from typing import Any, Optional
+from __future__ import annotations
 
-from requests import Session
+from typing import TYPE_CHECKING, Any, Optional, Union
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Device
+    from requests import Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_dispatcher import (
     BaseDispatcher,
@@ -28,28 +33,33 @@ class BaseAPIDispatcher(BaseDispatcher, ConnectionMixin):
     @classmethod
     def resolve_backup_endpoint(
         cls,
-        controller_obj: Any,
+        authenticated_obj: Any,
+        device_obj: Device,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
         feature_name: str,
         **kwargs: Any,
-    ) -> dict[str, dict[Any, Any]]:
+    ) -> Union[list[Any], dict[str, dict[Any, Any]]]:
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object or None.
+            authenticated_obj (Any): Controller object or None.
+            device_obj (Device): Nautobot Device object.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
             feature_name (str): Feature name being collected.
             kwargs (Any): Keyword arguments.
 
         Returns:
-            Any: Dictionary of responses.
+            Union[list[Any], dict[str, dict[Any, Any]]]: Dictionary of responses.
+
+        Raises:
+            TypeError: If the type of responses is inconsistent (list vs dict).
         """
         responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         for endpoint in endpoint_context:
             uri: str = cls._render_uri_template(
-                obj=controller_obj,
+                obj=device_obj,
                 logger=logger,
                 template=endpoint["endpoint"],
             )
@@ -88,17 +98,15 @@ class BaseAPIDispatcher(BaseDispatcher, ConnectionMixin):
                     responses = jpath_fields
                     continue
                 if not isinstance(responses, list):
-                    raise TypeError(
-                        f"All responses should be list but got {type(responses)}",
-                    )
+                    exc_msg: str = f"All responses should be list but got {type(responses)}"
+                    raise TypeError(exc_msg)
                 responses.extend(jpath_fields)
             elif isinstance(jpath_fields, dict):
                 if responses is None:
                     responses = jpath_fields
                 if not isinstance(responses, dict):
-                    raise TypeError(
-                        f"All responses should be dict but got {type(responses)}",
-                    )
+                    exc_msg: str = f"All responses should be dict but got {type(responses)}"
+                    raise TypeError(exc_msg)
                 responses.update(jpath_fields)
             else:
                 logger.error(
@@ -115,7 +123,8 @@ class BaseAPIDispatcher(BaseDispatcher, ConnectionMixin):
     @classmethod
     def resolve_remediation_endpoint(
         cls,
-        controller_obj: Any,
+        authenticated_obj: Any,
+        device_obj: Device,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
         payload: dict[Any, Any] | list[dict[str, Any]],
@@ -124,8 +133,8 @@ class BaseAPIDispatcher(BaseDispatcher, ConnectionMixin):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object, i.e. Meraki Dashboard
-                object or None.
+            authenticated_obj (Any): Controller object, i.e. Meraki Dashboard object or None.
+            device_obj (Device): Nautobot Device object.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
             payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
@@ -135,9 +144,12 @@ class BaseAPIDispatcher(BaseDispatcher, ConnectionMixin):
             list[dict[str, Any]]: List of API responses.
         """
         aggregated_results: list[Any] = []
+        if not cls.session:
+            logger.error("No session available for API calls")
+            return aggregated_results
         for endpoint in endpoint_context:
             uri: str = cls._render_uri_template(
-                obj=controller_obj,
+                obj=device_obj,
                 logger=logger,
                 template=endpoint["endpoint"],
             )

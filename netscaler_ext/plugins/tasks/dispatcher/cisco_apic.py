@@ -66,32 +66,18 @@ class NetmikoCiscoApic(BaseAPIDispatcher):
             verify=False,
         )
         if not auth_resp:
-            logger.error(
-                "Could not find cookie from APIC controller",
-            )
-            raise ValueError(
-                "Could not find cookie from APIC controller",
-            )
+            exc_msg: str = "Could not find cookie from APIC controller"
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
         if not auth_resp.get("imdata") or not auth_resp.get("imdata")[0]:
-            logger.error(
-                "Could not find cookie from APIC controller",
-            )
-            raise ValueError(
-                "Could not find cookie from APIC controller",
-            )
-        cookie: str = (
-            auth_resp.get("imdata")[0]
-            .get("aaaLogin", {})
-            .get("attributes", {})
-            .get("token", "")
-        )
+            exc_msg: str = "Could not find cookie from APIC controller"
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
+        cookie: str = auth_resp.get("imdata")[0].get("aaaLogin", {}).get("attributes", {}).get("token", "")
         if not cookie:
-            logger.error(
-                "Could not find cookie from APIC controller",
-            )
-            raise ValueError(
-                "Could not find cookie from APIC controller",
-            )
+            exc_msg: str = "Could not find cookie from APIC controller"
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
         cls.get_headers.update(
             {
                 "Cookie": f"APIC-cookie={cookie}",

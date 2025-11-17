@@ -1,9 +1,14 @@
 """Netmiko dispatcher for Citrix Netscaler controllers."""
 
-from logging import Logger
-from typing import Any
+from __future__ import annotations
 
-from nautobot.dcim.models import Device
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Device
+
 from nornir.core.task import Task
 from requests import Session
 
@@ -38,9 +43,6 @@ class NetmikoCitrixNetscaler(BaseAPIDispatcher):
             logger (Logger): Logger object.
             obj (Device): Device object.
             task (Task): Nornir Task object.
-
-        Raises:
-            ValueError: Could not find the controller API URL in config context.
 
         Returns:
             Any: Controller object or None.

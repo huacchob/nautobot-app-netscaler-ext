@@ -1,11 +1,16 @@
 """Base netmiko dispatcher for controllers."""
 
+from __future__ import annotations
+
 import json
 from abc import ABC, abstractmethod
-from logging import Logger
-from typing import Any, OrderedDict
+from typing import TYPE_CHECKING, Any, OrderedDict
 
-from nautobot.dcim.models import Device
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Device
+
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 
@@ -62,9 +67,6 @@ class BaseDispatcher(NetmikoDefault, ABC):
             obj (Device): Device object.
             task (Task): Nornir Task object.
 
-        Raises:
-            ValueError: Could not find the controller API URL in config context.
-
         Returns:
             Any: Controller object or None.
         """
@@ -73,14 +75,14 @@ class BaseDispatcher(NetmikoDefault, ABC):
     def controller_setup(
         cls,
         device_obj: Device,
-        controller_obj: Any,
+        authenticated_obj: Any,
         logger: Logger,
     ) -> dict[str, str]:
         """Setup for controller.
 
         Args:
             device_obj (Device): Nautobot Device object.
-            controller_obj (Any): The controller object, i.e DashboardAPI for
+            authenticated_obj (Any): The controller object, i.e DashboardAPI for
                 controller or None is not SDK.
             logger (Logger): Logger object.
 
@@ -94,7 +96,8 @@ class BaseDispatcher(NetmikoDefault, ABC):
     @abstractmethod
     def resolve_backup_endpoint(
         cls,
-        controller_obj: Any,
+        authenticated_obj: Any,
+        device_obj: Device,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
         feature_name: str,
@@ -103,14 +106,15 @@ class BaseDispatcher(NetmikoDefault, ABC):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object or None.
+            authenticated_obj (Any): Controller object or None.
+            device_obj (Device): Nautobot Device object.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
             feature_name (str): Feature name being collected.
             kwargs (Any): Keyword arguments.
 
         Returns:
-            Any: Dictionary of responses.
+            dict[str, dict[Any, Any]]: Dictionary of responses.
         """
 
     @classmethod
@@ -136,9 +140,12 @@ class BaseDispatcher(NetmikoDefault, ABC):
         Returns:
             None | Result: Nornir Result object with a dict as a result
                 containing the running configuration or None.
+
+        Raises:
+            ValueError: If controller endpoints cannot be found in the config context.
         """
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        controller_obj: Any = cls.authenticate(
+        authenticated_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
             task=task,
@@ -148,13 +155,14 @@ class BaseDispatcher(NetmikoDefault, ABC):
         )
         controller_dict: dict[str, str] = cls.controller_setup(
             device_obj=obj,
-            controller_obj=controller_obj,
+            authenticated_obj=authenticated_obj,
             logger=logger,
         )
         feature_endpoints: list[str] = cfg_cntx.get("backup_endpoints", "")
         if not feature_endpoints:
-            logger.error("Could not find the controller endpoints")
-            raise ValueError("Could not find controller endpoints")
+            exc_msg: str = "Could not find the controller endpoints"
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
         _running_config: dict[str, dict[Any, Any]] = {}
         logger.info(f"Collecting feature endpoint backups for {obj.name}")
         for feature in feature_endpoints:
@@ -168,7 +176,8 @@ class BaseDispatcher(NetmikoDefault, ABC):
                 )
                 continue
             feature_response: dict[str, dict[Any, Any]] = cls.resolve_backup_endpoint(
-                controller_obj=controller_obj,
+                authenticated_obj=authenticated_obj,
+                device_obj=obj,
                 logger=logger,
                 endpoint_context=endpoints,
                 feature_name=feature_name,
@@ -195,7 +204,8 @@ class BaseDispatcher(NetmikoDefault, ABC):
     @classmethod
     def resolve_remediation_endpoint(
         cls,
-        controller_obj: Any,
+        authenticated_obj: Any,
+        device_obj: Device,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
         payload: dict[Any, Any] | list[dict[str, Any]],
@@ -204,8 +214,8 @@ class BaseDispatcher(NetmikoDefault, ABC):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object, i.e. Meraki Dashboard
-                object or None.
+            authenticated_obj (Any): Controller object, i.e. Meraki Dashboard object or None.
+            device_obj (Device): Nautobot Device object.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
             payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
@@ -214,9 +224,8 @@ class BaseDispatcher(NetmikoDefault, ABC):
         Returns:
             list[dict[str, Any]]: List of API responses.
         """
-        raise NotImplementedError(
-            "Subclasses must implement this is merge_config is being used.",
-        )
+        exc_msg: str = "Subclasses must implement this is merge_config is being used."
+        raise NotImplementedError(exc_msg)
 
     @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
@@ -238,6 +247,9 @@ class BaseDispatcher(NetmikoDefault, ABC):
 
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
+
+        Raises:
+            ValueError: If controller endpoints cannot be found in the config context.
         """
         if isinstance(config, str):
             config: dict[Any, Any] = json.loads(config)
@@ -247,21 +259,22 @@ class BaseDispatcher(NetmikoDefault, ABC):
         )
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         # The above Python code snippet is performing the following actions:
-        controller_obj: Any = cls.authenticate(
+        authenticated_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
             task=task,
         )
         controller_dict: dict[str, str] = cls.controller_setup(
             device_obj=obj,
-            controller_obj=controller_obj,
+            authenticated_obj=authenticated_obj,
             logger=logger,
         )
         aggregated_results: list[list[dict[str, Any]]] = []
         feature_endpoints: str = cfg_cntx.get("remediation_endpoints", "")
         if not feature_endpoints:
-            logger.error("Could not find the controller endpoints")
-            raise ValueError("Could not find controller endpoints")
+            exc_msg: str = "Could not find the controller endpoints"
+            logger.error(exc_msg)
+            raise ValueError(exc_msg)
         for remediation_endpoint in config:
             if f"{remediation_endpoint}_remediation" not in feature_endpoints:
                 logger.error(
@@ -278,7 +291,7 @@ class BaseDispatcher(NetmikoDefault, ABC):
             try:
                 aggregated_results.append(
                     cls.resolve_remediation_endpoint(
-                        controller_obj=controller_obj,
+                        authenticated_obj=authenticated_obj,
                         logger=logger,
                         endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
                         payload=config[remediation_endpoint],
