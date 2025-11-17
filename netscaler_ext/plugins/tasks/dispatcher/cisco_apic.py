@@ -2,11 +2,14 @@
 
 import json
 from logging import Logger
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from requests import Session
+
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from requests import Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
     BaseAPIDispatcher,
@@ -37,7 +40,7 @@ class NetmikoCiscoApic(BaseAPIDispatcher):
         Returns:
             Any: Controller object or None.
         """
-        cls.url = resolve_controller_url(
+        cls.url: str = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
             logger=logger,

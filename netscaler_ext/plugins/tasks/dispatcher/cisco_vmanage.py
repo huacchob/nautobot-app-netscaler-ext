@@ -1,11 +1,13 @@
 """Netmiko dispatcher for cisco vManage controllers."""
 
 from logging import Logger
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from requests import Response, Session
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Task
-from requests import Response
 
 from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
     BaseAPIDispatcher,
@@ -36,7 +38,7 @@ class NetmikoCiscoVmanage(BaseAPIDispatcher):
         Returns:
             Any: Controller object or None.
         """
-        cls.url = resolve_controller_url(
+        cls.url: str = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
             logger=logger,
@@ -48,7 +50,7 @@ class NetmikoCiscoVmanage(BaseAPIDispatcher):
             endpoint="j_security_check",
         )
         # TODO: Change verify to true
-        cls.session = cls.configure_session()
+        cls.session: Session = cls.configure_session()
         security_resp: Optional[Response] = cls.return_response_obj(
             session=cls.session,
             method="POST",

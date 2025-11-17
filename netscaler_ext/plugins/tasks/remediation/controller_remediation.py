@@ -8,10 +8,10 @@ from collections import deque
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from django.core.exceptions import ValidationError
-
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
+
+from django.core.exceptions import ValidationError
 
 # pylint: disable=too-many-arguments, too-many-positional-arguments
 
@@ -48,9 +48,6 @@ class BaseControllerRemediation(ABC):  # pylint: disable=too-few-public-methods
     @abstractmethod
     def controller_remediation(self) -> str:
         """Controller remediation.
-
-        Raises:
-            ValidationError: Intended or Actual does not have the feature name as the top level key.
 
         Returns:
             str: Remediation config.
@@ -116,6 +113,9 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
             diff (dict[Any, Any]): Diff dictionary.
             path (tuple[str, ...]): Path of dictionary keys.
             value (str): The key's value.
+
+        Raises:
+            TypeError: If an unexpected type is encountered.
         """
         current = diff
 
@@ -142,9 +142,8 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
             elif isinstance(key, int):
                 # current must be a list
                 if not isinstance(current, list):
-                    raise TypeError(
-                        f"Expected list at index {i}, got {type(current)}",
-                    )
+                    exc_msg: str = f"Expected list at index {i}, got {type(current)}"
+                    raise TypeError(exc_msg)
                 while len(current) <= key:
                     current.append({})
                 if is_last:
@@ -155,7 +154,8 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                     current = current[key]
 
             else:
-                raise ValueError(f"Unsupported key type: {key}")
+                exc_msg: str = f"Unsupported key type: {key}"
+                raise TypeError(exc_msg)
 
     def _dict_config(
         self,
@@ -385,9 +385,8 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
             ),
         )
         if not actual or not intended:
-            raise ValidationError(
-                "There was no config context passed or the config context does not have optional parameters.",
-            )
+            exc_msg: str = "There was no config context passed or the config context does not have optional parameters."
+            raise ValidationError(exc_msg)
         diff: dict[str, Any] = {}
         stack: deque[tuple[tuple[str, ...], Any, Any]] = deque()
         stack.append((tuple(), actual, intended))
@@ -423,9 +422,8 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         if not diff:
             return ""
         if not diff.get(self.feature_name):
-            raise ValidationError(
-                f"Feature {self.feature_name} not found in the config.",
-            )
+            exc_msg: str = f"No differences found for feature {self.feature_name}."
+            raise ValidationError(exc_msg)
         valid_diff: dict[Any, Any] = self._inject_required_fields(
             diff=diff,
             intended=self.intended_config,
@@ -443,6 +441,9 @@ def controller_remediation(obj: ConfigCompliance) -> str:
 
     Returns:
         str: Remediation json config.
+
+    Raises:
+        ValidationError: If config type is not supported.
     """
     remediation: BaseControllerRemediation
     config_type = obj.rule.config_type.lower().strip()
@@ -451,7 +452,6 @@ def controller_remediation(obj: ConfigCompliance) -> str:
             compliance_obj=obj,
         )
     else:
-        raise ValidationError(
-            f"Config type {obj.rule.config_type} is not supported.",
-        )
+        exc_msg: str = f"Config type {obj.rule.config_type} is not supported."
+        raise ValidationError(exc_msg)
     return remediation.controller_remediation()
