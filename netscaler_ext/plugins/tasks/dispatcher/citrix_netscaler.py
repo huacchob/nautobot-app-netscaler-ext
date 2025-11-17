@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from logging import Logger
 
     from nautobot.dcim.models import Device
+    from nornir.core.task import Task
 
-from nornir.core.task import Task
 from requests import Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
