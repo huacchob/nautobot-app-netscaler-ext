@@ -1,3 +1,5 @@
+"""Unit tests for the Cisco IOS dispatcher."""
+
 import unittest
 from unittest.mock import MagicMock, patch
 

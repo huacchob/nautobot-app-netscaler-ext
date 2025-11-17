@@ -1,3 +1,5 @@
+"""Unit tests for the WTI dispatcher."""
+
 import unittest
 from logging import Logger, getLogger
 from typing import Any

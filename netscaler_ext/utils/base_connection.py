@@ -4,26 +4,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-from requests import Response, Session
+import requests
 from requests import exceptions as req_exceptions
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
+
+if TYPE_CHECKING:
+    from logging import Logger
 
 
 class ConnectionMixin:
     """Mixin to connect to a service."""
 
     @classmethod
-    def configure_session(cls) -> Session:
+    def configure_session(cls) -> requests.Session:
         """Configure a requests session.
 
         Returns:
             Session: Requests session.
         """
-        session: Session = Session()
+        session: requests.Session = requests.Session()
         retries = Retry(
             total=2,
             backoff_factor=0.5,
@@ -43,11 +43,11 @@ class ConnectionMixin:
         method: str,
         url: str,
         headers: dict[str, str],
-        session: Session,
+        session: requests.Session,
         logger: Logger,
         body: Optional[Union[dict[str, str], str]] = None,
         verify: bool = True,
-    ) -> Optional[Response]:
+    ) -> Optional[requests.Response]:
         """Create request for authentication and return response object.
 
         Args:
@@ -64,7 +64,7 @@ class ConnectionMixin:
         """
         with session as ses:
             try:
-                response: Optional[Response] = ses.request(
+                response: Optional[requests.Response] = ses.request(
                     method=method,
                     url=url,
                     headers=headers,
@@ -107,11 +107,11 @@ class ConnectionMixin:
         method: str,
         url: str,
         headers: dict[str, str],
-        session: Session,
+        session: requests.Session,
         logger: Logger,
         body: dict[str, str] | str | None = None,
         verify: bool = True,
-    ) -> Optional[Response]:
+    ) -> Optional[requests.Response]:
         """Create request for authentication and return response object.
 
         Args:
@@ -142,7 +142,7 @@ class ConnectionMixin:
         method: str,
         url: str,
         headers: dict[str, str],
-        session: Session,
+        session: requests.Session,
         logger: Logger,
         body: dict[str, str] | str | None = None,
         verify: bool = True,
@@ -161,7 +161,7 @@ class ConnectionMixin:
         Returns:
             Any: API Response.
         """
-        response: Optional[Response] = None
+        response: Optional[requests.Response] = None
         try:
             response = cls._return_response(
                 method=method,

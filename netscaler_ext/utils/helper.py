@@ -5,11 +5,6 @@ from __future__ import annotations
 from base64 import b64encode
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-    from nautobot.dcim.models import Controller, Device
-
 import jdiff
 from jinja2 import exceptions as jinja_errors
 from nautobot.apps.choices import (
@@ -18,6 +13,11 @@ from nautobot.apps.choices import (
 )
 from nautobot.core.utils.data import render_jinja2
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Controller, Device
 
 
 def render_jinja_template(obj: Device, logger: Logger, template: str) -> str:

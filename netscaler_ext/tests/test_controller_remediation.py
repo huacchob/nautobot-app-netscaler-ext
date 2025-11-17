@@ -1,3 +1,5 @@
+"""Unit tests for the controller remediation module."""
+
 import json
 import unittest
 from collections import deque

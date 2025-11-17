@@ -1,3 +1,5 @@
+"""Unit tests for the Cisco NXOS dispatcher."""
+
 import unittest
 from unittest.mock import MagicMock, patch
 
