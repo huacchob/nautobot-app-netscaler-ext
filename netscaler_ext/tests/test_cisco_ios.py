@@ -43,7 +43,7 @@ class TestIosDispatcher(unittest.TestCase):
             backup_file = ""
             remove_lines = []
             substitute_lines = []
-            result = NetmikoCiscoNxos.get_config(
+            result = NetmikoCiscoIos.get_config(
                 task=task,
                 logger=logger,
                 obj=obj,

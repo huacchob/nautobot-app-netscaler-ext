@@ -73,7 +73,7 @@ class TestCiscoMerakiDispatcher(unittest.TestCase):
         setup_dict: dict[str, str] = NetmikoCiscoMeraki.controller_setup(
             device_obj=device_obj,
             logger=logger,
-            controller_obj=mock_dashboard_api.return_value,
+            authenticated_obj=mock_dashboard_api.return_value,
         )
 
         # Assertions
@@ -108,10 +108,13 @@ class TestCiscoMerakiDispatcher(unittest.TestCase):
             "organizationId": config_context.get("organization_id"),
             "networkId": config_context.get("network_id"),
         }
+        device_obj: MagicMock = MagicMock()
         responses: dict[str, str] = NetmikoCiscoMeraki.resolve_backup_endpoint(
-            controller_obj=mock_dashboard_api.return_value,
+            authenticated_obj=mock_dashboard_api.return_value,
+            device_obj=device_obj,
             logger=logger,
             endpoint_context=config_context.get("ntp_backup"),
+            feature_name="ntp_backup",
             **kwargs,
         )
 
@@ -141,8 +144,10 @@ class TestCiscoMerakiDispatcher(unittest.TestCase):
             file_name="cisco_meraki_backup.json",
         )
 
+        device_obj: MagicMock = MagicMock()
         responses = NetmikoCiscoMeraki.resolve_remediation_endpoint(
-            controller_obj=mock_dashboard_api.return_value,
+            authenticated_obj=mock_dashboard_api.return_value,
+            device_obj=device_obj,
             logger=logger,
             endpoint_context=endpoint_context,
             payload=payload,

@@ -1,15 +1,17 @@
 """Netmiko dispatcher for cisco vManage controllers."""
 
+from __future__ import annotations
+
 import json
-from logging import Logger
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Device
+    from nornir.core.task import Task
     from requests import Session
 
-
-from nautobot.dcim.models import Device
-from nornir.core.task import Task
 
 from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
     BaseAPIDispatcher,

@@ -1,8 +1,14 @@
 """Classes and functions for controller dispatcher utils."""
 
+from __future__ import annotations
+
 from base64 import b64encode
-from logging import Logger
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nautobot.dcim.models import Controller, Device
 
 import jdiff
 from jinja2 import exceptions as jinja_errors
@@ -11,9 +17,7 @@ from nautobot.apps.choices import (
     SecretsGroupSecretTypeChoices,
 )
 from nautobot.core.utils.data import render_jinja2
-from nautobot.dcim.models import Controller, Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
-from remote_pdb import RemotePdb
 
 
 def render_jinja_template(obj: Device, logger: Logger, template: str) -> str:
@@ -42,9 +46,7 @@ def render_jinja_template(obj: Device, logger: Logger, template: str) -> str:
         logger.error(error_msg, extra={"object": obj})
         raise ValueError(error_msg) from error
 
-    except (
-        jinja_errors.TemplateSyntaxError
-    ) as error:  # Also catches subclass of TemplateAssertionError
+    except jinja_errors.TemplateSyntaxError as error:  # Also catches subclass of TemplateAssertionError
         error_msg = (
             f"`E3020:` Jinja encountered a SyntaxError at line number {error.lineno},"
             f"check the template for invalid Jinja syntax.\nTemplate:\n{template}\n"
@@ -53,9 +55,7 @@ def render_jinja_template(obj: Device, logger: Logger, template: str) -> str:
         logger.error(error_msg, extra={"object": obj})
         raise ValueError(error_msg) from error
     # Intentionally not catching TemplateNotFound errors since template is passes as a string and not a filename
-    except (
-        jinja_errors.TemplateError
-    ) as error:  # Catches all remaining Jinja errors
+    except jinja_errors.TemplateError as error:  # Catches all remaining Jinja errors
         error_msg = (
             "`E3021:` Jinja encountered an unexpected TemplateError; check the template for correctness\n"
             f"Template:\n{template}\n"
@@ -76,10 +76,11 @@ def base_64_encode_credentials(username: str, password: str) -> str:
         str: Base64 encoded credentials.
 
     Raises:
-        ValueError: If username or password is not a string.
+        ValueError: If username or password is not passed.
     """
     if not username or not password:
-        raise ValueError("Username and/or password not passed, can't encode.")
+        exc_msg: str = "Username and/or password not passed, can't encode."
+        raise ValueError(exc_msg)
 
     credentials_str: bytes = f"{username}:{password}".encode()
     return f"Basic {b64encode(s=credentials_str).decode(encoding='utf-8')}"
@@ -97,11 +98,13 @@ def format_base_url_with_endpoint(
 
     Returns:
         str: Formatted url.
+
+    Raises:
+        ValueError: If base_url or endpoint is not passed.
     """
     if not base_url or not endpoint:
-        raise ValueError(
-            "Base or endpoint not passed, can not properly format url.",
-        )
+        exc_msg: str = "Base or endpoint not passed, can not properly format url."
+        raise ValueError(exc_msg)
 
     if base_url.endswith("/"):
         base_url = base_url[:-1]
@@ -135,10 +138,6 @@ def get_api_key(secrets_group: SecretsGroup) -> str:
 
     Args:
         secrets_group (SecretsGroup): SecretsGroup object.
-
-    Raises:
-        SecretsGroupAssociation.DoesNotExist: SecretsGroupAssociation access
-            type TYPE_HTTP or secret type TYPE_TOKEN does not exist.
 
     Returns:
         str: API key.
@@ -183,8 +182,9 @@ def resolve_controller_url(
             if controller_type in cntrlr.platform.name.lower():
                 controller_url = cntrlr.external_integration.remote_url
     if not controller_url:
-        logger.error("Could not find the Meraki Dashboard API URL")
-        raise ValueError("Could not find the Meraki Dashboard API URL")
+        exc_msg: str = "Could not find the Controller API URL"
+        logger.error(exc_msg)
+        raise ValueError(exc_msg)
     return controller_url
 
 
@@ -223,15 +223,30 @@ def resolve_jmespath(
     Args:
         jmespath_values (dict[str, str]): Jmespath dictionary.
         api_response (Any): API response.
+        logger (Logger): Logger object.
 
     Returns:
         dict[Any, Any] | list[dict[str, Any]]: Resolved jmespath data fields.
     """
+    if isinstance(jmespath_values, str):
+        try:
+            j_value = jdiff.extract_data_from_json(
+                path=jmespath_values,
+                data=api_response,
+            )
+            return j_value
+        except TypeError as exc:
+            if "JMSPath returned 'None'." in str(exc):
+                return []
+            logger.error(f"Error resolving jmespath: {exc}")
+            return {}
+        except ValueError:
+            logger.error("ValueError resolving jmespath")
+            return {}
+
     data_fields: dict[str, Any] = {}
 
     for key, value in jmespath_values.items():
-        if "enforceIdleTimeout" in value:
-            RemotePdb(host="127.0.0.1", port=4444).set_trace()
         try:
             j_value: Any = jdiff.extract_data_from_json(
                 path=value,
@@ -249,9 +264,7 @@ def resolve_jmespath(
             logger.error(f"ValueError resolving jmespath for key {key}")
             return {}
         data_fields.update({key: j_value})
-    lengths: list[int] = [
-        len(v) for v in data_fields.values() if isinstance(v, list)
-    ]
+    lengths: list[int] = [len(v) for v in data_fields.values() if isinstance(v, list)]
     if lengths == [1]:
         return data_fields
     if len(lengths) != len(data_fields.values()):

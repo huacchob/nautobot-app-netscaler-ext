@@ -46,7 +46,7 @@ class TestCiscoVmanageDispatcher(unittest.TestCase):
         mock_resolve_url.assert_called_once()
         mock_configure_session.assert_called_once()
 
-    @patch.object(target=NetmikoCiscoVmanage, attribute="controller_url", new="https://vmanage.com")
+    @patch.object(target=NetmikoCiscoVmanage, attribute="url", new="https://vmanage.com")
     @patch.object(target=NetmikoCiscoVmanage, attribute="session", new_callable=MagicMock)
     @patch.object(target=NetmikoCiscoVmanage, attribute="configure_session", new=MagicMock())
     @patch.object(target=NetmikoCiscoVmanage, attribute="return_response_obj")
@@ -66,10 +66,13 @@ class TestCiscoVmanageDispatcher(unittest.TestCase):
 
         # Call authenticate
         kwargs: dict[str, Any] = {}
+        device_obj: MagicMock = MagicMock()
         responses: dict[str, str] = NetmikoCiscoVmanage.resolve_backup_endpoint(
-            controller_obj=None,
+            authenticated_obj=None,
+            device_obj=device_obj,
             logger=logger,
             endpoint_context=config_context.get("ntp_backup"),
+            feature_name="ntp_backup",
             **kwargs,
         )
 

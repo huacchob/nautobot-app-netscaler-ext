@@ -12,15 +12,15 @@ class TestCitrixNetscalerDispatcher(unittest.TestCase):
 
     base_import_path: str = "netscaler_ext.plugins.tasks.dispatcher"
 
-    @patch.object(target=NetmikoCitrixNetscaler, attribute="device_url", new="https://netscaler.com")
+    @patch.object(target=NetmikoCitrixNetscaler, attribute="url", new="https://netscaler.com")
     @patch.object(target=NetmikoCitrixNetscaler, attribute="session", new_callable=MagicMock)
     @patch.object(target=NetmikoCitrixNetscaler, attribute="configure_session", new=MagicMock())
-    @patch.object(target=NetmikoCitrixNetscaler, attribute="return_response_obj")
-    def test_resolve_backup_endpoint(self, mock_return_response_obj, mock_session) -> None:
+    @patch.object(target=NetmikoCitrixNetscaler, attribute="return_response_content")
+    def test_resolve_backup_endpoint(self, mock_return_response_content, mock_session) -> None:
         """Test the authentication process for the Citrix Netscaler dispatcher."""
         # Setup mocks
         mock_session.return_value = MagicMock()
-        mock_return_response_obj.return_value.json.return_value = get_json_fixture(
+        mock_return_response_content.return_value = get_json_fixture(
             folder="api_responses",
             file_name="full_netscaler_response.json",
         )
@@ -32,10 +32,13 @@ class TestCitrixNetscalerDispatcher(unittest.TestCase):
 
         # Call authenticate
         kwargs: dict[str, Any] = {}
+        device_obj: MagicMock = MagicMock()
         responses: dict[str, str] = NetmikoCitrixNetscaler.resolve_backup_endpoint(
-            controller_obj=None,
+            authenticated_obj=None,
+            device_obj=device_obj,
             logger=logger,
             endpoint_context=config_context.get("ntp_backup"),
+            feature_name="ntp_backup",
             **kwargs,
         )
         expected_response: dict[str, Any] = get_json_fixture(

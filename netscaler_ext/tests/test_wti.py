@@ -12,7 +12,7 @@ class TestWtiDispatcher(unittest.TestCase):
 
     base_import_path: str = "netscaler_ext.plugins.tasks.dispatcher"
 
-    @patch.object(target=NetmikoWti, attribute="device_url", new="https://wti.com")
+    @patch.object(target=NetmikoWti, attribute="url", new="https://wti.com")
     @patch.object(target=NetmikoWti, attribute="session", new_callable=MagicMock)
     @patch.object(target=NetmikoWti, attribute="configure_session", new=MagicMock())
     @patch.object(target=NetmikoWti, attribute="return_response_obj")
@@ -32,10 +32,13 @@ class TestWtiDispatcher(unittest.TestCase):
 
         # Call authenticate
         kwargs: dict[str, Any] = {}
+        device_obj: MagicMock = MagicMock()
         responses: dict[str, str] = NetmikoWti.resolve_backup_endpoint(
-            controller_obj=None,
+            authenticated_obj=None,
+            device_obj=device_obj,
             logger=logger,
             endpoint_context=config_context.get("snmp_backup"),
+            feature_name="snmp_backup",
             **kwargs,
         )
 

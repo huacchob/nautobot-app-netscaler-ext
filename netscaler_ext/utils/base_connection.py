@@ -1,7 +1,11 @@
 """Classes and functions for controller dispatcher utils."""
 
-from logging import Logger
-from typing import Any, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Optional, Union
+
+if TYPE_CHECKING:
+    from logging import Logger
 
 from requests import Response, Session
 from requests import exceptions as req_exceptions
@@ -41,7 +45,7 @@ class ConnectionMixin:
         headers: dict[str, str],
         session: Session,
         logger: Logger,
-        body: dict[str, str] | str | None = None,
+        body: Optional[Union[dict[str, str], str]] = None,
         verify: bool = True,
     ) -> Optional[Response]:
         """Create request for authentication and return response object.
@@ -69,19 +73,24 @@ class ConnectionMixin:
                     verify=verify,
                 )
             except req_exceptions.SSLError as exc_ssl:
-                logger.error("SSL error occurred: %s", exc_ssl)
+                exc_msg: str = f"SSL error occurred: {exc_ssl}"
+                logger.error(exc_msg)
                 response = None
             except req_exceptions.Timeout as exc_timeout:
-                logger.error("Request timed out: %s", exc_timeout)
+                exc_msg: str = f"Request timed out: {exc_timeout}"
+                logger.error(exc_msg)
                 response = None
             except req_exceptions.ConnectionError as exc_conn:
-                logger.error("Connection error occurred: %s", exc_conn)
+                exc_msg: str = f"Connection error occurred: {exc_conn}"
+                logger.error(exc_msg)
                 response = None
             except req_exceptions.RequestException as exc_req:
-                logger.error("Request exception occurred: %s", exc_req)
+                exc_msg: str = f"Request exception occurred: {exc_req}"
+                logger.error(exc_msg)
                 response = None
             except Exception as exc:
-                logger.error("An error occurred: %s", exc)
+                exc_msg: str = f"An error occurred: {exc}"
+                logger.error(exc_msg)
                 response = None
         if response is None:
             return response
@@ -151,13 +160,10 @@ class ConnectionMixin:
 
         Returns:
             Any: API Response.
-
-        Raises:
-            requests.exceptions.HTTPError:
-                If the HTTP request returns an unsuccessful status code.
         """
+        response: Optional[Response] = None
         try:
-            response: Optional[Response] = cls._return_response(
+            response = cls._return_response(
                 method=method,
                 url=url,
                 headers=headers,
@@ -168,11 +174,11 @@ class ConnectionMixin:
             )
             if not response:
                 return response
-            json_response: dict[str, Any] = response.json()
-            return json_response
+            return response.json()
         except req_exceptions.JSONDecodeError:
-            text_response: str = response.text
-            return text_response
+            if not response:
+                return response
+            return response.text
         except req_exceptions.HTTPError as http_err:
             logger.error(http_err)
             return None

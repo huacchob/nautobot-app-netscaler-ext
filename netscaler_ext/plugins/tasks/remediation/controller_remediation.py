@@ -6,7 +6,7 @@ import json
 from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
@@ -61,13 +61,13 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         self,
         feature_name: str,
         config: dict[str, Any],
-        config_context: list[dict[str, Any]],
+        config_context: Optional[dict[str, Any]],
     ) -> dict[str, Any]:
         """Filter allowed parameters and remove unwanted parameters.
 
         Args:
             feature_name (str): Compliance feature name.
-            config (dict[str, Any]): Intended or actual config.
+            config (Optional[dict[str, Any]]): Intended or actual config.
             config_context (ConfigContext): Device config context.
 
         Returns:
@@ -294,15 +294,15 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
 
     def _inject_required_fields(
         self,
-        diff: dict[Any, Any],
-        intended: dict[str, Any],
+        diff: Union[list[Any], dict[Any, Any]],
+        intended: Union[list[Any], dict[Any, Any]],
         path: tuple[Any],
     ) -> dict[Any, Any]:
         """Ensure required parameters are added to modified sections of the diff.
 
         Args:
-            diff (dict[Any, Any]): Diff dictionary.
-            intended (dict[str, Any]): Full intended config.
+            diff (Union[list[Any], dict[Any, Any]]): Diff dictionary.
+            intended (Union[list[Any], dict[Any, Any]]): Full intended config.
             path (tuple[Any]): Path of keys.
         """
         if isinstance(diff, dict) and isinstance(intended, dict):
@@ -329,11 +329,11 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
 
         return diff
 
-    def _clean_diff(self, diff: dict[Any, Any]) -> dict[Any, Any]:
+    def _clean_diff(self, diff: Union[list[Any], dict[Any, Any]]) -> dict[Any, Any]:
         """Recursively remove empty dicts/lists in diff.
 
         Args:
-            diff (dict[Any, Any]): Diff dictionary.
+            diff (Union[list[Any], dict[Any, Any]]): Diff dictionary.
 
         Returns:
             dict[Any, Any]: Cleaned diff dictionary.
@@ -368,21 +368,15 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 obj=self.intended_config,
                 indent=4,
             )
-        intended: dict[str, Any] = self._filter_allowed_params(
+        intended: Union[list[Any], dict[Any, Any]] = self._filter_allowed_params(
             feature_name=self.feature_name,
             config=self.intended_config,
-            config_context=config_context.get(
-                f"{self.feature_name}_remediation",
-                "",
-            ),
+            config_context=config_context.get(f"{self.feature_name}_remediation"),
         )
-        actual: dict[str, Any] = self._filter_allowed_params(
+        actual: Union[list[Any], dict[Any, Any]] = self._filter_allowed_params(
             feature_name=self.feature_name,
             config=self.backup_config,
-            config_context=config_context.get(
-                f"{self.feature_name}_remediation",
-                "",
-            ),
+            config_context=config_context.get(f"{self.feature_name}_remediation"),
         )
         if not actual or not intended:
             exc_msg: str = "There was no config context passed or the config context does not have optional parameters."
