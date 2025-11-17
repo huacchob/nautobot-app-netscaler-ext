@@ -6,7 +6,7 @@ The **Cisco NXOS Golden Config Dispatcher** extends the default Netmiko dispatch
 
 - **Transport**: SSH (Netmiko via Nornir)
 - **Authentication**: Standard device credentials (username/password)
-- **Scope**: Backup and Remediation
+- **Scope**: Backup and Remediation (with SNMP user normalization)
 
 ## Authentication Details
 

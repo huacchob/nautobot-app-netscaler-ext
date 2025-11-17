@@ -6,7 +6,6 @@ The **Custom Remediation** module is a critical component of Nautobot Golden Con
 
 - **Input**: Intended configuration (from Golden Config) vs. Actual configuration (from backup workflow).
 - **Output**: JSON remediation payload.
-- **Scope**: Remediation only (this module does not perform backup operations directly).
 
 ## How It Works
 

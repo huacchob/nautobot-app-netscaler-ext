@@ -6,7 +6,7 @@ The **Citrix Netscaler Golden Config Dispatcher** provides **backup** and **reme
 
 - **Transport**: HTTPS (using `requests.Session`)
 - **Authentication**: `X-NITRO-USER` and `X-NITRO-PASS` headers for credentials
-- **Scope**: Backup
+- **Scope**: Backup only
 
 ## Authentication Details
 

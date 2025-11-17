@@ -6,7 +6,7 @@ The **Cisco IOS Golden Config Dispatcher** extends the default Netmiko dispatche
 
 - **Transport**: SSH (Netmiko via Nornir)
 - **Authentication**: Standard device credentials (username/password)
-- **Scope**: Backup only (with SNMP user normalization)
+- **Scope**: Backup and Remediation (with SNMP user normalization)
 
 ## Authentication Details
 

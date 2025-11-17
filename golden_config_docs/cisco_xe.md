@@ -6,7 +6,7 @@ The **Cisco XE Golden Config Dispatcher** extends the default Netmiko dispatcher
 
 - **Transport**: SSH (Netmiko via Nornir)
 - **Authentication**: Standard device credentials (username/password)
-- **Scope**: Backup only (with SNMP user normalization)
+- **Scope**: Backup and Remediation (with SNMP user normalization)
 
 ## Authentication Details
 

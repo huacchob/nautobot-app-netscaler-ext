@@ -8,11 +8,7 @@ Nautobot Golden Config Dispatchers provide a powerful and flexible mechanism to 
 
 ### API Endpoint Definitions
 
-
-
 The behavior of each dispatcher is driven by YAML-based API endpoint definitions. These files specify how the dispatcher should interact with a particular controller's API or SDK for both backup and remediation tasks.
-
-
 
     - **`endpoint`**: The specific API path (e.g., `/api/v1/config/ntpserver`) or the SDK callable (e.g., `endpoint.ntp`) to be invoked.
 
@@ -20,13 +16,11 @@ The behavior of each dispatcher is driven by YAML-based API endpoint definitions
 
 - **`parameters`**: Defines the arguments required by the API endpoint or SDK callable.
 
-    - `non_optional`: Parameters that are always required and must be provided.
+  - `non_optional`: Parameters that are always required and must be provided.
 
-    - `optional`: Parameters that are optional and included only if present in the configuration.
+  - `optional`: Parameters that are optional and included only if present in the configuration.
 
 - **`jmespath`**: A JMESPath expression used to extract and transform relevant data from the raw API response. This ensures that only the necessary information is processed and stored in a standardized format.
-
-
 
 ### Dispatcher Logic
 
@@ -123,7 +117,7 @@ The backup workflow is designed to retrieve the current configuration or state f
 
 To collect configuration data from the target system and store it within Nautobot for compliance, diffing, and historical tracking.
 
-### Processing Steps
+### Backup Processing Steps
 
 1. **Resolve Endpoint Definitions**: The dispatcher loads the relevant backup endpoint definitions from the `<platform_name>_backup_endpoints.yml` file.
 2. **Map Parameters**: Required parameters for the API call are mapped from the Nautobot `Device`'s `ConfigContext` or other relevant attributes.
@@ -190,91 +184,91 @@ This section provides details on each supported platform dispatcher.
 
 ### Cisco APIC
 
-- **Overview**: Provides backup workflows for Cisco ACI fabrics via the APIC REST API. Authenticates using username/password to obtain a cookie-based token.
+- **Overview**: Provides backup workflows for Cisco ACI fabrics via the APIC REST API. Authenticates using username/password to obtain a cookie-based token. For more information click here: [Cisco APIC](./golden_config_docs/cisco_apic.md)
 - **Authentication Details**: Uses `POST` to `api/aaaLogin.json` to get an `APIC-cookie` token, which is then used in subsequent request headers.
 - **Key Features/Differences**: Backup only.
 - **Usage Notes**: Requires APIC controller URL in Nautobot `ConfigContext` for controller type `'apic'`. Device `username` and `password` must be valid APIC credentials.
 
 - **File & Class Reference**:
-    - Class: `NetmikoCiscoApic` (inherits `BaseAPIDispatcher`)
-    - Files: `cisco_apic.py`, `cisco_apic_backup_endpoints.yml`
+  - Class: `NetmikoCiscoApic` (inherits `BaseAPIDispatcher`)
+  - Files: `cisco_apic.py`, `cisco_apic_backup_endpoints.yml`
 
 ### Cisco Meraki
 
-- **Overview**: Provides backup and remediation workflows for Cisco Meraki controllers using the official Meraki Dashboard SDK.
+- **Overview**: Provides backup and remediation workflows for Cisco Meraki controllers using the official Meraki Dashboard SDK. For more information click here: [Cisco Meraki](./golden_config_docs/cisco_meraki.md)
 - **Authentication Details**: Uses the Meraki Dashboard SDK (`DashboardAPI`) for authentication. The API key is derived from the Nautobot device's `password` field.
 - **Key Features/Differences**: Leverages an SDK instead of raw HTTP requests. Requires `organizationId` and `networkId` from `ConfigContext`.
 - **Usage Notes**: The Nautobot device `password` field is used as the Meraki API key.
 
 - **File & Class Reference**:
-    - Class: `NetmikoCiscoMeraki` (inherits `BaseAPIDispatcher`)
-    - Files: `cisco_meraki.py`, `cisco_meraki_backup_endpoints.yml`, `cisco_meraki_remediation_endpoints.yml`
+  - Class: `NetmikoCiscoMeraki` (inherits `BaseAPIDispatcher`)
+  - Files: `cisco_meraki.py`, `cisco_meraki_backup_endpoints.yml`, `cisco_meraki_remediation_endpoints.yml`
 
 ### Cisco NXOS
 
-- **Overview**: Extends the default Netmiko dispatcher for NXOS-specific backup workflows. It collects the full running configuration and normalizes SNMP user configuration using TextFSM templates.
+- **Overview**: Extends the default Netmiko dispatcher for NXOS-specific backup workflows. It collects the full running configuration and normalizes SNMP user configuration using TextFSM templates. For more information click here: [Cisco NXOS](./golden_config_docs/cisco_nxos.md)
 - **Authentication Details**: Standard Netmiko authentication via SSH (username/password).
 - **Key Features/Differences**: Special handling for SNMP users, parsing them with TextFSM and rebuilding them with placeholders for secrets to ensure consistent diffs.
 - **Usage Notes**: Requires `cisco_nxos_show_snmp_user.textfsm` template.
 
 - **File & Class Reference**:
-    - Class: `NetmikoCiscoNxos` (inherits `NetmikoDefault`)
-    - Files: `cisco_nxos.py`, `textfsm_templates/cisco_nxos_show_snmp_user.textfsm`
+  - Class: `NetmikoCiscoNxos` (inherits `NetmikoDefault`)
+  - Files: `cisco_nxos.py`, `textfsm_templates/cisco_nxos_show_snmp_user.textfsm`
 
 ### Cisco IOS
 
-- **Overview**: Extends the default Netmiko dispatcher to support IOS-specific backup workflows. It collects the full running configuration and normalizes SNMP user configuration using TextFSM templates.
+- **Overview**: Extends the default Netmiko dispatcher to support IOS-specific backup workflows. It collects the full running configuration and normalizes SNMP user configuration using TextFSM templates. For more information click here: [Cisco IOS](./golden_config_docs/cisco_ios.md)
 - **Authentication Details**: Standard Netmiko authentication via SSH (username/password).
 - **Key Features/Differences**: Special handling for SNMP users, parsing them with TextFSM and rebuilding them with placeholders for secrets to ensure consistent diffs.
 - **Usage Notes**: Requires `cisco_ios_show_snmp_user.textfsm` template.
 
 - **File & Class Reference**:
-    - Class: `NetmikoCiscoIos` (inherits `NetmikoDefault`)
-    - Files: `cisco_ios.py`, `textfsm_templates/cisco_ios_show_snmp_user.textfsm`
+  - Class: `NetmikoCiscoIos` (inherits `NetmikoDefault`)
+  - Files: `cisco_ios.py`, `textfsm_templates/cisco_ios_show_snmp_user.textfsm`
 
 ### Cisco XE
 
-- **Overview**: Extends the default Netmiko dispatcher to support XE-specific backup workflows. It collects the full running configuration and normalizes SNMP user configuration using TextFSM templates.
+- **Overview**: Extends the default Netmiko dispatcher to support XE-specific backup workflows. It collects the full running configuration and normalizes SNMP user configuration using TextFSM templates. For more information click here: [Cisco XE](./golden_config_docs/cisco_xe.md)
 - **Authentication Details**: Standard Netmiko authentication via SSH (username/password).
 - **Key Features/Differences**: Special handling for SNMP users, parsing them with TextFSM and rebuilding them with placeholders for secrets to ensure consistent diffs.
 - **Usage Notes**: Requires `cisco_xe_show_snmp_user.textfsm` template.
 
 - **File & Class Reference**:
-    - Class: `NetmikoCiscoXe` (inherits `NetmikoDefault`)
-    - Files: `cisco_xe.py`, `textfsm_templates/cisco_xe_show_snmp_user.textfsm`
+  - Class: `NetmikoCiscoXe` (inherits `NetmikoDefault`)
+  - Files: `cisco_xe.py`, `textfsm_templates/cisco_xe_show_snmp_user.textfsm`
 
 ### Cisco vManage
 
-- **Overview**: Integrates with Cisco SD-WAN controllers (vManage) for backup and remediation. Authenticates via a two-step session and token exchange.
+- **Overview**: Integrates with Cisco SD-WAN controllers (vManage) for backup and remediation. Authenticates via a two-step session and token exchange. For more information click here: [Cisco vManage](./golden_config_docs/cisco_vmanage.md)
 - **Authentication Details**: Two-step process: 1) `POST` to `j_security_check` for `JSESSIONID` cookie, 2) `GET` to `dataservice/client/token` for `X-XSRF-TOKEN`. Both are used in subsequent requests.
 - **Key Features/Differences**: Complex authentication mechanism involving both a session cookie and an anti-CSRF token.
 - **Usage Notes**: Requires vManage controller URL in Nautobot `ConfigContext` for controller type `'vmanage'`.
 
 - **File & Class Reference**:
-    - Class: `NetmikoCiscoVmanage` (inherits `BaseAPIDispatcher`)
-    - Files: `cisco_vmanage.py`, `cisco_vmanage_backup_endpoints.yml`, `cisco_vmanage_remediation_endpoints.yml`
+  - Class: `NetmikoCiscoVmanage` (inherits `BaseAPIDispatcher`)
+  - Files: `cisco_vmanage.py`, `cisco_vmanage_backup_endpoints.yml`, `cisco_vmanage_remediation_endpoints.yml`
 
 ### Citrix Netscaler
 
-- **Overview**: Provides backup and remediation workflows for Citrix Netscaler devices using their HTTPS API.
+- **Overview**: Provides backup and remediation workflows for Citrix Netscaler devices using their HTTPS API. For more information click here: [Citrix Netscaler](./golden_config_docs/citrix_netscaler.md)
 - **Authentication Details**: Uses `X-NITRO-USER` and `X-NITRO-PASS` headers for credentials.
 - **Key Features/Differences**: Uses a specific SNIP hostname format for URL construction.
 - **Usage Notes**: Authentication requires Nautobot `username` and `password` fields for the device.
 
 - **File & Class Reference**:
-    - Class: `NetmikoCitrixNetscaler` (inherits `BaseAPIDispatcher`)
-    - Files: `citrix_netscaler.py`, `citrix_netscaler_backup_endpoints.yml`, `citrix_netscaler_remediation_endpoints.yml`
+  - Class: `NetmikoCitrixNetscaler` (inherits `BaseAPIDispatcher`)
+  - Files: `citrix_netscaler.py`, `citrix_netscaler_backup_endpoints.yml`, `citrix_netscaler_remediation_endpoints.yml`
 
 ### WTI
 
-- **Overview**: Provides backup and remediation workflows for WTI devices using their HTTPS API.
+- **Overview**: Provides backup and remediation workflows for WTI devices using their HTTPS API. For more information click here: [WTI](./golden_config_docs/wti.md)
 - **Authentication Details**: Uses Basic Authentication (Base64-encoded `username:password`) in the `Authorization` header.
 - **Key Features/Differences**: Basic authentication.
 - **Usage Notes**: Authentication requires Nautobot `username` and `password` fields for the device.
 
 - **File & Class Reference**:
-    - Class: `NetmikoWti` (inherits `BaseAPIDispatcher`)
-    - Files: `wti.py`, `wti_backup_endpoints.yml`, `wti_remediation_endpoints.yml`
+  - Class: `NetmikoWti` (inherits `BaseAPIDispatcher`)
+  - Files: `wti.py`, `wti_backup_endpoints.yml`, `wti_remediation_endpoints.yml`
 
 ## 7. General Usage Notes
 

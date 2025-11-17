@@ -6,7 +6,7 @@ The **WTI Golden Config Dispatcher** provides **backup** and **remediation** wor
 
 - **Transport**: HTTPS (using `requests.Session`)
 - **Authentication**: Basic (Base64-encoded `username:password` in `Authorization` header)
-- **Scope**: Backup and Remediation
+- **Scope**: Backup only
 
 ## Authentication Details
 

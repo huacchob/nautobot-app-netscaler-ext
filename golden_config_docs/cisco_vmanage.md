@@ -6,7 +6,7 @@ The **Cisco vManage Golden Config Dispatcher** integrates with Cisco SD-WAN cont
 
 - **Transport**: HTTPS (using `requests.Session`)
 - **Authentication**: Session cookie (`JSESSIONID`) + Anti-CSRF token (`X-XSRF-TOKEN`)
-- **Scope**: Backup
+- **Scope**: Backup only
 
 ## Authentication Details
 
