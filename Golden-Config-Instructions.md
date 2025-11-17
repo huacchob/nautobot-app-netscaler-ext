@@ -21,9 +21,9 @@ The behavior of each dispatcher is driven by YAML-based API endpoint definitions
 
 Dispatchers are Python classes that:
 
-1.  **Read Endpoint Definitions**: They dynamically load and interpret the YAML endpoint definitions at runtime.
-2.  **Execute API Calls**: Based on the definitions, they execute the corresponding API calls using either raw HTTP requests (via `requests.Session`) or platform-specific SDKs.
-3.  **Normalize Responses**: They aggregate and normalize the responses from the external systems into a consistent format (either a merged dictionary or a concatenated list), making them suitable for Nautobot Golden Config's processing.
+1. **Read Endpoint Definitions**: They dynamically load and interpret the YAML endpoint definitions at runtime.
+2. **Execute API Calls**: Based on the definitions, they execute the corresponding API calls using either raw HTTP requests (via `requests.Session`) or platform-specific SDKs.
+3. **Normalize Responses**: They aggregate and normalize the responses from the external systems into a consistent format (either a merged dictionary or a concatenated list), making them suitable for Nautobot Golden Config's processing.
 
 ### Authentication & Session Management
 
@@ -49,9 +49,9 @@ To effectively utilize Golden Config Dispatchers, certain configurations are req
 
 Configure how Nautobot Golden Config maps platforms to the appropriate dispatcher frameworks.
 
-1.  Navigate to **Admin** -> **Site administration** -> **Configuration**.
-2.  Scroll down to the **Golden Configuration** section.
-3.  You can set a `DEFAULT FRAMEWORK` for all platforms or individually configure `GET CONFIG FRAMEWORK` (for backup) and `MERGE CONFIG FRAMEWORK` (for remediation) for specific platforms. For API dispatchers, you will typically map the platform to the custom dispatcher (e.g., `cisco_meraki` to `cisco_meraki`).
+1. Navigate to **Admin** -> **Site administration** -> **Configuration**.
+2. Scroll down to the **Golden Configuration** section.
+3. You can set a `DEFAULT FRAMEWORK` for all platforms or individually configure `GET CONFIG FRAMEWORK` (for backup) and `MERGE CONFIG FRAMEWORK` (for remediation) for specific platforms. For API dispatchers, you will typically map the platform to the custom dispatcher (e.g., `cisco_meraki` to `cisco_meraki`).
 
 ### Secrets Group Creation
 
@@ -68,8 +68,8 @@ For dispatchers interacting with controller platforms (e.g., Meraki, vManage, AP
 
 Ensure that the `Location Type` used to store your controllers accepts `Controller` objects.
 
-1.  Navigate to **ORGANIZATION** -> **LOCATIONS** -> **Location Types**.
-2.  Edit the relevant `Location Type` and add `dcim | controller` to the `Content types` field.
+1. Navigate to **ORGANIZATION** -> **LOCATIONS** -> **Location Types**.
+2. Edit the relevant `Location Type` and add `dcim | controller` to the `Content types` field.
 
 #### Controller Device Placeholder
 
@@ -82,44 +82,44 @@ It is recommended to create a dedicated "controller device placeholder" in Nauto
 
 Configure `External Integrations` to define connectivity details (remote URL, secrets group) for your controllers.
 
-1.  Navigate to **EXTENSIBILITY** -> **AUTOMATION** -> **External Integrations**.
-2.  Create an `External Integration` linking your controller to its remote URL and the appropriate `Secrets Group`.
-3.  Refer to the [Nautobot External Integrations Documentation](https://docs.nautobot.com/projects/core/en/stable/user-guide/platform-functionality/externalintegration/) for more details.
+1. Navigate to **EXTENSIBILITY** -> **AUTOMATION** -> **External Integrations**.
+2. Create an `External Integration` linking your controller to its remote URL and the appropriate `Secrets Group`.
+3. Refer to the [Nautobot External Integrations Documentation](https://docs.nautobot.com/projects/core/en/stable/user-guide/platform-functionality/externalintegration/) for more details.
 
 #### Controller Creation
 
 Create `Controller` objects in Nautobot, associating them with their respective `External Integrations`, platforms, and controller device placeholders.
 
-1.  Navigate to **DEVICES** -> **CONTROLLERS** -> **Controllers**.
-2.  When creating a controller, ensure it has the correct `External Integration`, `Platform`, and is linked to its `Controller Device Placeholder`.
-3.  Refer to the [Nautobot Controller Documentation](https://docs.nautobot.com/projects/core/en/stable/user-guide/feature-guides/wireless-networks-and-controllers/#controllers) for detailed instructions.
+1. Navigate to **DEVICES** -> **CONTROLLERS** -> **Controllers**.
+2. When creating a controller, ensure it has the correct `External Integration`, `Platform`, and is linked to its `Controller Device Placeholder`.
+3. Refer to the [Nautobot Controller Documentation](https://docs.nautobot.com/projects/core/en/stable/user-guide/feature-guides/wireless-networks-and-controllers/#controllers) for detailed instructions.
 
 #### Updating Golden Config Settings to Disable Ping Tests
 
 For controller placeholder devices that may not have a pingable IP address (e.g., cloud-managed controllers), it's crucial to disable Golden Config's default ping test.
 
-1.  Navigate to **GOLDEN CONFIG** -> **SETUP** -> **Golden Config Settings**.
-2.  Create a new `Golden Config Settings` object specifically for your controller platforms.
-3.  Use a `Dynamic Group` to limit these settings to only the relevant controller devices.
-4.  Adjust the `weight` of this setting to ensure it takes precedence for controller devices.
-5.  **Uncheck** the `Backup Test` box to disable the ping test for devices covered by these settings.
+1. Navigate to **GOLDEN CONFIG** -> **SETUP** -> **Golden Config Settings**.
+2. Create a new `Golden Config Settings` object specifically for your controller platforms.
+3. Use a `Dynamic Group` to limit these settings to only the relevant controller devices.
+4. Adjust the `weight` of this setting to ensure it takes precedence for controller devices.
+5. **Uncheck** the `Backup Test` box to disable the ping test for devices covered by these settings.
 
 ## 4. Backup Workflow
 
 The backup workflow is designed to retrieve the current configuration or state from a network device or controller.
 
-### Purpose
+### Backup Workflow Purpose
 
 To collect configuration data from the target system and store it within Nautobot for compliance, diffing, and historical tracking.
 
 ### Processing Steps
 
-1.  **Resolve Endpoint Definitions**: The dispatcher loads the relevant backup endpoint definitions from the `<platform_name>_backup_endpoints.yml` file.
-2.  **Map Parameters**: Required parameters for the API call are mapped from the Nautobot `Device`'s `ConfigContext` or other relevant attributes.
-3.  **Execute API Call**: The dispatcher executes the API call (HTTP request or SDK callable) as defined in the endpoint.
-4.  **Extract Data with JMESPath**: The raw API response is processed using the specified JMESPath expression to extract and filter only the necessary configuration data.
-5.  **Aggregate Results**: If multiple endpoints are defined for a feature, their results are aggregated. Dictionary responses are merged, and list responses are concatenated.
-6.  **Return Structured Data**: The aggregated and normalized data is returned to the Golden Config job.
+1. **Resolve Endpoint Definitions**: The dispatcher loads the relevant backup endpoint definitions from the `<platform_name>_backup_endpoints.yml` file.
+2. **Map Parameters**: Required parameters for the API call are mapped from the Nautobot `Device`'s `ConfigContext` or other relevant attributes.
+3. **Execute API Call**: The dispatcher executes the API call (HTTP request or SDK callable) as defined in the endpoint.
+4. **Extract Data with JMESPath**: The raw API response is processed using the specified JMESPath expression to extract and filter only the necessary configuration data.
+5. **Aggregate Results**: If multiple endpoints are defined for a feature, their results are aggregated. Dictionary responses are merged, and list responses are concatenated.
+6. **Return Structured Data**: The aggregated and normalized data is returned to the Golden Config job.
 
 ### Example Backup Endpoint Definition
 
@@ -139,16 +139,16 @@ backup_endpoints:
 
 The remediation workflow is designed to apply configuration changes to a network device or controller to bring its state into compliance with the intended configuration.
 
-### Purpose
+### Remediation Workflow Purpose
 
 To automatically generate and apply configuration payloads to rectify deviations between the actual and intended device configurations.
 
 ### Processing Steps
 
-1.  **Resolve Endpoint Definitions**: The dispatcher loads the relevant remediation endpoint definitions from the `<platform_name>_remediation_endpoints.yml` file.
-2.  **Prepare Payloads**: For each endpoint, a payload is constructed based on the desired configuration changes. `non_optional` parameters defined in the YAML are injected into this payload from the `kwargs` provided to the dispatcher.
-3.  **Execute API Call**: The dispatcher executes the API call (HTTP request or SDK callable) with the prepared payload.
-4.  **Collect Responses**: The responses from each remediation API call are collected into an aggregated list.
+1. **Resolve Endpoint Definitions**: The dispatcher loads the relevant remediation endpoint definitions from the `<platform_name>_remediation_endpoints.yml` file.
+2. **Prepare Payloads**: For each endpoint, a payload is constructed based on the desired configuration changes. `non_optional` parameters defined in the YAML are injected into this payload from the `kwargs` provided to the dispatcher.
+3. **Execute API Call**: The dispatcher executes the API call (HTTP request or SDK callable) with the prepared payload.
+4. **Collect Responses**: The responses from each remediation API call are collected into an aggregated list.
 
 ### Example Remediation Endpoint Definition
 
@@ -206,6 +206,26 @@ This section provides details on each supported platform dispatcher.
 - **File & Class Reference**:
   - Class: `NetmikoCiscoNxos` (inherits `NetmikoDefault`)
   - Files: `cisco_nxos.py`, `textfsm_templates/cisco_nxos_show_snmp_user.textfsm`
+
+### Cisco IOS
+
+- **Overview**: Extends the default Netmiko dispatcher to support IOS-specific backup workflows. It collects the full running configuration and normalizes SNMP user configuration using TextFSM templates.
+- **Authentication Details**: Standard Netmiko authentication via SSH (username/password).
+- **Key Features/Differences**: Special handling for SNMP users, parsing them with TextFSM and rebuilding them with placeholders for secrets to ensure consistent diffs.
+- **Usage Notes**: Requires `cisco_ios_show_snmp_user.textfsm` template.
+- **File & Class Reference**:
+  - Class: `NetmikoCiscoIos` (inherits `NetmikoDefault`)
+  - Files: `cisco_ios.py`, `textfsm_templates/cisco_ios_show_snmp_user.textfsm`
+
+### Cisco XE
+
+- **Overview**: Extends the default Netmiko dispatcher to support XE-specific backup workflows. It collects the full running configuration and normalizes SNMP user configuration using TextFSM templates.
+- **Authentication Details**: Standard Netmiko authentication via SSH (username/password).
+- **Key Features/Differences**: Special handling for SNMP users, parsing them with TextFSM and rebuilding them with placeholders for secrets to ensure consistent diffs.
+- **Usage Notes**: Requires `cisco_xe_show_snmp_user.textfsm` template.
+- **File & Class Reference**:
+  - Class: `NetmikoCiscoXe` (inherits `NetmikoDefault`)
+  - Files: `cisco_xe.py`, `textfsm_templates/cisco_xe_show_snmp_user.textfsm`
 
 ### Cisco vManage
 
