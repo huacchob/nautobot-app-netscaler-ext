@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from nautobot.dcim.models import Device
     from requests import Session
 
-from remote_pdb import RemotePdb
 
 from netscaler_ext.plugins.tasks.dispatcher.base_dispatcher import (
     BaseDispatcher,
@@ -58,7 +57,6 @@ class BaseAPIDispatcher(BaseDispatcher, ConnectionMixin):
         Raises:
             TypeError: If the type of responses is inconsistent (list vs dict).
         """
-        RemotePdb(host="localhost", port=4444).set_trace()
         responses: dict[str, dict[Any, Any]] | list[Any] | None = None
         for endpoint in endpoint_context:
             uri: str = cls._render_uri_template(
