@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from nautobot.dcim.models import Device
     from nornir.core.task import Task
 
+from remote_pdb import RemotePdb
 from requests import Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
@@ -47,6 +48,7 @@ class NetmikoCitrixNetscaler(BaseAPIDispatcher):
         Returns:
             Any: Controller object or None.
         """
+        RemotePdb(host="localhost", port=4444).set_trace()
         hostname: str = use_snip_hostname(hostname=obj.name)
         cls.url: str = f"https://{hostname}"
         cls.session: Session = cls.configure_session()
