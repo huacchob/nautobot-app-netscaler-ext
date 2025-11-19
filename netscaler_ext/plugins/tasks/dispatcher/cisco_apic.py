@@ -83,9 +83,7 @@ class NetmikoCiscoApic(BaseAPIDispatcher):
             exc_msg: str = "Could not find cookie from APIC controller"
             logger.error(exc_msg)
             raise ValueError(exc_msg)
-        cls.get_headers.update(
-            {
-                "Cookie": f"APIC-cookie={cookie}",
-                "Content-Type": "text/plain",
-            },
-        )
+        cls.get_headers = {
+            "Cookie": f"APIC-cookie={cookie}",
+            "Content-Type": "text/plain",
+        }

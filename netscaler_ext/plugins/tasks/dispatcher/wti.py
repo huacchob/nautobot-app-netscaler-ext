@@ -40,9 +40,7 @@ class NetmikoWti(BaseAPIDispatcher):
             username=task.host.username,
             password=task.host.password,
         )
-        cls.get_headers.update(
-            {
-                "Authorization": encoded_creds,
-                "Content-Type": "application/json",
-            },
-        )
+        cls.get_headers = {
+            "Authorization": encoded_creds,
+            "Content-Type": "application/json",
+        }

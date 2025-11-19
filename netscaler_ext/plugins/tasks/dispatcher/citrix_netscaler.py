@@ -48,16 +48,13 @@ class NetmikoCitrixNetscaler(BaseAPIDispatcher):
         Returns:
             Any: Controller object or None.
         """
-        RemotePdb(host="localhost", port=4444).set_trace()
         hostname: str = use_snip_hostname(hostname=obj.name)
         cls.url: str = f"https://{hostname}"
         cls.session: Session = cls.configure_session()
         username: str = task.host.username
         password: str = task.host.password
-        cls.get_headers.update(
-            {
-                "X-NITRO-USER": username,
-                "X-NITRO-PASS": password,
-                "Content-Type": "application/json",
-            },
-        )
+        cls.get_headers = {
+            "X-NITRO-USER": username,
+            "X-NITRO-PASS": password,
+            "Content-Type": "application/json",
+        }

@@ -89,10 +89,8 @@ class NetmikoCiscoVmanage(BaseAPIDispatcher):
             exc_msg: str = "Could not generate vManage XSRF token."
             logger.error(exc_msg)
             raise ValueError(exc_msg)
-        cls.get_headers.update(
-            {
-                "Cookie": j_session_id,
-                "Content-Type": "application/json",
-                "X-XSRF-TOKEN": str(token_resp),
-            },
-        )
+        cls.get_headers = {
+            "Cookie": j_session_id,
+            "Content-Type": "application/json",
+            "X-XSRF-TOKEN": str(token_resp),
+        }
