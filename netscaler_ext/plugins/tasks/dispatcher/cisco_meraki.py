@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from nornir.core.task import Task
 
 from meraki import DashboardAPI
-from remote_pdb import RemotePdb
 
 from netscaler_ext.plugins.tasks.dispatcher.base_dispatcher import (
     BaseDispatcher,
@@ -311,7 +310,6 @@ class NetmikoCiscoMeraki(BaseDispatcher):
         Returns:
             list[dict[str, Any]]: List of API responses.
         """
-        RemotePdb(host="localhost", port=4444).set_trace()
         aggregated_results: list[Any] = []
         for api_context in endpoint_context:
             method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
