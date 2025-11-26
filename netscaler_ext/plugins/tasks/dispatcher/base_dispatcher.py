@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
-from remote_pdb import RemotePdb
 
 from netscaler_ext.utils.helper import render_jinja_template
 
@@ -252,7 +251,7 @@ class BaseDispatcher(NetmikoDefault, ABC):
         Raises:
             ValueError: If controller endpoints cannot be found in the config context.
         """
-        RemotePdb(host="localhost", port=4444).set_trace()
+        # RemotePdb(host="localhost", port=4444).set_trace()
         if isinstance(config, str):
             config: dict[Any, Any] = json.loads(config)
         logger.info(
@@ -297,6 +296,7 @@ class BaseDispatcher(NetmikoDefault, ABC):
                         logger=logger,
                         endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
                         payload=config[remediation_endpoint],
+                        device_obj=obj,
                         **controller_dict,
                     ),
                 )
