@@ -9,9 +9,7 @@ if TYPE_CHECKING:
 
     from nautobot.dcim.models import Device
     from nornir.core.task import Task
-
-from remote_pdb import RemotePdb
-from requests import Session
+    from requests import Session
 
 from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
     BaseAPIDispatcher,
