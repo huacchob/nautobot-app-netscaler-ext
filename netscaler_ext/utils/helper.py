@@ -5,7 +5,8 @@ from __future__ import annotations
 from base64 import b64encode
 from typing import TYPE_CHECKING, Any
 
-import jdiff
+# import jdiff
+import jmespath
 from jinja2 import exceptions as jinja_errors
 from nautobot.apps.choices import (
     SecretsGroupAccessTypeChoices,
@@ -228,52 +229,91 @@ def resolve_jmespath(
     Returns:
         dict[Any, Any] | list[dict[str, Any]]: Resolved jmespath data fields.
     """
-    if isinstance(jmespath_values, str):
-        try:
-            j_value = jdiff.extract_data_from_json(
-                path=jmespath_values,
-                data=api_response,
-            )
-            return j_value
-        except TypeError as exc:
-            if "JMSPath returned 'None'." in str(exc):
-                return []
-            logger.error(f"Error resolving jmespath: {exc}")
-            return {}
-        except ValueError:
-            logger.error("ValueError resolving jmespath")
-            return {}
-
     data_fields: dict[str, Any] = {}
 
     for key, value in jmespath_values.items():
-        try:
-            j_value: Any = jdiff.extract_data_from_json(
-                path=value,
-                data=api_response,
-            )
-        except TypeError as exc:
-            # JSON key returns a None value, and raising a TypeError when
-            # `null` is a valid value for that key
-            if "JMSPath returned 'None'." in str(exc):
-                j_value = None
-            else:
-                logger.error(f"Error resolving jmespath for key {key}: {exc}")
-                return {}
-        except ValueError:
-            logger.error(f"ValueError resolving jmespath for key {key}")
-            return {}
-        data_fields.update({key: j_value})
-    lengths: list[int] = [len(v) for v in data_fields.values() if isinstance(v, list)]
+        j_value: Any = jmespath.search(
+            expression=value,
+            data=api_response,
+        )
+        if j_value:
+            data_fields.update({key: j_value})
+    if not data_fields:
+        logger.warning("No data fields resolved from jmespath")
+        return data_fields
+    lengths = [len(v) for v in data_fields.values() if isinstance(v, list)]
     if lengths == [1]:
         return data_fields
     if len(lengths) != len(data_fields.values()):
         return data_fields
     if len(set(lengths)) != 1:
         return data_fields
-    keys: list[str] = list(data_fields.keys())
+    keys = list(data_fields.keys())
     values = zip(*data_fields.values())
     return [dict(zip(keys, v)) for v in values]
+
+
+# def resolve_jmespath(
+#     jmespath_values: dict[str, str],
+#     api_response: Any,
+#     logger: Logger,
+# ) -> dict[Any, Any] | list[dict[str, Any]]:
+#     """Resolve jmespath.
+
+#     Args:
+#         jmespath_values (dict[str, str]): Jmespath dictionary.
+#         api_response (Any): API response.
+#         logger (Logger): Logger object.
+
+#     Returns:
+#         dict[Any, Any] | list[dict[str, Any]]: Resolved jmespath data fields.
+#     """
+#     if isinstance(jmespath_values, str):
+#         try:
+#             j_value = jdiff.extract_data_from_json(
+#                 path=jmespath_values,
+#                 data=api_response,
+#             )
+#             return j_value
+#         except TypeError as exc:
+#             if "JMSPath returned 'None'." in str(exc):
+#                 return []
+#             logger.error(f"Error resolving jmespath: {exc}")
+#             return {}
+#         except ValueError:
+#             logger.error("ValueError resolving jmespath")
+#             return {}
+
+#     data_fields: dict[str, Any] = {}
+
+#     for key, value in jmespath_values.items():
+#         try:
+#             j_value: Any = jdiff.extract_data_from_json(
+#                 path=value,
+#                 data=api_response,
+#             )
+#         except TypeError as exc:
+#             # JSON key returns a None value, and raising a TypeError when
+#             # `null` is a valid value for that key
+#             if "JMSPath returned 'None'." in str(exc):
+#                 j_value = None
+#             else:
+#                 logger.error(f"Error resolving jmespath for key {key}: {exc}")
+#                 return {}
+#         except ValueError:
+#             logger.error(f"ValueError resolving jmespath for key {key}")
+#             return {}
+#         data_fields.update({key: j_value})
+#     lengths: list[int] = [len(v) for v in data_fields.values() if isinstance(v, list)]
+#     if lengths == [1]:
+#         return data_fields
+#     if len(lengths) != len(data_fields.values()):
+#         return data_fields
+#     if len(set(lengths)) != 1:
+#         return data_fields
+#     keys: list[str] = list(data_fields.keys())
+#     values = zip(*data_fields.values())
+#     return [dict(zip(keys, v)) for v in values]
 
 
 def resolve_query(api_endpoint: str, query: list[str]) -> str:
