@@ -74,8 +74,6 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         Returns:
             dict[str, Any]: Filtered config.
         """
-        if "snmp" in feature_name:
-            RemotePdb(host="localhost", port=4444).set_trace()
         if not config_context:
             return {}
         all_optional_arguments: list[str] = []
@@ -376,6 +374,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
             config=self.intended_config,
             config_context=config_context.get(f"{self.feature_name}_remediation"),
         )
+        RemotePdb(host="localhost", port=4444).set_trace()
         actual: Union[list[Any], dict[Any, Any]] = self._filter_allowed_params(
             feature_name=self.feature_name,
             config=self.backup_config,
