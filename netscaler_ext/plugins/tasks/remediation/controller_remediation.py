@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
 
 from django.core.exceptions import ValidationError
-from remote_pdb import RemotePdb
 
 # pylint: disable=too-many-arguments, too-many-positional-arguments
 
@@ -180,13 +179,13 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 stack.append(
                     (
                         path + (DictKey(key=key),),
-                        actual[key],
+                        actual.get(key),
                         value,
                     ),
                 )
                 self._dict_config(
                     intended=value,
-                    actual=actual[key],
+                    actual=actual.get(key),
                     diff=diff,
                     path=path + (DictKey(key=key),),
                     stack=stack,
@@ -195,13 +194,13 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 stack.append(
                     (
                         path + (DictKey(key=key),),
-                        actual[key],
+                        actual.get(key),
                         value,
                     ),
                 )
                 self._list_config(
                     intended=value,
-                    actual=actual[key],
+                    actual=actual.get(key),
                     diff=diff,
                     path=path + (DictKey(key=key),),
                     stack=stack,
@@ -216,7 +215,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 else:
                     self._str_int_float_config(
                         intended=value,
-                        actual=actual[key],
+                        actual=actual.get(key),
                         diff=diff,
                         path=path + (DictKey(key=key),),
                     )
@@ -374,7 +373,6 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
             config=self.intended_config,
             config_context=config_context.get(f"{self.feature_name}_remediation"),
         )
-        RemotePdb(host="localhost", port=4444).set_trace()
         actual: Union[list[Any], dict[Any, Any]] = self._filter_allowed_params(
             feature_name=self.feature_name,
             config=self.backup_config,
