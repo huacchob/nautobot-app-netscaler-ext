@@ -246,13 +246,16 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                     value=intended_item,
                 )
                 continue
-            actual_item = actual[index]
+            try:
+                actual_item = actual[index]
+            except IndexError:
+                actual_item = None
 
             if isinstance(intended_item, dict):
                 stack.append((path + (index,), actual_item, intended_item))
                 self._dict_config(
                     intended=intended_item,
-                    actual=actual_item,
+                    actual=actual_item if isinstance(actual_item, dict) else {},
                     diff=diff,
                     path=path + (index,),
                     stack=stack,
@@ -261,7 +264,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 stack.append((path + (index,), actual_item, intended_item))
                 self._list_config(
                     intended=intended_item,
-                    actual=actual_item,
+                    actual=actual_item if isinstance(actual_item, list) else [],
                     diff=diff,
                     path=path + (index,),
                     stack=stack,
@@ -269,7 +272,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
             else:
                 self._str_int_float_config(
                     intended=intended_item,
-                    actual=actual_item,
+                    actual=actual_item if isinstance(actual_item, (str, int, float, bool)) else "",
                     diff=diff,
                     path=path + (index,),
                 )
