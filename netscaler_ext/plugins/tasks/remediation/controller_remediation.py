@@ -179,13 +179,13 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 stack.append(
                     (
                         path + (DictKey(key=key),),
-                        actual.get(key),
+                        actual.get(key, {}),
                         value,
                     ),
                 )
                 self._dict_config(
                     intended=value,
-                    actual=actual.get(key),
+                    actual=actual.get(key, {}),
                     diff=diff,
                     path=path + (DictKey(key=key),),
                     stack=stack,
@@ -194,13 +194,13 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 stack.append(
                     (
                         path + (DictKey(key=key),),
-                        actual.get(key),
+                        actual.get(key, []),
                         value,
                     ),
                 )
                 self._list_config(
                     intended=value,
-                    actual=actual.get(key),
+                    actual=actual.get(key, []),
                     diff=diff,
                     path=path + (DictKey(key=key),),
                     stack=stack,
@@ -215,7 +215,7 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
                 else:
                     self._str_int_float_config(
                         intended=value,
-                        actual=actual.get(key),
+                        actual=actual.get(key, ""),
                         diff=diff,
                         path=path + (DictKey(key=key),),
                     )
