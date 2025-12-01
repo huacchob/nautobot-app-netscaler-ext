@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
 
 from django.core.exceptions import ValidationError
+from remote_pdb import RemotePdb
 
 # pylint: disable=too-many-arguments, too-many-positional-arguments
 
@@ -73,6 +74,8 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         Returns:
             dict[str, Any]: Filtered config.
         """
+        if "snmp" in feature_name:
+            RemotePdb(host="localhost", port=4444).set_trace()
         if not config_context:
             return {}
         all_optional_arguments: list[str] = []
