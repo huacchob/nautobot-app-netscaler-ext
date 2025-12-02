@@ -367,6 +367,8 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         """
         config_context: dict[str, Any] = self.compliance_obj.device.get_config_context()
         if config_context.get("remediate_full_intended", False):
+            if isinstance(self.intended_config, str):
+                self.intended_config: dict[Any, Any] = json.loads(self.intended_config)
             return json.dumps(
                 obj=self.intended_config,
                 indent=4,
