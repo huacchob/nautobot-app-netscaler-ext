@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from nautobot_golden_config.models import ConfigCompliance
 
 from django.core.exceptions import ValidationError
-from remote_pdb import RemotePdb
 
 # pylint: disable=too-many-arguments, too-many-positional-arguments
 
@@ -366,7 +365,6 @@ class JsonControllerRemediation(BaseControllerRemediation):  # pylint: disable=t
         Returns:
             str: Remediation config.
         """
-        RemotePdb(host="localhost", port=4444).set_trace()
         config_context: dict[str, Any] = self.compliance_obj.device.get_config_context()
         if config_context.get("remediate_full_intended", False):
             if isinstance(self.intended_config, str):
