@@ -331,6 +331,8 @@ class ApiBaseDispatcher(DispatcherMixin, ConnectionMixin, ABC):
             if isinstance(payload, dict):
                 payload_copy = payload.copy()
                 for param in req_params:
+                    if not kwargs:
+                        continue
                     if not kwargs.get(param):
                         logger.error(
                             "resolve_endpoint method needs '%s' in kwargs",
