@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin
+from remote_pdb import RemotePdb
 
 from netscaler_ext.utils.base_connection import ConnectionMixin
 from netscaler_ext.utils.helper import (
@@ -338,6 +339,7 @@ class ApiBaseDispatcher(DispatcherMixin, ConnectionMixin, ABC):
                         )
                     else:
                         payload_copy.update({param: kwargs[param]})
+                RemotePdb(host="localhost", port=4444).set_trace()
                 response: Any = cls.return_response_content(
                     session=cls.session,
                     method=endpoint["method"],
