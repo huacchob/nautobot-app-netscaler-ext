@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin
-from remote_pdb import RemotePdb
 
 from netscaler_ext.utils.base_connection import ConnectionMixin
 from netscaler_ext.utils.helper import (
@@ -329,7 +328,6 @@ class ApiBaseDispatcher(DispatcherMixin, ConnectionMixin, ABC):
                 if "parameters" in endpoint and "non_optional" in endpoint["parameters"]
                 else []
             )
-            RemotePdb(host="localhost", port=4444).set_trace()
             if isinstance(payload, dict):
                 payload_copy = payload.copy()
                 for param in req_params:
@@ -338,7 +336,7 @@ class ApiBaseDispatcher(DispatcherMixin, ConnectionMixin, ABC):
                             "resolve_endpoint method needs '%s' in kwargs",
                             param,
                         )
-                    else:
+                    elif kwargs.get(param):
                         payload_copy.update({param: kwargs[param]})
                 response: Any = cls.return_response_content(
                     session=cls.session,
