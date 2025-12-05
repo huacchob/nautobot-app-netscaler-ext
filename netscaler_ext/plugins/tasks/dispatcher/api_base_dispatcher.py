@@ -329,6 +329,7 @@ class ApiBaseDispatcher(DispatcherMixin, ConnectionMixin, ABC):
                 if "parameters" in endpoint and "non_optional" in endpoint["parameters"]
                 else []
             )
+            RemotePdb(host="localhost", port=4444).set_trace()
             if isinstance(payload, dict):
                 payload_copy = payload.copy()
                 for param in req_params:
@@ -339,7 +340,6 @@ class ApiBaseDispatcher(DispatcherMixin, ConnectionMixin, ABC):
                         )
                     else:
                         payload_copy.update({param: kwargs[param]})
-                RemotePdb(host="localhost", port=4444).set_trace()
                 response: Any = cls.return_response_content(
                     session=cls.session,
                     method=endpoint["method"],
