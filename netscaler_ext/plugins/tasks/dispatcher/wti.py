@@ -11,15 +11,15 @@ if TYPE_CHECKING:
     from nornir.core.task import Task
     from requests import Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
-    BaseAPIDispatcher,
+from netscaler_ext.plugins.tasks.dispatcher.api_base_dispatcher import (
+    ApiBaseDispatcher,
 )
 from netscaler_ext.utils.helper import (
     base_64_encode_credentials,
 )
 
 
-class NetmikoWti(BaseAPIDispatcher):
+class NetmikoWti(ApiBaseDispatcher):
     """APIC Controller Dispatcher class."""
 
     @classmethod

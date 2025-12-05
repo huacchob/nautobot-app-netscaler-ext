@@ -11,8 +11,8 @@ if TYPE_CHECKING:
     from nornir.core.task import Task
     from requests import Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
-    BaseAPIDispatcher,
+from netscaler_ext.plugins.tasks.dispatcher.api_base_dispatcher import (
+    ApiBaseDispatcher,
 )
 
 
@@ -31,7 +31,7 @@ def use_snip_hostname(hostname: str) -> str:
     return hostname
 
 
-class NetmikoCitrixNetscaler(BaseAPIDispatcher):
+class NetmikoCitrixNetscaler(ApiBaseDispatcher):
     """Netscaler Controller Dispatcher class."""
 
     @classmethod

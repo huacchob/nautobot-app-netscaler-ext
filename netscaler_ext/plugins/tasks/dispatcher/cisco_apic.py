@@ -13,8 +13,8 @@ if TYPE_CHECKING:
     from requests import Session
 
 
-from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
-    BaseAPIDispatcher,
+from netscaler_ext.plugins.tasks.dispatcher.api_base_dispatcher import (
+    ApiBaseDispatcher,
 )
 from netscaler_ext.utils.helper import (
     format_base_url_with_endpoint,
@@ -22,7 +22,7 @@ from netscaler_ext.utils.helper import (
 )
 
 
-class NetmikoCiscoApic(BaseAPIDispatcher):
+class NetmikoCiscoApic(ApiBaseDispatcher):
     """APIC Controller Dispatcher class."""
 
     controller_type: str = "apic"

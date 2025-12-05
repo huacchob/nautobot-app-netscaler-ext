@@ -11,8 +11,8 @@ if TYPE_CHECKING:
     from nornir.core.task import Task
     from requests import Response, Session
 
-from netscaler_ext.plugins.tasks.dispatcher.base_api_dispatcher import (
-    BaseAPIDispatcher,
+from netscaler_ext.plugins.tasks.dispatcher.api_base_dispatcher import (
+    ApiBaseDispatcher,
 )
 from netscaler_ext.utils.helper import (
     format_base_url_with_endpoint,
@@ -20,7 +20,7 @@ from netscaler_ext.utils.helper import (
 )
 
 
-class NetmikoCiscoVmanage(BaseAPIDispatcher):
+class NetmikoCiscoVmanage(ApiBaseDispatcher):
     """Vmanage Controller Dispatcher class."""
 
     controller_type: str = "vmanage"

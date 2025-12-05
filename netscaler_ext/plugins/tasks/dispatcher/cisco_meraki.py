@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
 from meraki import DashboardAPI
 
-from netscaler_ext.plugins.tasks.dispatcher.base_dispatcher import (
-    BaseDispatcher,
+from netscaler_ext.plugins.tasks.dispatcher.api_base_dispatcher import (
+    ApiBaseDispatcher,
 )
 from netscaler_ext.utils.helper import (
     add_api_path_to_url,
@@ -115,7 +115,7 @@ def _send_remediation_call(
     aggregated_results.append(response)
 
 
-class NetmikoCiscoMeraki(BaseDispatcher):
+class NetmikoCiscoMeraki(ApiBaseDispatcher):
     """Meraki Controller Dispatcher class."""
 
     controller_type = "meraki"
