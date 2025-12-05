@@ -76,11 +76,13 @@ class NetmikoWti(ApiBaseDispatcher):
         """
         with session as ses:
             try:
+                if method == "PUT":
+                    body = json.dumps(body)
                 response: Optional[requests.Response] = ses.request(
                     method=method,
                     url=url,
                     headers=headers,
-                    data=json.dumps(body),
+                    data=body,
                     timeout=(50.0, 100.0),
                     verify=verify,
                 )
