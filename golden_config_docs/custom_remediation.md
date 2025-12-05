@@ -34,7 +34,7 @@ The custom remediation process involves several key steps to accurately identify
 
   ```python
   from nautobot_golden_config.models import ConfigCompliance
-  from netscaler_ext.plugins.tasks.remediation.controller_remediation import controller_remediation
+  from custom_dispatchers.plugins.tasks.remediation.controller_remediation import controller_remediation
 
   # Assuming compliance_obj is an instance of ConfigCompliance
   compliance_obj = ConfigCompliance.objects.get(id="<some-compliance-id>")
