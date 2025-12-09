@@ -362,6 +362,8 @@ class ApiBaseDispatcher(DispatcherMixin, ConnectionMixin, ABC):
                         continue
                     item_copy = item.copy()
                     for param in req_params:
+                        if not kwargs:
+                            continue
                         if not kwargs.get(param):
                             logger.error(
                                 "resolve_endpoint method needs '%s' in kwargs",
