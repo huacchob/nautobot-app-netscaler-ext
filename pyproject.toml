@@ -26,11 +26,12 @@ include = [
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
 # Used for local development
-nautobot = ">=2.4.10"
-nornir = "^3.5.0"
-nautobot-plugin-nornir = "^2.2.1"
+nautobot = ">=3.0.0,<4.0.0"
+nornir = "^3.3.0"
+nornir-nautobot = ">=4.0.0,<5.0.0"
+nautobot-plugin-nornir = ">=3.0.0,<4.0.0"
 remote-pdb = "^2.1.0"
-nautobot-golden-config = "*"
+nautobot-golden-config = "^3.0.0"
 meraki = "*"
 jmespath = "*"
 jdiff = "<2.0.0"
@@ -64,8 +65,8 @@ griffe = "1.1.1"
 towncrier = ">=23.6.0,<=24.8.0"
 to-json-schema = "*"
 jsonschema = "*"
-nornir = "^3.5.0"
-nornir-nautobot = "^3.3.1"
+nornir = "^3.3.0"
+nornir-nautobot = ">=4.0.0,<5.0.0"
 nornir-netmiko = "^1.0.1"
 
 [tool.poetry.extras]
