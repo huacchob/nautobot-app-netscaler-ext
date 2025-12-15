@@ -40,10 +40,9 @@ def is_truthy(arg):
     val = str(arg).lower()
     if val in ("y", "yes", "t", "true", "on", "1"):
         return True
-    elif val in ("n", "no", "f", "false", "off", "0"):
+    if val in ("n", "no", "f", "false", "off", "0"):
         return False
-    else:
-        raise ValueError(f"Invalid truthy value: `{arg}`")
+    raise ValueError(f"Invalid truthy value: `{arg}`")
 
 
 # Use pyinvoke configuration for default values, see http://docs.pyinvoke.org/en/stable/concepts/configuration.html
@@ -52,7 +51,7 @@ namespace = Collection("netscaler_ext")
 namespace.configure(
     {
         "netscaler_ext": {
-            "nautobot_ver": "2.4.13",
+            "nautobot_ver": "3.0.2",
             "project_name": "netscaler-ext",
             "python_ver": "3.11",
             "local": False,
@@ -160,25 +159,24 @@ def run_command(context, command, service="nautobot", **kwargs):
                 **kwargs.pop("command_env"),
             }
         return context.run(command, **kwargs)
+    # Check if service is running, no need to start another container to run a command
+    docker_compose_status = "ps --services --filter status=running"
+    results = docker_compose(context, docker_compose_status, hide="out")
+
+    command_env_args = ""
+    if "command_env" in kwargs:
+        command_env = kwargs.pop("command_env")
+        for key, value in command_env.items():
+            command_env_args += f' --env="{key}={value}"'
+
+    if service in results.stdout:
+        compose_command = f"exec{command_env_args} {service} {command}"
     else:
-        # Check if service is running, no need to start another container to run a command
-        docker_compose_status = "ps --services --filter status=running"
-        results = docker_compose(context, docker_compose_status, hide="out")
+        compose_command = f"run{command_env_args} --rm --entrypoint='{command}' {service}"
 
-        command_env_args = ""
-        if "command_env" in kwargs:
-            command_env = kwargs.pop("command_env")
-            for key, value in command_env.items():
-                command_env_args += f' --env="{key}={value}"'
+    pty = kwargs.pop("pty", True)
 
-        if service in results.stdout:
-            compose_command = f"exec{command_env_args} {service} {command}"
-        else:
-            compose_command = f"run{command_env_args} --rm --entrypoint='{command}' {service}"
-
-        pty = kwargs.pop("pty", True)
-
-        return docker_compose(context, compose_command, pty=pty, **kwargs)
+    return docker_compose(context, compose_command, pty=pty, **kwargs)
 
 
 # ------------------------------------------------------------------------------
@@ -235,8 +233,7 @@ def _get_docker_nautobot_version(context, nautobot_ver=None, python_ver=None):
     match_version = re.search(r"^Version: (.+)$", pip_nautobot_ver.stdout.strip(), flags=re.MULTILINE)
     if match_version:
         return match_version.group(1)
-    else:
-        raise Exit(f"Nautobot version not found in Docker base image {base_image}.")
+    raise Exit(f"Nautobot version not found in Docker base image {base_image}.")
 
 
 @task(
@@ -474,8 +471,7 @@ def migrate(context):
 
 @task(help={})
 def post_upgrade(context):
-    """
-    Performs Nautobot common post-upgrade operations using a single entrypoint.
+    """Performs Nautobot common post-upgrade operations using a single entrypoint.
 
     This will run the following management commands with default settings, in order:
 
@@ -639,7 +635,7 @@ def backup_db(context, db_name="", output_file="dump.sql", readable=True):
             "--user=root",
             "--password=$MYSQL_ROOT_PASSWORD",
             "--skip-extended-insert" if readable else "",
-            db_name if db_name else "$MYSQL_DATABASE",
+            db_name or "$MYSQL_DATABASE",
         ]
     elif _is_compose_included(context, "postgres"):
         command += [

@@ -18,8 +18,8 @@ class NetscalerExtConfig(NautobotAppConfig):
     description = "Netscaler Ext."
     base_url = "netscaler-ext"
     required_settings = []
-    min_version = "2.4.2"
-    max_version = "2.9999"
+    min_version = "3.0.2"
+    max_version = "3.9999"
     default_settings = {}
     caching_config = {}
     docs_view_name = "plugins:netscaler_ext:docs"
